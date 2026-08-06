@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kasir POS - Warung Nikmat</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Alpine.js CDN -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 h-screen overflow-hidden flex flex-col" x-data="posApp()">
+
+    <!-- Top Navbar -->
+    <header class="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between shrink-0 shadow-sm">
+        <div class="flex items-center space-x-3">
+            <div class="bg-orange-600 text-white p-2 rounded-xl font-bold text-xl flex items-center justify-center shadow-md">
+                🍲
+            </div>
+            <div>
+                <h1 class="font-bold text-lg text-slate-900 leading-tight">Warung Nikmat</h1>
+                <p class="text-xs text-slate-500">Kasir / Transaksi Order</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <div class="text-right hidden sm:block">
+                <p class="text-sm font-semibold text-slate-800" x-text="cashierName"></p>
+                <p class="text-xs text-emerald-600 font-medium">● Kasir Aktif</p>
+            </div>
+            <div class="h-9 w-9 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center font-bold border border-orange-200">
+                WN
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <div class="flex-1 flex overflow-hidden">
+        
+        <!-- Left & Center: Catalog Section -->
+        <main class="flex-1 flex flex-col h-full overflow-hidden p-6">
+            
+            <!-- Category Filter Bar & Search -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 shrink-0">
+                <!-- Categories -->
+                <div class="flex items-center space-x-2 overflow-x-auto pb-2 sm:pb-0">
+                    <template x-for="cat in categories" :key="cat.id">
+                        <button 
+                            @click="selectedCategory = cat.id"
+                            :class="selectedCategory === cat.id ? 'bg-orange-600 text-white shadow-md shadow-orange-600/20' : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'"
+                            class="px-4 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap"
+                            x-text="cat.name">
+                        </button>
+                    </template>
+                </div>
+
+                <!-- Search Input -->
+                <div class="relative w-full sm:w-64">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    </span>
+                    <input 
+                        type="text" 
+                        x-model="searchQuery" 
+                        placeholder="Cari menu makanan..." 
+                        class="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 shadow-sm"
+                    >
+                </div>
+            </div>
+
+            <!-- Product Grid -->
+            <div class="flex-1 overflow-y-auto pr-2">
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <template x-for="product in filteredProducts" :key="product.id">
+                        <div 
+                            @click="addToCart(product)"
+                            class="bg-white rounded-2xl p-3 border border-slate-200 shadow-sm hover:shadow-md hover:border-orange-300 transition-all cursor-pointer flex flex-col justify-between group">
+                            <div>
+                                <div class="relative h-32 w-full rounded-xl overflow-hidden mb-3 bg-slate-100">
+                                    <img :src="product.image" :alt="product.name" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                    <span class="absolute top-2 right-2 bg-white/90 backdrop-blur-sm text-slate-700 text-[10px] font-semibold px-2 py-0.5 rounded-full shadow-xs" x-text="product.categoryName"></span>
+                                </div>
+                                <h3 class="font-semibold text-slate-800 text-sm line-clamp-1 group-hover:text-orange-600 transition-colors" x-text="product.name"></h3>
+                            </div>
+                            <div class="mt-3 flex items-center justify-between">
+                                <span class="font-bold text-orange-600 text-sm" x-text="formatRupiah(product.price)"></span>
+                                <button class="w-8 h-8 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center group-hover:bg-orange-600 group-hover:text-white transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                <!-- Empty State -->
+                <div x-show="filteredProducts.length === 0" class="flex flex-col items-center justify-center h-64 text-slate-400">
+                    <svg class="w-16 h-16 mb-2 stroke-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                    <p class="text-sm font-medium">Menu tidak ditemukan</p>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Right Panel: Cart & Checkout -->
+        <aside class="w-96 bg-white border-l border-slate-200 flex flex-col h-full shadow-sm shrink-0">
+            
+            <!-- Cart Header -->
+            <div class="p-4 border-b border-slate-200 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                    <h2 class="font-bold text-slate-800">Keranjang Belanja</h2>
+                </div>
+                <button @click="clearCart()" x-show="cart.length > 0" class="text-xs text-rose-500 hover:text-rose-700 font-medium">
+                    Kosongkan
+                </button>
+            </div>
+
+            <!-- Cart Items List -->
+            <div class="flex-1 overflow-y-auto p-4 space-y-3">
+                <template x-for="(item, index) in cart" :key="item.id">
+                    <div class="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        <div class="flex-1 pr-3">
+                            <h4 class="font-semibold text-slate-800 text-xs line-clamp-1" x-text="item.name"></h4>
+                            <p class="text-xs text-orange-600 font-medium mt-0.5" x-text="formatRupiah(item.price)"></p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button @click="decrementQty(index)" class="w-6 h-6 rounded-md bg-white border border-slate-200 text-slate-600 flex items-center justify-center hover:bg-slate-100 text-xs font-bold">-</button>
+                            <span class="text-xs font-semibold w-5 text-center" x-text="item.qty"></span>
+                            <button @click="incrementQty(index)" class="w-6 h-6 rounded-md bg-white border border-slate-200 text-slate-600 flex items-center justify-center hover:bg-slate-100 text-xs font-bold">+</button>
+                        </div>
+                    </div>
+                </template>
+                <!-- Empty Cart State -->
+                <div x-show="cart.length === 0" class="flex flex-col items-center justify-center h-full text-slate-400 py-12">
+                    <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-3 text-slate-300">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    </div>
+                    <p class="text-sm font-medium text-slate-600">Keranjang masih kosong</p>
+                    <p class="text-xs text-slate-400 mt-1">Silakan pilih menu di sebelah kiri</p>
+                </div>
+            </div>
+
+            <!-- Cart Summary & Checkout -->
+            <div class="p-4 border-t border-slate-200 bg-white shadow-lg">
+                <div class="space-y-2 mb-4 text-sm">
+                    <div class="flex justify-between text-slate-600">
+                        <span>Subtotal</span>
+                        <span class="font-medium text-slate-800" x-text="formatRupiah(subtotal)"></span>
+                    </div>
+                    <div class="flex justify-between text-slate-600">
+                        <span>Pajak (10%)</span>
+                        <span class="font-medium text-slate-800" x-text="formatRupiah(tax)"></span>
+                    </div>
+                    <div class="flex justify-between text-slate-600">
+                        <span>Diskon</span>
+                        <span class="font-medium text-emerald-600" x-text="'- ' + formatRupiah(discount)"></span>
+                    </div>
+                    <div class="border-t border-slate-100 pt-2 flex justify-between font-bold text-base text-slate-900">
+                        <span>Total Pembayaran</span>
+                        <span class="text-orange-600" x-text="formatRupiah(total)"></span>
+                    </div>
+                </div>
+
+                <button 
+                    @click="checkout()"
+                    :disabled="cart.length === 0"
+                    :class="cart.length === 0 ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-orange-600 text-white hover:bg-orange-700 shadow-lg shadow-orange-600/30'"
+                    class="w-full py-3 rounded-xl font-semibold transition-all flex items-center justify-center space-x-2">
+                    <span>Selesaikan Transaksi (Checkout)</span>
+                </button>
+            </div>
+
+        </aside>
+
+    </div>
+
+    <!-- Checkout Modal Success -->
+    <div x-show="showModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center z-50 p-4" x-cloak>
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl transform transition-all">
+            <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
+                ✓
+            </div>
+            <h3 class="text-xl font-bold text-slate-900 mb-1">Pembayaran Berhasil!</h3>
+            <p class="text-xs text-slate-500 mb-6">Transaksi di Warung Nikmat telah dicatat.</p>
+            <div class="bg-slate-50 rounded-2xl p-4 mb-6 text-left text-xs space-y-2 border border-slate-100">
+                <div class="flex justify-between"><span class="text-slate-500">Total Item:</span><span class="font-semibold" x-text="lastTotalItems + ' item'"></span></div>
+                <div class="flex justify-between"><span class="text-slate-500">Total Bayar:</span><span class="font-semibold text-orange-600" x-text="formatRupiah(lastTotalAmount)"></span></div>
+            </div>
+            <button @click="showModal = false" class="w-full py-3 bg-slate-900 text-white rounded-xl font-semibold text-sm hover:bg-slate-800 transition-colors">
+                Transaksi Baru
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function posApp() {
+            return {
+                cashierName: 'Budi (Kasir 01)',
+                selectedCategory: 'all',
+                searchQuery: '',
+                showModal: false,
+                lastTotalItems: 0,
+                lastTotalAmount: 0,
+                
+                categories: [
+                    { id: 'all', name: 'Semua Menu' },
+                    { id: 'makanan', name: 'Makanan' },
+                    { id: 'minuman', name: 'Minuman' },
+                    { id: 'cemilan', name: 'Cemilan' }
+                ],
+                
+                products: [
+                    { id: 1, name: 'Nasi Goreng Spesial', category: 'makanan', categoryName: 'Makanan', price: 25000, image: 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=500&q=80' },
+                    { id: 2, name: 'Mie Ayam Bakso', category: 'makanan', categoryName: 'Makanan', price: 20000, image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=500&q=80' },
+                    { id: 3, name: 'Ayam Geprek Sambal Matah', category: 'makanan', categoryName: 'Makanan', price: 22000, image: 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=500&q=80' },
+                    { id: 4, name: 'Es Teh Manis', category: 'minuman', categoryName: 'Minuman', price: 5000, image: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=500&q=80' },
+                    { id: 5, name: 'Es Jeruk Peras', category: 'minuman', categoryName: 'Minuman', price: 8000, image: 'https://images.unsplash.com/photo-1613478223719-2ab802602423?auto=format&fit=crop&w=500&q=80' },
+                    { id: 6, name: 'Jus Alpukat', category: 'minuman', categoryName: 'Minuman', price: 15000, image: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=500&q=80' },
+                    { id: 7, name: 'Pisang Goreng Keju', category: 'cemilan', categoryName: 'Cemilan', price: 12000, image: 'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&w=500&q=80' },
+                    { id: 8, name: 'Tahu Crispy', category: 'cemilan', categoryName: 'Cemilan', price: 10000, image: 'https://images.unsplash.com/photo-1541529086526-db283c563270?auto=format&fit=crop&w=500&q=80' }
+                ],
+                
+                cart: [],
+                
+                get filteredProducts() {
+                    return this.products.filter(p => {
+                        const matchesCategory = this.selectedCategory === 'all' || p.category === this.selectedCategory;
+                        const matchesSearch = p.name.toLowerCase().includes(this.searchQuery.toLowerCase());
+                        return matchesCategory && matchesSearch;
+                    });
+                },
+                
+                addToCart(product) {
+                    const existing = this.cart.find(item => item.id === product.id);
+                    if (existing) {
+                        existing.qty++;
+                    } else {
+                        this.cart.push({ ...product, qty: 1 });
+                    }
+                },
+                
+                incrementQty(index) {
+                    this.cart[index].qty++;
+                },
+                
+                decrementQty(index) {
+                    if (this.cart[index].qty > 1) {
+                        this.cart[index].qty--;
+                    } else {
+                        this.cart.splice(index, 1);
+                    }
+                },
+                
+                clearCart() {
+                    this.cart = [];
+                },
+                
+                get subtotal() {
+                    return this.cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+                },
+                
+                get tax() {
+                    return Math.round(this.subtotal * 0.1);
+                },
+                
+                get discount() {
+                    return this.subtotal > 50000 ? 5000 : 0;
+                },
+                
+                get total() {
+                    return this.subtotal + this.tax - this.discount;
+                },
+                
+                checkout() {
+                    if (this.cart.length === 0) return;
+                    this.lastTotalItems = this.cart.reduce((sum, item) => sum + item.ico, 0) || this.cart.reduce((sum, item) => sum + item.qty, 0);
+                    this.lastTotalAmount = this.total;
+                    this.showModal = true;
+                    this.cart = [];
+                },
+                
+                formatRupiah(number) {
+                    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
