@@ -8,24 +8,150 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Alpine.js CDN -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- bwip-js CDN for scannable barcode rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/bwip-js@4/dist/bwip-js.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCfeI-1saBRxZ8W83xhskKq0138-I6UcpE",
+            authDomain: "kasir-zasa.firebaseapp.com",
+            projectId: "kasir-zasa",
+            storageBucket: "kasir-zasa.firebasestorage.app",
+            messagingSenderId: "819408330563",
+            appId: "1:819408330563:web:ec9d288fc55d9bad8199f6"
+        };
+        const fbApp = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+    </script>
     <!-- Google Fonts Inter & Fira Code for Receipt -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
-        .receipt-font { font-family: 'Fira Code', monospace; }
+        .receipt-font { font-family: 'Fira Code', 'Courier New', monospace; }
+        [x-cloak] { display: none !important; }
         /* Custom scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
         @media print {
-            body * { visibility: hidden; }
-            #printable-receipt, #printable-receipt * { visibility: visible; }
-            #printable-receipt { position: absolute; left: 0; top: 0; width: 100%; }
+            @page {
+                margin: 0;
+                size: 58mm 110mm;
+            }
+            html, body { height: auto !important; overflow: hidden !important; margin: 0 !important; padding: 0 !important; }
+            body * { visibility: hidden !important; }
+            #printable-receipt, #printable-receipt * { visibility: visible !important; }
+            #printable-receipt {
+                position: absolute !important;
+                left: 0 !important;
+                top: 0 !important;
+                z-index: 9999 !important;
+                width: 58mm !important;
+                max-width: 58mm !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: white !important;
+                border: none !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                font-family: 'Courier New', 'Consolas', monospace !important;
+                font-size: 10px !important;
+                font-weight: 700 !important;
+                line-height: 1.2 !important;
+                color: black !important;
+                letter-spacing: 0 !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                page-break-after: avoid !important;
+                break-after: avoid !important;
+            }
+            #printable-receipt div { display: block !important; }
         }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800 h-screen overflow-hidden flex flex-col" x-data="posApp()">
+
+    <!-- Login Screen -->
+    <div x-show="!user && user !== undefined" class="h-screen flex items-center justify-center bg-gradient-to-br from-sky-50 via-white to-sky-50">
+        <div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-sm border border-slate-100">
+            <div class="text-center mb-8">
+                <div class="bg-sky-500 text-white p-3 rounded-2xl font-bold text-3xl inline-flex items-center justify-center shadow-lg shadow-sky-500/30 mb-3">🌊</div>
+                <h2 class="font-bold text-xl text-slate-900">Warung Putri Duyung</h2>
+                <p class="text-sm text-slate-500 mt-1">Masuk ke sistem kasir</p>
+            </div>
+            <div class="space-y-4">
+                <template x-if="!showRegister">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Email</label>
+                            <input type="email" x-model="loginEmail" @keydown.enter="login()" placeholder="email@contoh.com" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Password</label>
+                            <input type="password" x-model="loginPassword" @keydown.enter="login()" placeholder="••••••••" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all">
+                        </div>
+                        <div x-show="loginError" x-text="loginError" class="text-rose-500 text-xs text-center bg-rose-50 rounded-lg py-2 px-3 border border-rose-100"></div>
+                        <button @click="login()" :disabled="loginLoading" class="w-full py-3 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-sky-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span x-show="!loginLoading" class="flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+                                Masuk
+                            </span>
+                            <span x-show="loginLoading" class="flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                                Masuk...
+                            </span>
+                        </button>
+                        <p class="text-center text-xs text-slate-500">
+                            Belum punya akun?
+                            <button @click="showRegister = true; loginError = ''" class="text-sky-600 font-semibold hover:underline">Daftar</button>
+                        </p>
+                    </div>
+                </template>
+                <template x-if="showRegister">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Kasir</label>
+                            <input type="text" x-model="registerName" placeholder="Nama Anda" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Email</label>
+                            <input type="email" x-model="loginEmail" placeholder="email@contoh.com" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Password</label>
+                            <input type="password" x-model="loginPassword" @keydown.enter="register()" placeholder="Minimal 6 karakter" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all">
+                        </div>
+                        <div x-show="loginError" x-text="loginError" class="text-rose-500 text-xs text-center bg-rose-50 rounded-lg py-2 px-3 border border-rose-100"></div>
+                        <button @click="register()" :disabled="loginLoading" class="w-full py-3 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-sky-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span x-show="!loginLoading">Buat Akun</span>
+                            <span x-show="loginLoading">Membuat Akun...</span>
+                        </button>
+                        <p class="text-center text-xs text-slate-500">
+                            Sudah punya akun?
+                            <button @click="showRegister = false; loginError = ''" class="text-sky-600 font-semibold hover:underline">Masuk</button>
+                        </p>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading screen while checking auth -->
+    <div x-show="user === undefined" class="h-screen flex items-center justify-center bg-gradient-to-br from-sky-50 via-white to-sky-50">
+        <div class="text-center">
+            <div class="bg-sky-500 text-white p-3 rounded-2xl font-bold text-3xl inline-flex items-center justify-center shadow-lg shadow-sky-500/30 mb-4 animate-pulse">🌊</div>
+            <p class="text-sm text-slate-500 font-medium">Memuat...</p>
+        </div>
+    </div>
+
+    <!-- POS App -->
+    <div x-show="user" x-cloak class="h-screen overflow-hidden flex flex-col">
 
     <!-- Top Navbar -->
     <header class="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between shrink-0 shadow-sm">
@@ -38,7 +164,7 @@
                 <p class="text-xs text-slate-500">Kasir / Transaksi Order</p>
             </div>
         </div>
-        <div class="flex items-center space-x-4">
+        <div class="flex items-center space-x-3">
             <div class="text-right hidden sm:block">
                 <p class="text-sm font-semibold text-slate-800" x-text="cashierName"></p>
                 <p class="text-xs text-emerald-600 font-medium">● Kasir Aktif</p>
@@ -46,6 +172,14 @@
             <div class="h-9 w-9 rounded-full bg-sky-100 text-sky-600 flex items-center justify-center font-bold border border-sky-200">
                 IM
             </div>
+            <button @click="openHistory()" class="flex items-center space-x-1.5 px-3 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-semibold text-xs transition-colors shadow-md shadow-sky-500/20" title="Riwayat Transaksi">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                <span class="hidden sm:inline">Riwayat</span>
+            </button>
+            <button @click="logout()" class="flex items-center space-x-1.5 px-3 py-2 bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-600 rounded-xl font-semibold text-xs transition-colors" title="Keluar">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                <span class="hidden sm:inline">Keluar</span>
+            </button>
         </div>
     </header>
 
@@ -69,22 +203,33 @@
                     </template>
                 </div>
 
-                <!-- Search Input -->
-                <div class="relative w-full sm:w-64">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                    </span>
-                    <input 
-                        type="text" 
-                        x-model="searchQuery" 
-                        placeholder="Cari menu makanan..." 
-                        class="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 shadow-sm"
-                    >
+                <!-- Search Input & Add Product Modal Button -->
+                <div class="flex items-center space-x-2 w-full sm:w-auto">
+                    <div class="relative w-full sm:w-64">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        </span>
+                        <input 
+                            type="text" 
+                            x-model="searchQuery" 
+                            @keydown.enter="handleBarcodeSearch()"
+                            @input="handleBarCodeInput()"
+                            placeholder="Cari menu atau scan barcode..." 
+                            class="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 shadow-sm"
+                        >
+                    </div>
+                    <button @click="showAddProductModal = true" class="bg-sky-50 text-sky-600 hover:bg-sky-500 hover:text-white px-3 py-2 rounded-xl text-xs font-semibold border border-sky-200 transition-all whitespace-nowrap flex items-center space-x-1 shrink-0">
+                        <span>+ Produk</span>
+                    </button>
                 </div>
             </div>
 
             <!-- Product Grid -->
             <div class="flex-1 overflow-y-auto pr-2">
+                <div x-show="databaseError" class="mb-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl px-4 py-3 text-xs font-medium flex items-start gap-2">
+                    <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    <span x-text="databaseError"></span>
+                </div>
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     <template x-for="product in filteredProducts" :key="product.id">
                         <div 
@@ -94,8 +239,25 @@
                                 <div class="relative h-32 w-full rounded-xl overflow-hidden mb-3 bg-slate-100">
                                     <img :src="product.image" :alt="product.name" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                                     <span class="absolute top-2 right-2 bg-white/90 backdrop-blur-sm text-slate-700 text-[10px] font-semibold px-2 py-0.5 rounded-full shadow-xs" x-text="product.categoryName"></span>
+                                    <button @click.stop="openEditProduct(product)" class="absolute top-2 left-2 bg-white/90 backdrop-blur-sm text-slate-700 hover:text-sky-600 p-1.5 rounded-full shadow-xs transition-colors" title="Edit Produk">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                    </button>
                                 </div>
-                                <h3 class="font-semibold text-slate-800 text-sm line-clamp-1 group-hover:text-sky-600 transition-colors" x-text="product.name"></h3>
+                                 <h3 class="font-semibold text-slate-800 text-sm line-clamp-1 group-hover:text-sky-600 transition-colors" x-text="product.name"></h3>
+                                <div class="mt-1.5">
+                                    <template x-if="product.barcode">
+                                        <div class="bg-gradient-to-b from-slate-50 to-white border border-slate-200 rounded-xl px-2 py-1.5 text-center shadow-inner">
+                                            <div x-init="renderBarcode($el, product.barcode)"></div>
+                                            <p class="text-[9px] text-slate-500 font-mono mt-1 text-center tracking-wider truncate" x-text="product.barcode"></p>
+                                        </div>
+                                    </template>
+                                    <template x-if="!product.barcode">
+                                        <button @click.stop="openEditProduct(product)" class="w-full border-2 border-dashed border-slate-200 hover:border-sky-300 rounded-xl py-2.5 flex items-center justify-center gap-1.5 text-slate-400 hover:text-sky-500 transition-colors">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                                            <span class="text-[10px] font-semibold">Isi Barcode</span>
+                                        </button>
+                                    </template>
+                                </div>
                             </div>
                             <div class="mt-3 flex items-center justify-between">
                                 <span class="font-bold text-sky-600 text-sm" x-text="formatRupiah(product.price)"></span>
@@ -211,7 +373,7 @@
 
     <!-- Receipt / Checkout Modal with QR Code -->
     <div x-show="showModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4" x-cloak>
-        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl transform transition-all flex flex-col max-h-[92vh]">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl flex flex-col max-h-[92vh]">
             
             <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
                 <div class="flex items-center space-x-2">
@@ -222,91 +384,93 @@
             </div>
 
             <!-- QR Code Section if QRIS selected -->
-            <div x-show="receiptData.paymentMethod === 'qris'" class="bg-sky-50 border border-sky-200 rounded-2xl p-4 mb-4 text-center space-y-2">
-                <p class="text-xs font-semibold text-sky-800">Scan QRIS untuk Pembayaran</p>
-                <div class="bg-white p-3 rounded-xl inline-block shadow-xs border border-sky-100">
+            <div x-show="receiptData.paymentMethod === 'qris'" class="bg-sky-50 border border-sky-200 rounded-2xl p-3 mb-3 text-center space-y-1.5">
+                <p class="text-[11px] font-semibold text-sky-800">Scan QRIS untuk Pembayaran</p>
+                <div class="bg-white p-2 rounded-xl inline-block shadow-xs border border-sky-100">
                     <!-- SVG QR Code Mockup -->
-                    <svg class="w-32 h-32 mx-auto text-slate-900" viewBox="0 0 24 24" fill="currentColor">
+                    <svg class="w-24 h-24 mx-auto text-slate-900" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M2,2H10V10H2V2M4,4V8H8V4H4M14,2H22V10H14V2M16,4V8H20V4H16M2,14H10V22H2V14M4,16V20H8V16H4M18,14V18H22V14H18M14,18V22H18V18H14M12,2H14V6H12V2M12,8H14V12H12V8M6,12H8V14H6V12M2,12H4V14H2V12M18,12H22V14H18V12M10,12H12V16H10V12M12,16H14V22H12V16M16,10H18V12H16V10M10,6H12V8H10V6Z"/>
                     </svg>
                 </div>
-                <p class="text-[10px] text-sky-700 font-medium">NMID: ID1029384756890 • QRIS Warung Putri Duyung</p>
-                <p class="text-xs font-bold text-sky-900" x-text="'Total: ' + formatRupiah(receiptData.total)"></p>
+                <p class="text-[9px] text-sky-700 font-medium">NMID: ID1029384756890 • Warung Putri Duyung</p>
+                <p class="text-[11px] font-bold text-sky-900" x-text="'Total: ' + formatRupiah(receiptData.total)"></p>
             </div>
 
-            <!-- Printable Receipt Box -->
-            <div id="printable-receipt" class="receipt-font bg-amber-50/50 border border-amber-200/60 rounded-2xl p-4 text-xs text-slate-700 space-y-3 overflow-y-auto flex-1 mb-4 shadow-inner">
-                <div class="text-center space-y-0.5 pb-3 border-b border-dashed border-amber-300">
-                    <h4 class="font-bold text-sm text-slate-900 tracking-wider">WARUNG PUTRI DUYUNG</h4>
-                    <p class="text-[10px] text-slate-500">Jl. Kuliner Nusantara No. 88, Jakarta</p>
-                    <p class="text-[10px] text-slate-500">Telp: 0812-3456-7890</p>
-                </div>
+            <!-- Thermal Receipt 58mm Formatted Box -->
+            <div class="overflow-y-auto flex-1 mb-4 pr-1">
+                <div id="printable-receipt" class="receipt-font bg-amber-50/40 border border-amber-200/60 rounded-xl px-2 py-1 text-[11px] text-slate-800 mx-auto font-semibold" style="width: 58mm; max-width: 100%; line-height: 1.15; font-weight: 600;">
+                    <div class="text-center border-b border-dashed border-amber-300" style="padding-bottom: 1px;">
+                        <h4 class="font-bold text-[11px] text-slate-900 tracking-wider leading-none">WARUNG PUTRI DUYUNG</h4>
+                        <p class="text-[8px] text-slate-700 leading-tight font-semibold">Jl. Kuliner Nusantara No. 88</p>
+                        <p class="text-[8px] text-slate-700 leading-tight font-semibold">Telp: 0812-3456-7890</p>
+                    </div>
 
-                <div class="space-y-1 pb-3 border-b border-dashed border-amber-300 text-[11px]">
-                    <div class="flex justify-between">
-                        <span class="text-slate-500">No. Transaksi:</span>
-                        <span class="font-semibold text-slate-800" x-text="receiptData.trxId"></span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-slate-500">Tanggal:</span>
-                        <span class="font-semibold text-slate-800" x-text="receiptData.date"></span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-slate-500">Metode:</span>
-                        <span class="font-semibold text-sky-600 uppercase" x-text="receiptData.paymentMethod"></span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-slate-500">Kasir:</span>
-                        <span class="font-semibold text-slate-800" x-text="cashierName"></span>
-                    </div>
-                </div>
-
-                <!-- Items -->
-                <div class="space-y-2 pb-3 border-b border-dashed border-amber-300">
-                    <template x-for="item in receiptData.items" :key="item.id">
-                        <div>
-                            <div class="flex justify-between font-medium text-slate-800">
-                                <span x-text="item.name"></span>
-                                <span x-text="formatRupiah(item.price * item.qty)"></span>
-                            </div>
-                            <div class="text-[10px] text-slate-500" x-text="item.qty + ' x ' + formatRupiah(item.price)"></div>
+                    <div class="text-[9px] space-y-0.5 font-semibold border-b border-dashed border-amber-300" style="padding: 1px 0;">
+                        <div class="flex justify-between">
+                            <span class="text-slate-600">No:</span>
+                            <span class="font-bold text-slate-900" x-text="receiptData.trxId"></span>
                         </div>
-                    </template>
-                </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-600">Tgl:</span>
+                            <span class="font-bold text-slate-900" x-text="receiptData.date"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-600">Byr:</span>
+                            <span class="font-bold text-sky-800 uppercase" x-text="receiptData.paymentMethod"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-600">Kasir:</span>
+                            <span class="font-bold text-slate-900" x-text="cashierName"></span>
+                        </div>
+                    </div>
 
-                <!-- Totals -->
-                <div class="space-y-1 pt-1 text-[11px]">
-                    <div class="flex justify-between text-slate-600">
-                        <span>Subtotal</span>
-                        <span x-text="formatRupiah(receiptData.subtotal)"></span>
+                    <!-- Items -->
+                    <div class="font-semibold border-b border-dashed border-amber-300 space-y-0.5" style="padding: 1px 0;">
+                        <template x-for="item in receiptData.items" :key="item.id">
+                            <div>
+                                <div class="flex justify-between font-bold text-slate-900 text-[9px] leading-none">
+                                    <span x-text="item.name" class="truncate pr-1"></span>
+                                    <span x-text="formatRupiah(item.price * item.qty)" class="shrink-0"></span>
+                                </div>
+                                <div class="text-[8px] text-slate-700 leading-tight font-semibold" x-text="item.qty + ' x ' + formatRupiah(item.price)"></div>
+                            </div>
+                        </template>
                     </div>
-                    <div class="flex justify-between text-slate-600">
-                        <span>Pajak (10%)</span>
-                        <span x-text="formatRupiah(receiptData.tax)"></span>
-                    </div>
-                    <div class="flex justify-between text-slate-600">
-                        <span>Diskon</span>
-                        <span class="text-emerald-600" x-text="'- ' + formatRupiah(receiptData.discount)"></span>
-                    </div>
-                    <div class="border-t border-dashed border-amber-300 pt-2 flex justify-between font-bold text-sm text-slate-900">
-                        <span>TOTAL</span>
-                        <span class="text-sky-600" x-text="formatRupiah(receiptData.total)"></span>
-                    </div>
-                </div>
 
-                <div class="text-center pt-3 border-t border-dashed border-amber-300 text-[10px] text-slate-500 space-y-0.5">
-                    <p class="font-medium text-slate-700">*** TERIMA KASIH ***</p>
-                    <p>Makanan nikmat, hati pun senang!</p>
+                    <!-- Totals -->
+                    <div class="text-[9px] space-y-0.5 font-semibold" style="padding: 1px 0;">
+                        <div class="flex justify-between text-slate-700">
+                            <span>Subtotal</span>
+                            <span class="font-bold" x-text="formatRupiah(receiptData.subtotal)"></span>
+                        </div>
+                        <div class="flex justify-between text-slate-700">
+                            <span>Pajak 10%</span>
+                            <span class="font-bold" x-text="formatRupiah(receiptData.tax)"></span>
+                        </div>
+                        <div class="flex justify-between text-slate-700">
+                            <span>Diskon</span>
+                            <span class="font-bold text-emerald-700" x-text="'- ' + formatRupiah(receiptData.discount)"></span>
+                        </div>
+                        <div class="border-t border-dashed border-amber-300 flex justify-between font-bold text-[10px] text-slate-900 leading-none" style="padding-top: 1px;">
+                            <span>TOTAL</span>
+                            <span class="text-sky-800" x-text="formatRupiah(receiptData.total)"></span>
+                        </div>
+                    </div>
+
+                    <div class="text-center border-t border-dashed border-amber-300 text-[8px] text-slate-700 leading-tight font-bold" style="padding-top: 1px;">
+                        <p>*** TERIMA KASIH ***</p>
+                        <p>Silakan datang kembali!</p>
+                    </div>
                 </div>
             </div>
 
             <!-- Action Buttons -->
             <div class="flex space-x-3">
-                <button @click="printReceipt()" class="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold text-sm transition-colors flex items-center justify-center space-x-2">
+                <button @click="printReceipt()" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold text-xs transition-colors flex items-center justify-center space-x-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                    <span>Cetak Struk</span>
+                    <span>Cetak Struk (58mm)</span>
                 </button>
-                <button @click="newTransaction()" class="flex-1 py-3 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-semibold text-sm transition-colors shadow-lg shadow-sky-500/30">
+                <button @click="newTransaction()" class="flex-1 py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-semibold text-xs transition-colors shadow-md shadow-sky-500/20">
                     Transaksi Baru
                 </button>
             </div>
@@ -317,11 +481,33 @@
     <script>
         function posApp() {
             return {
+                user: undefined,
+                loginEmail: '',
+                loginPassword: '',
+                loginError: '',
+                loginLoading: false,
+                showRegister: false,
+                registerName: '',
                 cashierName: 'Ica Marpuah',
                 selectedCategory: 'all',
                 searchQuery: '',
                 paymentMethod: 'cash',
                 showModal: false,
+                showAddProductModal: false,
+                showEditProductModal: false,
+                newProduct: {
+                    name: '',
+                    category: 'makanan',
+                    price: '',
+                    barcode: ''
+                },
+                editProductData: {
+                    id: null,
+                    name: '',
+                    category: 'makanan',
+                    price: '',
+                    barcode: ''
+                },
                 
                 receiptData: {
                     trxId: '',
@@ -341,27 +527,42 @@
                     { id: 'cemilan', name: 'Cemilan' }
                 ],
                 
-                products: [
-                    { id: 1, name: 'Nasi Goreng Spesial', category: 'makanan', categoryName: 'Makanan', price: 25000, image: 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=500&q=80' },
-                    { id: 2, name: 'Mie Ayam Bakso', category: 'makanan', categoryName: 'Makanan', price: 20000, image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=500&q=80' },
-                    { id: 3, name: 'Ayam Geprek Sambal Matah', category: 'makanan', categoryName: 'Makanan', price: 22000, image: 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=500&q=80' },
-                    { id: 4, name: 'Es Teh Manis', category: 'minuman', categoryName: 'Minuman', price: 5000, image: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=500&q=80' },
-                    { id: 5, name: 'Es Jeruk Peras', category: 'minuman', categoryName: 'Minuman', price: 8000, image: 'https://images.unsplash.com/photo-1613478223719-2ab802602423?auto=format&fit=crop&w=500&q=80' },
-                    { id: 6, name: 'Jus Alpukat', category: 'minuman', categoryName: 'Minuman', price: 15000, image: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=500&q=80' },
-                    { id: 7, name: 'Pisang Goreng Keju', category: 'cemilan', categoryName: 'Cemilan', price: 12000, image: 'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&w=500&q=80' },
-                    { id: 8, name: 'Tahu Crispy', category: 'cemilan', categoryName: 'Cemilan', price: 10000, image: 'https://images.unsplash.com/photo-1541529086526-db283c563270?auto=format&fit=crop&w=500&q=80' }
-                ],
+                products: [],
                 
                 cart: [],
                 
-                get filteredProducts() {
+                databaseError: '',
+                showHistoryModal: false,
+                transactions: [],
+                historyLoading: false,
+                
+get filteredProducts() {
                     return this.products.filter(p => {
                         const matchesCategory = this.selectedCategory === 'all' || p.category === this.selectedCategory;
-                        const matchesSearch = p.name.toLowerCase().includes(this.searchQuery.toLowerCase());
+                        const matchesSearch = p.name.toLowerCase().includes(this.searchQuery.toLowerCase()) || (p.barcode && p.barcode.toLowerCase().includes(this.searchQuery.toLowerCase()));
                         return matchesCategory && matchesSearch;
                     });
                 },
-                
+
+                handleBarCodeInput() {
+                    const query = this.searchQuery.trim().toLowerCase();
+                    if (!query) return;
+                    const found = this.products.find(p => p.barcode && p.barcode.toLowerCase() === query);
+                    if (found) {
+                        this.addToCart(found);
+                        this.searchQuery = '';
+                    }
+                },
+
+                handleBarcodeSearch() {
+                    const query = this.searchQuery.trim().toLowerCase();
+                    const found = this.products.find(p => p.barcode && p.barcode.toLowerCase() === query);
+                    if (found) {
+                        this.addToCart(found);
+                        this.searchQuery = '';
+                    }
+                },
+
                 addToCart(product) {
                     const existing = this.cart.find(item => item.id === product.id);
                     if (existing) {
@@ -403,7 +604,7 @@
                     return this.subtotal + this.tax - this.discount;
                 },
                 
-                checkout() {
+                async checkout() {
                     if (this.cart.length === 0) return;
                     
                     const now = new Date();
@@ -420,6 +621,23 @@
                         discount: this.discount,
                         total: this.total
                     };
+
+                    try {
+                        await db.collection('transactions').doc(trxId).set({
+                            trxId: trxId,
+                            kasir: this.user ? (this.user.displayName || this.user.email) : this.cashierName,
+                            date: firebase.firestore.Timestamp.fromDate(now),
+                            dateLabel: dateStr,
+                            paymentMethod: this.paymentMethod,
+                            items: this.receiptData.items,
+                            subtotal: this.receiptData.subtotal,
+                            tax: this.receiptData.tax,
+                            discount: this.receiptData.discount,
+                            total: this.receiptData.total
+                        });
+                    } catch (err) {
+                        console.error('Gagal simpan transaksi ke cloud:', err);
+                    }
                     
                     this.showModal = true;
                 },
@@ -435,9 +653,358 @@
                 
                 formatRupiah(number) {
                     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
+                },
+
+                renderBarcode(el, code) {
+                    if (!el) return;
+                    if (!code || !window.bwipjs) {
+                        el.innerHTML = '<span class="text-[8px] text-slate-400 font-mono px-1">-</span>';
+                        return;
+                    }
+                    const bcid = /^\d{13}$/.test(code) ? 'ean13' : 'code128';
+                    try {
+                        const svg = window.bwipjs.toSVG({
+                            bcid: bcid,
+                            text: code,
+                            scale: 2,
+                            height: 10,
+                            includetext: true,
+                            textxalign: 'center',
+                            backgroundcolor: 'FFFFFF'
+                        });
+                        el.innerHTML = svg;
+                        const node = el.querySelector('svg');
+                        if (node) {
+                            node.setAttribute('width', '100%');
+                            node.setAttribute('height', '32');
+                            node.style.display = 'block';
+                            node.style.margin = '0 auto';
+                        }
+                    } catch (err) {
+                        el.innerHTML = '<span class="text-[8px] text-slate-400 font-mono px-1">' + code + '</span>';
+                    }
+                },
+
+                existingBarcodes() {
+                    return this.products.map(p => p.barcode).filter(Boolean);
+                },
+
+                generateEan13(ignoreList = []) {
+                    const used = new Set(ignoreList.map(String));
+                    let code = '';
+                    do {
+                        let base = '';
+                        for (let i = 0; i < 12; i++) base += Math.floor(Math.random() * 10);
+                        const digits = base.split('').map(Number);
+                        let sum = 0;
+                        for (let i = 0; i < 12; i++) sum += digits[i] * (i % 2 === 0 ? 1 : 3);
+                        const check = (10 - (sum % 10)) % 10;
+                        code = base + check;
+                    } while (used.has(code));
+                    return code;
+                },
+
+                init() {
+                    const self = this;
+                    auth.onAuthStateChanged(user => {
+                        self.user = user;
+                        if (user) {
+                            self.cashierName = user.displayName || (user.email ? user.email.split('@')[0] : 'Kasir');
+                            self.loadProducts();
+                        }
+                    });
+                },
+
+                async login() {
+                    if (this.loginLoading) return;
+                    this.loginLoading = true;
+                    this.loginError = '';
+                    try {
+                        await auth.signInWithEmailAndPassword(this.loginEmail.trim(), this.loginPassword);
+                        this.loginPassword = '';
+                    } catch (err) {
+                        this.loginError = this.getAuthError(err.code);
+                    }
+                    this.loginLoading = false;
+                },
+
+                async logout() {
+                    this.cart = [];
+                    await auth.signOut();
+                },
+
+                async register() {
+                    if (this.loginLoading) return;
+                    if (!this.registerName.trim()) {
+                        this.loginError = 'Nama kasir harus diisi.';
+                        return;
+                    }
+                    if (this.loginPassword.length < 6) {
+                        this.loginError = 'Password minimal 6 karakter.';
+                        return;
+                    }
+                    this.loginLoading = true;
+                    this.loginError = '';
+                    try {
+                        const cred = await auth.createUserWithEmailAndPassword(this.loginEmail.trim(), this.loginPassword);
+                        await cred.user.updateProfile({ displayName: this.registerName.trim() });
+                        await db.collection('kasir').doc(cred.user.uid).set({
+                            name: this.registerName.trim(),
+                            email: this.loginEmail.trim(),
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                    } catch (err) {
+                        this.loginError = this.getAuthError(err.code);
+                    }
+                    this.loginLoading = false;
+                },
+
+                getAuthError(code) {
+                    const messages = {
+                        'auth/user-not-found': 'Email tidak terdaftar. Silakan hubungi admin.',
+                        'auth/wrong-password': 'Password salah. Coba lagi.',
+                        'auth/invalid-email': 'Format email tidak valid.',
+                        'auth/invalid-credential': 'Email atau password salah.',
+                        'auth/too-many-requests': 'Terlalu banyak percobaan. Coba lagi nanti.',
+                        'auth/network-request-failed': 'Koneksi internet bermasalah. Coba lagi.'
+                    };
+                    return messages[code] || 'Gagal masuk. Coba lagi.';
+                },
+
+                defaultProducts: [
+                    { id: 1, name: 'Nasi Goreng Spesial', category: 'makanan', categoryName: 'Makanan', price: 25000, barcode: '8992750000107', image: 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=500&q=80' },
+                    { id: 2, name: 'Mie Ayam Bakso', category: 'makanan', categoryName: 'Makanan', price: 20000, barcode: '7451010345620', image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=500&q=80' },
+                    { id: 3, name: 'Ayam Geprek Sambal Matah', category: 'makanan', categoryName: 'Makanan', price: 22000, barcode: '6921835640275', image: 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=500&q=80' },
+                    { id: 4, name: 'Es Teh Manis', category: 'minuman', categoryName: 'Minuman', price: 5000, barcode: '8901384029651', image: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=500&q=80' },
+                    { id: 5, name: 'Es Jeruk Peras', category: 'minuman', categoryName: 'Minuman', price: 8000, barcode: '9345128305707', image: 'https://images.unsplash.com/photo-1613478223719-2ab802602423?auto=format&fit=crop&w=500&q=80' },
+                    { id: 6, name: 'Jus Alpukat', category: 'minuman', categoryName: 'Minuman', price: 15000, barcode: '8716240853192', image: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=500&q=80' },
+                    { id: 7, name: 'Pisang Goreng Keju', category: 'cemilan', categoryName: 'Cemilan', price: 12000, barcode: '8990901234579', image: 'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&w=500&q=80' },
+                    { id: 8, name: 'Tahu Crispy', category: 'cemilan', categoryName: 'Cemilan', price: 10000, barcode: '6182539704810', image: 'https://images.unsplash.com/photo-1541529086526-db283c563270?auto=format&fit=crop&w=500&q=80' },
+                    { id: 9, name: 'Teh Botol Sosro Original 450ml', category: 'minuman', categoryName: 'Minuman', price: 6000, barcode: '8993988052517', image: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=500&q=80' },
+                    { id: 10, name: 'Snack Keripik Impor Spesial', category: 'cemilan', categoryName: 'Cemilan', price: 15000, barcode: '6951913580810', image: 'https://images.unsplash.com/photo-1541529086526-db283c563270?auto=format&fit=crop&w=500&q=80' },
+                    { id: 11, name: 'Susu UHT Cokelat 250ml', category: 'minuman', categoryName: 'Minuman', price: 8000, barcode: '3690014570247', image: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=500&q=80' },
+                    { id: 12, name: 'Merchandise VSC Special Item', category: 'makanan', categoryName: 'Makanan', price: 50000, barcode: '8992000345125', image: 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=500&q=80' },
+                    { id: 13, name: 'Kopi Susu Botol 350ml', category: 'minuman', categoryName: 'Minuman', price: 10000, barcode: '8998838360361', image: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=500&q=80' },
+                    { id: 14, name: 'VSC Exclusive Member Item', category: 'makanan', categoryName: 'Makanan', price: 75000, barcode: '9555520104338', image: 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=500&q=80' }
+                ],
+
+                async seedProducts() {
+                    const batch = db.batch();
+                    this.defaultProducts.forEach(p => {
+                        batch.set(db.collection('products').doc(String(p.id)), p);
+                    });
+                    await batch.commit();
+                    this.products = this.defaultProducts.map(p => ({ ...p }));
+                },
+
+                async loadProducts() {
+                    try {
+                        const snapshot = await db.collection('products').orderBy('id').get();
+                        if (snapshot.empty) {
+                            await this.seedProducts();
+                        } else {
+                            this.products = snapshot.docs.map(doc => doc.data());
+                        }
+                        this.databaseError = '';
+                    } catch (err) {
+                        console.error('Firestore tidak tersambung:', err);
+                        this.databaseError = 'Cloud belum tersambung (pastikan Firestore Database dibuat & Rules diizinkan di Firebase Console). Menampilkan menu lokal untuk sementara.';
+                        this.products = this.defaultProducts.map(p => ({ ...p }));
+                    }
+                },
+
+                async openHistory() {
+                    this.showHistoryModal = true;
+                    this.historyLoading = true;
+                    try {
+                        const snapshot = await db.collection('transactions').orderBy('date', 'desc').limit(50).get();
+                        this.transactions = snapshot.docs.map(doc => doc.data());
+                    } catch (err) {
+                        console.error('Gagal muat riwayat:', err);
+                        this.transactions = [];
+                    }
+                    this.historyLoading = false;
+                },
+
+                async addNewProduct() {
+                    if (!this.newProduct.name || !this.newProduct.price) return;
+                    const newId = Date.now();
+                    const catName = this.newProduct.category === 'makanan' ? 'Makanan' : (this.newProduct.category === 'minuman' ? 'Minuman' : 'Cemilan');
+                    const product = {
+                        id: newId,
+                        name: this.newProduct.name,
+                        category: this.newProduct.category,
+                        categoryName: catName,
+                        price: Number(this.newProduct.price),
+                        barcode: this.newProduct.barcode.trim(),
+                        image: 'https://images.unsplash.com/photo-1541529086526-db283c563270?auto=format&fit=crop&w=500&q=80'
+                    };
+                    this.products.push(product);
+                    this.newProduct = { name: '', category: 'makanan', price: '', barcode: '' };
+                    this.showAddProductModal = false;
+                    try {
+                        await db.collection('products').doc(String(newId)).set(product);
+                        this.databaseError = '';
+                    } catch (err) {
+                        console.error('Gagal simpan ke cloud:', err);
+                        this.databaseError = 'Data tersimpan lokal, tapi belum tersinkron ke cloud (cek Firestore & Rules).';
+                    }
+                },
+
+                openEditProduct(product) {
+                    this.editProductData = {
+                        id: product.id,
+                        name: product.name,
+                        category: product.category,
+                        price: product.price,
+                        barcode: product.barcode || ''
+                    };
+                    this.showEditProductModal = true;
+                },
+
+                async updateProduct() {
+                    const idx = this.products.findIndex(p => p.id === this.editProductData.id);
+                    if (idx !== -1) {
+                        const catName = this.editProductData.category === 'makanan' ? 'Makanan' : (this.editProductData.category === 'minuman' ? 'Minuman' : 'Cemilan');
+                        const updates = {
+                            name: this.editProductData.name,
+                            category: this.editProductData.category,
+                            categoryName: catName,
+                            price: Number(this.editProductData.price),
+                            barcode: this.editProductData.barcode.trim()
+                        };
+                        Object.assign(this.products[idx], updates);
+                        this.showEditProductModal = false;
+                        try {
+                            await db.collection('products').doc(String(this.editProductData.id)).update(updates);
+                            this.databaseError = '';
+                        } catch (err) {
+                            console.error('Gagal update ke cloud:', err);
+                            this.databaseError = 'Perubahan tersimpan lokal, tapi belum tersinkron ke cloud (cek Firestore & Rules).';
+                        }
+                    }
+                },
+
+                async deleteProduct(id) {
+                    this.products = this.products.filter(p => p.id !== id);
+                    this.showEditProductModal = false;
+                    try {
+                        await db.collection('products').doc(String(id)).delete();
+                        this.databaseError = '';
+                    } catch (err) {
+                        console.error('Gagal hapus dari cloud:', err);
+                        this.databaseError = 'Produk dihapus lokal, tapi belum tersinkron ke cloud (cek Firestore & Rules).';
+                    }
                 }
             }
         }
     </script>
+
+    <!-- Add Product Modal -->
+    <div x-show="showAddProductModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4" x-cloak>
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl flex flex-col space-y-4">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h3 class="font-bold text-slate-900 text-base">Tambah Produk & Barcode Baru</h3>
+                <button @click="showAddProductModal = false" class="text-slate-400 hover:text-slate-600 font-bold text-lg">&times;</button>
+            </div>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Produk</label>
+                    <input type="text" x-model="newProduct.name" placeholder="Contoh: Snack Baru" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Kategori</label>
+                    <select x-model="newProduct.category" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500">
+                        <option value="makanan">Makanan</option>
+                        <option value="minuman">Minuman</option>
+                        <option value="cemilan">Cemilan</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Harga (Rp)</label>
+                    <input type="number" x-model.number="newProduct.price" placeholder="10000" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Nomor Barcode / Serial</label>
+                    <div class="flex space-x-2">
+                        <input type="text" x-model="newProduct.barcode" placeholder="Scan atau ketik barcode..." class="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500 font-mono">
+                        <button @click="newProduct.barcode = generateEan13(existingBarcodes())" class="px-3 py-2 bg-sky-100 hover:bg-sky-200 text-sky-700 rounded-xl font-semibold text-xs shrink-0 transition-colors">Acak</button>
+                    </div>
+                </div>
+            </div>
+            <div class="flex space-x-3 pt-2">
+                <button @click="showAddProductModal = false" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold text-xs">Batal</button>
+                <button @click="addNewProduct()" class="flex-1 py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-semibold text-xs shadow-md shadow-sky-500/20">Simpan Produk</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Product Modal -->
+    <div x-show="showEditProductModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4" x-cloak>
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl flex flex-col space-y-4">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h3 class="font-bold text-slate-900 text-base">Edit Produk & Barcode</h3>
+                <button @click="showEditProductModal = false" class="text-slate-400 hover:text-slate-600 font-bold text-lg">&times;</button>
+            </div>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Produk</label>
+                    <input type="text" x-model="editProductData.name" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Kategori</label>
+                    <select x-model="editProductData.category" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500">
+                        <option value="makanan">Makanan</option>
+                        <option value="minuman">Minuman</option>
+                        <option value="cemilan">Cemilan</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Harga (Rp)</label>
+                    <input type="number" x-model.number="editProductData.price" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Nomor Barcode / Serial</label>
+                    <div class="flex space-x-2">
+                        <input type="text" x-model="editProductData.barcode" class="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500 font-mono">
+                        <button @click="editProductData.barcode = generateEan13(existingBarcodes())" class="px-3 py-2 bg-sky-100 hover:bg-sky-200 text-sky-700 rounded-xl font-semibold text-xs shrink-0 transition-colors">Acak</button>
+                    </div>
+                </div>
+            </div>
+            <div class="flex space-x-2 pt-2">
+                <button @click="deleteProduct(editProductData.id)" class="py-2.5 px-3 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl font-semibold text-xs transition-colors">Hapus</button>
+                <button @click="showEditProductModal = false" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold text-xs">Batal</button>
+                <button @click="updateProduct()" class="flex-1 py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-semibold text-xs shadow-md shadow-sky-500/20">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Modal -->
+    <div x-show="showHistoryModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4" x-cloak>
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl flex flex-col space-y-4 max-h-[85vh]">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h3 class="font-bold text-slate-900 text-base">Riwayat Transaksi</h3>
+                <button @click="showHistoryModal = false" class="text-slate-400 hover:text-slate-600 font-bold text-lg">&times;</button>
+            </div>
+            <div x-show="historyLoading" class="py-10 text-center text-slate-400 text-sm">Memuat riwayat...</div>
+            <div x-show="!historyLoading && transactions.length === 0" class="py-10 text-center text-slate-400 text-sm">Belum ada transaksi.</div>
+            <div class="flex-1 overflow-y-auto space-y-2">
+                <template x-for="trx in transactions" :key="trx.trxId">
+                    <div class="bg-slate-50 border border-slate-100 rounded-xl p-3">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="font-semibold text-slate-800 text-xs" x-text="trx.trxId"></span>
+                            <span class="text-xs font-bold text-emerald-600" x-text="formatRupiah(Number(trx.total))"></span>
+                        </div>
+                        <div class="flex items-center justify-between text-[11px] text-slate-500">
+                            <span x-text="trx.dateLabel || trx.date"></span>
+                            <span class="uppercase font-medium" x-text="trx.paymentMethod === 'cash' ? 'Tunai' : 'QRIS'"></span>
+                        </div>
+                        <div class="mt-1 text-[11px] text-slate-400" x-text="(trx.items || []).map(i => i.qty + 'x ' + i.name).join(', ')"></div>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+    </div>
 </body>
 </html>
