@@ -797,6 +797,25 @@ get filteredProducts() {
                     this.products = this.defaultProducts.map(p => ({ ...p }));
                 },
 
+                async backfillBarcodes() {
+                    // Isi barcode yang kosong di cloud dari data default (berdasarkan id)
+                    const docs = await db.collection('products').get();
+                    let updated = 0;
+                    const batch = db.batch();
+                    docs.docs.forEach(doc => {
+                        const p = doc.data();
+                        const def = this.defaultProducts.find(d => String(d.id) === String(p.id));
+                        if (def && (!p.barcode || !String(p.barcode).trim()) && def.barcode) {
+                            batch.update(doc.ref, { barcode: def.barcode });
+                            updated++;
+                        }
+                    });
+                    if (updated > 0) {
+                        await batch.commit();
+                        console.log('Backfill barcode:', updated, 'produk diperbarui di cloud.');
+                    }
+                },
+
                 async loadProducts() {
                     try {
                         const snapshot = await db.collection('products').orderBy('id').get();
@@ -804,6 +823,16 @@ get filteredProducts() {
                             await this.seedProducts();
                         } else {
                             this.products = snapshot.docs.map(doc => doc.data());
+                        }
+                        try {
+                            await this.backfillBarcodes();
+                        } catch (bfErr) {
+                            console.error('Gagal backfill barcode:', bfErr);
+                        }
+                        // Muat ulang setelah backfill agar tampilan memakai barcode terbaru
+                        if (!snapshot.empty) {
+                            const fresh = await db.collection('products').orderBy('id').get();
+                            this.products = fresh.docs.map(doc => doc.data());
                         }
                         this.databaseError = '';
                     } catch (err) {
