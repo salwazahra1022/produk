@@ -535,6 +535,9 @@
                 showHistoryModal: false,
                 transactions: [],
                 historyLoading: false,
+                showTrxDetailModal: false,
+                selectedTransaction: null,
+                historyFilter: 'all',
                 
 get filteredProducts() {
                     return this.products.filter(p => {
@@ -542,6 +545,25 @@ get filteredProducts() {
                         const matchesSearch = p.name.toLowerCase().includes(this.searchQuery.toLowerCase()) || (p.barcode && p.barcode.toLowerCase().includes(this.searchQuery.toLowerCase()));
                         return matchesCategory && matchesSearch;
                     });
+                },
+
+                get filteredHistory() {
+                    const startToday = new Date();
+                    startToday.setHours(0, 0, 0, 0);
+                    const weekAgo = startToday.getTime() - 6 * 86400000;
+                    return this.transactions.filter(trx => {
+                        const t = trx._ts || (trx.date && trx.date.seconds ? trx.date.seconds * 1000 : Date.now());
+                        if (this.historyFilter === 'today') return t >= startToday.getTime();
+                        if (this.historyFilter === 'week') return t >= weekAgo;
+                        return true;
+                    });
+                },
+
+                get historySummary() {
+                    const list = this.filteredHistory;
+                    const revenue = list.reduce((s, t) => s + Number(t.total || 0), 0);
+                    const cash = list.filter(t => (t.paymentMethod || 'cash') === 'cash').reduce((s, t) => s + Number(t.total || 0), 0);
+                    return { count: list.length, revenue: revenue, cash: cash, qris: revenue - cash };
                 },
 
                 handleBarCodeInput() {
@@ -622,10 +644,11 @@ get filteredProducts() {
                         total: this.total
                     };
 
+                    const kasir = this.user ? (this.user.displayName || this.user.email) : this.cashierName;
                     try {
                         await db.collection('transactions').doc(trxId).set({
                             trxId: trxId,
-                            kasir: this.user ? (this.user.displayName || this.user.email) : this.cashierName,
+                            kasir: kasir,
                             date: firebase.firestore.Timestamp.fromDate(now),
                             dateLabel: dateStr,
                             paymentMethod: this.paymentMethod,
@@ -638,7 +661,10 @@ get filteredProducts() {
                     } catch (err) {
                         console.error('Gagal simpan transaksi ke cloud:', err);
                     }
-                    
+
+                    // Simpan ke history lokal supaya langsung muncul meski cloud lambat/gagal
+                    this.transactions.unshift({ ...this.receiptData, kasir: kasir, _ts: now.getTime() });
+
                     this.showModal = true;
                 },
                 
@@ -846,13 +872,51 @@ get filteredProducts() {
                     this.showHistoryModal = true;
                     this.historyLoading = true;
                     try {
-                        const snapshot = await db.collection('transactions').orderBy('date', 'desc').limit(50).get();
-                        this.transactions = snapshot.docs.map(doc => doc.data());
+                        const snapshot = await db.collection('transactions').orderBy('date', 'desc').limit(100).get();
+                        const cloud = snapshot.docs.map(doc => {
+                            const d = doc.data();
+                            return { ...d, _ts: d.date && d.date.seconds ? d.date.seconds * 1000 : Date.now() };
+                        });
+                        // Gabungkan dengan transaksi lokal sesi ini yang belum masuk cloud
+                        const localOnly = this.transactions.filter(l => !cloud.some(c => c.trxId === l.trxId));
+                        this.transactions = [...cloud, ...localOnly];
                     } catch (err) {
                         console.error('Gagal muat riwayat:', err);
-                        this.transactions = [];
+                        // Tetap tampilkan transaksi lokal sesi ini
                     }
                     this.historyLoading = false;
+                },
+
+                viewTrxDetail(trx) {
+                    this.selectedTransaction = trx;
+                    this.showTrxDetailModal = true;
+                },
+
+                reprintTrx() {
+                    const t = this.selectedTransaction;
+                    if (!t) return;
+                    this.receiptData = {
+                        trxId: t.trxId,
+                        date: t.dateLabel || t.date || '',
+                        paymentMethod: t.paymentMethod || 'cash',
+                        items: t.items || [],
+                        subtotal: Number(t.subtotal || 0),
+                        tax: Number(t.tax || 0),
+                        discount: Number(t.discount || 0),
+                        total: Number(t.total || 0)
+                    };
+                    this.showTrxDetailModal = false;
+                    this.showModal = true;
+                },
+
+                deleteTrx(trx) {
+                    if (!confirm('Hapus transaksi ' + trx.trxId + ' dari riwayat?')) return;
+                    this.transactions = this.transactions.filter(t => t.trxId !== trx.trxId);
+                    if (db) {
+                        db.collection('transactions').doc(trx.trxId).delete().catch(err => {
+                            console.error('Gagal hapus transaksi di cloud:', err);
+                        });
+                    }
                 },
 
                 async addNewProduct() {
@@ -1008,18 +1072,50 @@ get filteredProducts() {
         </div>
     </div>
 
-    <!-- History Modal -->
+    <!-- History Penjualan Modal -->
     <div x-show="showHistoryModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4" x-cloak>
         <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl flex flex-col space-y-4 max-h-[85vh]">
             <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-                <h3 class="font-bold text-slate-900 text-base">Riwayat Transaksi</h3>
+                <h3 class="font-bold text-slate-900 text-base">History Penjualan</h3>
                 <button @click="showHistoryModal = false" class="text-slate-400 hover:text-slate-600 font-bold text-lg">&times;</button>
             </div>
+
+            <!-- Ringkasan -->
+            <div class="grid grid-cols-3 gap-2">
+                <div class="bg-sky-50 border border-sky-100 rounded-xl p-2.5 text-center">
+                    <div class="text-[10px] uppercase tracking-wide text-sky-600 font-semibold">Transaksi</div>
+                    <div class="text-lg font-bold text-slate-900" x-text="historySummary.count"></div>
+                </div>
+                <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-2.5 text-center col-span-2">
+                    <div class="text-[10px] uppercase tracking-wide text-emerald-600 font-semibold">Total Penjualan</div>
+                    <div class="text-lg font-bold text-emerald-700" x-text="formatRupiah(historySummary.revenue)"></div>
+                </div>
+                <div class="bg-amber-50 border border-amber-100 rounded-xl p-2.5 text-center">
+                    <div class="text-[10px] uppercase tracking-wide text-amber-600 font-semibold">Tunai</div>
+                    <div class="text-sm font-bold text-slate-900" x-text="formatRupiah(historySummary.cash)"></div>
+                </div>
+                <div class="bg-violet-50 border border-violet-100 rounded-xl p-2.5 text-center">
+                    <div class="text-[10px] uppercase tracking-wide text-violet-600 font-semibold">QRIS</div>
+                    <div class="text-sm font-bold text-slate-900" x-text="formatRupiah(historySummary.qris)"></div>
+                </div>
+                <div class="bg-slate-50 border border-slate-100 rounded-xl p-2.5 text-center">
+                    <div class="text-[10px] uppercase tracking-wide text-slate-500 font-semibold">Rata-rata</div>
+                    <div class="text-sm font-bold text-slate-700" x-text="formatRupiah(historySummary.count ? Math.round(historySummary.revenue / historySummary.count) : 0)"></div>
+                </div>
+            </div>
+
+            <!-- Filter -->
+            <div class="flex space-x-2">
+                <button @click="historyFilter = 'all'" class="flex-1 py-1.5 rounded-lg text-[11px] font-semibold transition-colors" :class="historyFilter === 'all' ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'">Semua</button>
+                <button @click="historyFilter = 'today'" class="flex-1 py-1.5 rounded-lg text-[11px] font-semibold transition-colors" :class="historyFilter === 'today' ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'">Hari Ini</button>
+                <button @click="historyFilter = 'week'" class="flex-1 py-1.5 rounded-lg text-[11px] font-semibold transition-colors" :class="historyFilter === 'week' ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'">7 Hari</button>
+            </div>
+
             <div x-show="historyLoading" class="py-10 text-center text-slate-400 text-sm">Memuat riwayat...</div>
-            <div x-show="!historyLoading && transactions.length === 0" class="py-10 text-center text-slate-400 text-sm">Belum ada transaksi.</div>
+            <div x-show="!historyLoading && filteredHistory.length === 0" class="py-10 text-center text-slate-400 text-sm">Belum ada transaksi.</div>
             <div class="flex-1 overflow-y-auto space-y-2">
-                <template x-for="trx in transactions" :key="trx.trxId">
-                    <div class="bg-slate-50 border border-slate-100 rounded-xl p-3">
+                <template x-for="trx in filteredHistory" :key="trx.trxId">
+                    <div @click="viewTrxDetail(trx)" class="bg-slate-50 border border-slate-100 rounded-xl p-3 cursor-pointer hover:border-sky-300 hover:bg-sky-50/50 transition-colors">
                         <div class="flex items-center justify-between mb-1">
                             <span class="font-semibold text-slate-800 text-xs" x-text="trx.trxId"></span>
                             <span class="text-xs font-bold text-emerald-600" x-text="formatRupiah(Number(trx.total))"></span>
@@ -1028,10 +1124,58 @@ get filteredProducts() {
                             <span x-text="trx.dateLabel || trx.date"></span>
                             <span class="uppercase font-medium" x-text="trx.paymentMethod === 'cash' ? 'Tunai' : 'QRIS'"></span>
                         </div>
-                        <div class="mt-1 text-[11px] text-slate-400" x-text="(trx.items || []).map(i => i.qty + 'x ' + i.name).join(', ')"></div>
+                        <div class="mt-1 text-[11px] text-slate-400 truncate" x-text="(trx.items || []).map(i => i.qty + 'x ' + i.name).join(', ')"></div>
                     </div>
                 </template>
             </div>
+        </div>
+    </div>
+
+    <!-- Detail Transaksi Modal -->
+    <div x-show="showTrxDetailModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-[60] p-4" x-cloak>
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl flex flex-col space-y-4 max-h-[85vh]">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h3 class="font-bold text-slate-900 text-base" x-text="selectedTransaction ? selectedTransaction.trxId : ''"></h3>
+                <button @click="showTrxDetailModal = false" class="text-slate-400 hover:text-slate-600 font-bold text-lg">&times;</button>
+            </div>
+            <template x-if="selectedTransaction">
+                <div class="flex-1 overflow-y-auto space-y-3">
+                    <div class="grid grid-cols-2 gap-2 text-[11px]">
+                        <div class="bg-slate-50 rounded-lg p-2">
+                            <div class="text-slate-400">Kasir</div>
+                            <div class="font-semibold text-slate-700" x-text="selectedTransaction.kasir || '-'"></div>
+                        </div>
+                        <div class="bg-slate-50 rounded-lg p-2">
+                            <div class="text-slate-400">Waktu</div>
+                            <div class="font-semibold text-slate-700" x-text="selectedTransaction.dateLabel || selectedTransaction.date"></div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 rounded-xl p-3 space-y-1.5">
+                        <template x-for="(item, i) in (selectedTransaction.items || [])" :key="i">
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="text-slate-600"><span class="font-bold text-slate-900" x-text="item.qty"></span>x <span x-text="item.name"></span></span>
+                                <span class="font-semibold text-slate-800" x-text="formatRupiah(Number(item.price) * Number(item.qty))"></span>
+                            </div>
+                        </template>
+                    </div>
+                    <div class="space-y-1 text-xs">
+                        <div class="flex justify-between text-slate-500"><span>Subtotal</span><span x-text="formatRupiah(Number(selectedTransaction.subtotal || 0))"></span></div>
+                        <div class="flex justify-between text-slate-500"><span>Pajak</span><span x-text="formatRupiah(Number(selectedTransaction.tax || 0))"></span></div>
+                        <div class="flex justify-between text-slate-500"><span>Diskon</span><span class="text-rose-500" x-text="'- ' + formatRupiah(Number(selectedTransaction.discount || 0))"></span></div>
+                        <div class="flex justify-between font-bold text-slate-900 pt-1 border-t border-slate-100">
+                            <span>Total</span><span x-text="formatRupiah(Number(selectedTransaction.total || 0))"></span>
+                        </div>
+                        <div class="flex justify-between text-slate-500 pt-1">
+                            <span>Metode Bayar</span>
+                            <span class="uppercase font-medium" x-text="selectedTransaction.paymentMethod === 'cash' ? 'Tunai' : 'QRIS'"></span>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2 pt-1">
+                        <button @click="reprintTrx()" class="flex-1 py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-semibold text-xs shadow-md shadow-sky-500/20">Cetak Ulang Struk</button>
+                        <button @click="deleteTrx(selectedTransaction)" class="py-2.5 px-3 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl font-semibold text-xs">Hapus</button>
+                    </div>
+                </div>
+            </template>
         </div>
     </div>
     </div>
