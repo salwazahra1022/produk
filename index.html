@@ -232,12 +232,6 @@
                 <p class="text-xs text-emerald-600 font-medium">● Kasir Aktif</p>
             </div>
             <img src="assets/logo-inti-rasa.jpg" alt="Foto Profil" class="h-8 w-8 sm:h-9 sm:w-9 rounded-full object-cover border-2 border-sky-400 shadow-sm hidden sm:block">
-            
-            <!-- Mobile Cart Button (shown only on Kasir page) -->
-            <button x-show="currentPage === 'kasir'" @click="showMobileCart = true" class="relative lg:hidden p-2 bg-sky-50 hover:bg-sky-100 text-sky-600 rounded-xl font-semibold text-xs transition-colors flex items-center gap-1" title="Keranjang Belanja">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
-                <span x-show="totalItems > 0" x-text="totalItems" class="bg-sky-500 text-white text-[10px] font-bold rounded-full h-4 min-w-[16px] px-1 flex items-center justify-center"></span>
-            </button>
 
             <button @click="openHistory()" class="flex items-center space-x-1.5 p-2 sm:px-3 sm:py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-semibold text-xs transition-colors shadow-md shadow-sky-500/20" title="Riwayat Transaksi">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
@@ -253,219 +247,239 @@
     <!-- Main Content Area -->
     <div class="flex-1 flex overflow-hidden relative">
         
-        <!-- Halaman Kasir (Katalog Menu + Keranjang Transaksi) -->
-        <div x-show="currentPage === 'kasir'" class="flex-1 flex overflow-hidden w-full h-full relative">
+        <!-- Halaman Kasir (Hanya Tampilan Transaksi) -->
+        <div x-show="currentPage === 'kasir'" class="flex-1 flex flex-col h-full overflow-hidden p-3 sm:p-5 lg:p-6 w-full max-w-7xl mx-auto" x-cloak>
             
-            <!-- Left & Center: Catalog Section -->
-            <main class="flex-1 flex flex-col h-full overflow-hidden p-3 sm:p-5 lg:p-6 w-full">
+            <!-- Kasir Top Action Bar (Scan Barcode & Quick Menu Picker) -->
+            <div class="bg-white rounded-2xl p-3 sm:p-4 border border-slate-200 shadow-sm mb-3 sm:mb-4 shrink-0 flex flex-col sm:flex-row items-center justify-between gap-3">
                 
-                <!-- Category Filter Bar & Search -->
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4 mb-3 sm:mb-5 shrink-0">
-                    <!-- Categories -->
-                    <div class="flex items-center space-x-2 overflow-x-auto pb-1 sm:pb-0">
-                        <template x-for="cat in categories" :key="cat.id">
+                <!-- Barcode & Search Input with Dropdown Suggestions -->
+                <div class="relative w-full sm:flex-1">
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-sky-600 pointer-events-none">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                        </span>
+                        <input 
+                            type="text" 
+                            x-model="searchQuery" 
+                            @keydown.enter="handleBarcodeSearch()"
+                            placeholder="Scan barcode scanner atau ketik nama menu (Tekan Enter)..." 
+                            class="w-full pl-11 pr-24 py-2.5 sm:py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-medium focus:outline-none focus:border-sky-500 focus:bg-white transition-all shadow-xs"
+                        >
+                        <div class="absolute inset-y-0 right-1.5 flex items-center">
                             <button 
-                                @click="selectedCategory = cat.id"
-                                :class="selectedCategory === cat.id ? 'bg-sky-500 text-white shadow-md shadow-sky-500/20' : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'"
-                                class="px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs sm:text-sm font-medium transition-all whitespace-nowrap"
-                                x-text="cat.name">
+                                @click="handleBarcodeSearch()" 
+                                :disabled="!searchQuery"
+                                class="px-3 py-1.5 bg-sky-500 hover:bg-sky-600 disabled:opacity-40 text-white rounded-lg text-xs font-semibold transition-all">
+                                + Masukkan
                             </button>
-                        </template>
+                        </div>
                     </div>
 
-                    <!-- Search Input & Switch to Manage Products Button -->
-                    <div class="flex items-center space-x-2 w-full sm:w-auto">
-                        <div class="relative flex-1 sm:w-64">
-                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                            </span>
-                            <input 
-                                type="text" 
-                                x-model="searchQuery" 
-                                @keydown.enter="handleBarcodeSearch()"
-                                @input="handleBarCodeInput()"
-                                placeholder="Cari menu atau barcode..." 
-                                class="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 shadow-sm"
-                            >
-                        </div>
-                        <button @click="currentPage = 'produk'" class="bg-sky-50 text-sky-600 hover:bg-sky-500 hover:text-white px-3 py-2 rounded-xl text-xs font-semibold border border-sky-200 transition-all whitespace-nowrap flex items-center space-x-1.5 shrink-0" title="Buka Halaman Kelola Produk">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-                            <span>Kelola Produk</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Product Grid -->
-                <div class="flex-1 overflow-y-auto pr-1 pb-24 lg:pb-3">
-                    <div x-show="databaseError" class="mb-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl px-4 py-3 text-xs font-medium flex items-start justify-between gap-2" x-cloak>
-                        <div class="flex items-start gap-2">
-                            <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                            <span x-text="databaseError"></span>
-                        </div>
-                        <button @click="databaseError = ''" class="text-amber-600 hover:text-amber-800 font-bold text-sm px-1 leading-none" title="Tutup">&times;</button>
-                    </div>
-                    <div class="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-4">
-                        <template x-for="product in filteredProducts" :key="product.id">
+                    <!-- Autocomplete Search Suggestions Dropdown -->
+                    <div 
+                        x-show="searchMatches.length > 0 && searchQuery.length > 0" 
+                        class="absolute left-0 right-0 top-full mt-1.5 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 max-h-64 overflow-y-auto divide-y divide-slate-100"
+                        x-cloak>
+                        <template x-for="item in searchMatches" :key="item.id">
                             <div 
-                                @click="addToCart(product)"
-                                class="bg-white rounded-2xl p-2.5 sm:p-3 border border-slate-200 shadow-sm hover:shadow-md hover:border-sky-300 transition-all cursor-pointer flex flex-col justify-between group active:scale-[0.98]">
-                                <div>
-                                    <div class="relative h-28 xs:h-32 sm:h-36 w-full rounded-xl overflow-hidden mb-2 sm:mb-3 bg-slate-100">
-                                        <img :src="product.image" :alt="product.name" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                                        <span class="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 bg-white/90 backdrop-blur-sm text-slate-700 text-[9px] sm:text-[10px] font-semibold px-1.5 sm:px-2 py-0.5 rounded-full shadow-xs" x-text="product.categoryName"></span>
-                                    </div>
-                                    <h3 class="font-semibold text-slate-800 text-xs sm:text-sm line-clamp-1 group-hover:text-sky-600 transition-colors" x-text="product.name"></h3>
-                                    <div class="mt-1 sm:mt-1.5">
-                                        <template x-if="product.barcode">
-                                            <div class="bg-gradient-to-b from-slate-50 to-white border border-slate-200 rounded-lg sm:rounded-xl px-1.5 py-1 text-center shadow-inner overflow-hidden">
-                                                <div class="flex justify-center max-w-full overflow-hidden" x-init="renderBarcode($el, product.barcode)"></div>
-                                                <p class="text-[8px] sm:text-[9px] text-slate-500 font-mono mt-0.5 text-center tracking-wider truncate" x-text="product.barcode"></p>
-                                            </div>
-                                        </template>
+                                @click="addToCart(item); searchQuery = ''"
+                                class="p-2.5 sm:p-3 hover:bg-sky-50 flex items-center justify-between cursor-pointer transition-colors group">
+                                <div class="flex items-center space-x-3">
+                                    <img :src="item.image" :alt="item.name" class="w-10 h-10 rounded-xl object-cover border border-slate-200">
+                                    <div>
+                                        <p class="font-bold text-xs sm:text-sm text-slate-800 group-hover:text-sky-600" x-text="item.name"></p>
+                                        <p class="text-[10px] text-slate-400 font-mono" x-text="item.barcode ? 'Barcode: ' + item.barcode : (item.categoryName || '')"></p>
                                     </div>
                                 </div>
-                                <div class="mt-2 sm:mt-3 flex items-center justify-between">
-                                    <span class="font-bold text-sky-600 text-xs sm:text-sm truncate pr-1" x-text="formatRupiah(product.price)"></span>
-                                    <button class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center group-hover:bg-sky-500 group-hover:text-white transition-colors shrink-0">
-                                        <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                                    </button>
+                                <div class="flex items-center space-x-2">
+                                    <span class="font-bold text-xs sm:text-sm text-sky-600" x-text="formatRupiah(item.price)"></span>
+                                    <span class="text-xs bg-sky-500 text-white font-bold px-2 py-1 rounded-lg shadow-xs">+ Tambah</span>
                                 </div>
                             </div>
                         </template>
                     </div>
-                <!-- Empty State -->
-                <div x-show="filteredProducts.length === 0" class="flex flex-col items-center justify-center h-64 text-slate-400">
-                    <svg class="w-16 h-16 mb-2 stroke-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-                    <p class="text-sm font-medium">Menu tidak ditemukan</p>
                 </div>
-            </div>
 
-        </main>
-
-        <!-- Floating Sticky Cart Bar on Mobile -->
-        <div x-show="cart.length > 0 && !showMobileCart" class="lg:hidden fixed bottom-3 inset-x-3 z-30" x-cloak>
-            <button @click="showMobileCart = true" class="w-full bg-sky-500 hover:bg-sky-600 text-white p-3.5 rounded-2xl shadow-xl shadow-sky-500/30 flex items-center justify-between font-semibold text-sm transition-all active:scale-[0.99]">
-                <div class="flex items-center space-x-2.5">
-                    <span class="bg-white/20 px-2 py-0.5 rounded-lg text-xs font-bold" x-text="totalItems + ' Item'"></span>
-                    <span class="text-sm font-bold" x-text="formatRupiah(total)"></span>
-                </div>
-                <div class="flex items-center space-x-1.5 text-xs font-bold bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-xl">
-                    <span>Lihat & Bayar</span>
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                </div>
-            </button>
-        </div>
-
-        <!-- Mobile Cart Backdrop -->
-        <div 
-            x-show="showMobileCart" 
-            @click="showMobileCart = false" 
-            class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-40 lg:hidden transition-opacity" 
-            x-cloak>
-        </div>
-
-        <!-- Right Panel: Cart & Checkout (Drawer on Mobile, Persistent Sidebar on Desktop) -->
-        <aside 
-            :class="showMobileCart ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'"
-            class="fixed inset-y-0 right-0 z-50 w-full sm:w-[420px] lg:w-96 bg-white border-l border-slate-200 flex flex-col h-full shadow-2xl lg:shadow-sm shrink-0 lg:static transition-transform duration-300 ease-in-out">
-            
-            <!-- Cart Header -->
-            <div class="p-3.5 sm:p-4 border-b border-slate-200 flex items-center justify-between">
-                <div class="flex items-center space-x-2">
-                    <button @click="showMobileCart = false" class="lg:hidden p-1.5 -ml-1 rounded-xl text-slate-500 hover:bg-slate-100" title="Tutup">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                <!-- Right Action Buttons -->
+                <div class="flex items-center space-x-2 w-full sm:w-auto shrink-0 justify-end">
+                    <button 
+                        @click="showMenuPicker = true" 
+                        class="px-3.5 py-2.5 bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center gap-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                        <span>Pilih Menu</span>
                     </button>
-                    <svg class="w-5 h-5 text-sky-600 hidden lg:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
-                    <h2 class="font-bold text-slate-800 text-sm sm:text-base">Keranjang Belanja</h2>
-                    <span x-show="totalItems > 0" class="text-xs bg-sky-50 text-sky-700 px-2 py-0.5 rounded-full font-bold" x-text="totalItems + ' item'"></span>
-                </div>
-                <div class="flex items-center space-x-2">
-                    <button @click="clearCart()" x-show="cart.length > 0" class="text-xs text-rose-500 hover:text-rose-700 font-medium px-2 py-1">
-                        Kosongkan
-                    </button>
-                    <button @click="showMobileCart = false" class="lg:hidden text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-2.5 py-1.5 rounded-lg">
-                        Tutup
+                    <button 
+                        @click="clearCart()" 
+                        x-show="cart.length > 0"
+                        class="px-3 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-xl font-semibold text-xs sm:text-sm transition-all flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        <span>Kosongkan</span>
                     </button>
                 </div>
             </div>
 
-            <!-- Cart Items List -->
-            <div class="flex-1 overflow-y-auto p-4 space-y-3">
-                <template x-for="(item, index) in cart" :key="item.id">
-                    <div class="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-100">
-                        <div class="flex-1 pr-3">
-                            <h4 class="font-semibold text-slate-800 text-xs line-clamp-1" x-text="item.name"></h4>
-                            <p class="text-xs text-sky-600 font-medium mt-0.5" x-text="formatRupiah(item.price)"></p>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <button @click="decrementQty(index)" class="w-6 h-6 rounded-md bg-white border border-slate-200 text-slate-600 flex items-center justify-center hover:bg-slate-100 text-xs font-bold">-</button>
-                            <span class="text-xs font-semibold w-5 text-center" x-text="item.qty"></span>
-                            <button @click="incrementQty(index)" class="w-6 h-6 rounded-md bg-white border border-slate-200 text-slate-600 flex items-center justify-center hover:bg-slate-100 text-xs font-bold">+</button>
-                        </div>
-                    </div>
-                </template>
-                <!-- Empty Cart State -->
-                <div x-show="cart.length === 0" class="flex flex-col items-center justify-center h-full text-slate-400 py-12">
-                    <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-3 text-slate-300">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                    </div>
-                    <p class="text-sm font-medium text-slate-600">Keranjang masih kosong</p>
-                    <p class="text-xs text-slate-400 mt-1">Silakan pilih menu di katalog</p>
-                </div>
-            </div>
-
-            <!-- Payment Method & Summary & Checkout -->
-            <div class="p-4 border-t border-slate-200 bg-white shadow-lg space-y-3">
+            <!-- Main Transaction Panel (2-Column Desktop, Stacked Mobile) -->
+            <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 overflow-hidden">
                 
-                <!-- Payment Method Selector -->
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Metode Pembayaran</label>
-                    <div class="grid grid-cols-2 gap-2">
-                        <button 
-                            @click="paymentMethod = 'cash'"
-                            :class="paymentMethod === 'cash' ? 'bg-sky-500 text-white border-sky-500 shadow-sm' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'"
-                            class="py-2 px-3 rounded-xl text-xs font-semibold border transition-all flex items-center justify-center space-x-1.5">
-                            <span>💵</span><span>Tunai (Cash)</span>
-                        </button>
-                        <button 
-                            @click="paymentMethod = 'qris'"
-                            :class="paymentMethod === 'qris' ? 'bg-sky-500 text-white border-sky-500 shadow-sm' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'"
-                            class="py-2 px-3 rounded-xl text-xs font-semibold border transition-all flex items-center justify-center space-x-1.5">
-                            <span>📱</span><span>QRIS / QR</span>
-                        </button>
+                <!-- Left: Transaction Order Table (7 Cols) -->
+                <div class="lg:col-span-7 xl:col-span-8 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden h-full">
+                    
+                    <div class="p-3 sm:p-4 border-b border-slate-100 flex items-center justify-between shrink-0 bg-slate-50/70">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-base sm:text-lg">🧾</span>
+                            <h2 class="font-bold text-slate-800 text-sm sm:text-base">Daftar Transaksi Saat Ini</h2>
+                        </div>
+                        <span class="bg-sky-100 text-sky-800 text-xs font-bold px-2.5 py-1 rounded-full" x-text="totalItems + ' Item'"></span>
+                    </div>
+
+                    <!-- Table of Items -->
+                    <div class="flex-1 overflow-y-auto p-2 sm:p-3">
+                        <template x-if="cart.length > 0">
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-xs sm:text-sm">
+                                    <thead class="bg-slate-50 text-slate-500 font-semibold border-b border-slate-100 uppercase text-[10px] tracking-wider">
+                                        <tr>
+                                            <th class="py-2.5 px-3">#</th>
+                                            <th class="py-2.5 px-3">Nama Menu</th>
+                                            <th class="py-2.5 px-3">Harga</th>
+                                            <th class="py-2.5 px-3 text-center">Jumlah</th>
+                                            <th class="py-2.5 px-3 text-right">Subtotal</th>
+                                            <th class="py-2.5 px-3 text-center">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100">
+                                        <template x-for="(item, index) in cart" :key="item.id">
+                                            <tr class="hover:bg-slate-50/60 transition-colors">
+                                                <td class="py-3 px-3 text-slate-400 font-medium" x-text="index + 1"></td>
+                                                <td class="py-3 px-3">
+                                                    <p class="font-bold text-slate-800 line-clamp-1" x-text="item.name"></p>
+                                                    <span class="text-[10px] text-slate-400" x-text="item.barcode ? 'Barcode: ' + item.barcode : (item.categoryName || '')"></span>
+                                                </td>
+                                                <td class="py-3 px-3 text-slate-600 font-medium" x-text="formatRupiah(item.price)"></td>
+                                                <td class="py-3 px-3">
+                                                    <div class="flex items-center justify-center space-x-1.5">
+                                                        <button @click="decrementQty(index)" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-sm transition-colors">-</button>
+                                                        <span class="w-8 text-center font-bold text-slate-800 text-sm" x-text="item.qty"></span>
+                                                        <button @click="incrementQty(index)" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-sm transition-colors">+</button>
+                                                    </div>
+                                                </td>
+                                                <td class="py-3 px-3 text-right font-bold text-sky-600" x-text="formatRupiah(item.price * item.qty)"></td>
+                                                <td class="py-3 px-3 text-center">
+                                                    <button @click="cart.splice(index, 1)" class="p-1.5 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Hapus Item">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </template>
+
+                        <!-- Empty State -->
+                        <template x-if="cart.length === 0">
+                            <div class="flex flex-col items-center justify-center h-full min-h-[280px] text-slate-400 p-6 text-center">
+                                <div class="w-16 h-16 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-300 mb-3">
+                                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                </div>
+                                <h3 class="font-bold text-slate-700 text-sm sm:text-base">Belum Ada Transaksi</h3>
+                                <p class="text-xs text-slate-400 mt-1 max-w-sm">Scan barcode produk atau ketik nama menu di kolom pencarian di atas untuk memasukkan barang belanjaan.</p>
+                                <button @click="showMenuPicker = true" class="mt-4 px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-xl text-xs shadow-md shadow-sky-500/20 transition-all flex items-center gap-1.5">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                    <span>Pilih dari Menu</span>
+                                </button>
+                            </div>
+                        </template>
                     </div>
                 </div>
 
-                <!-- Totals -->
-                <div class="space-y-1.5 text-xs pt-1">
-                    <div class="flex justify-between text-slate-600">
-                        <span>Subtotal</span>
-                        <span class="font-medium text-slate-800" x-text="formatRupiah(subtotal)"></span>
+                <!-- Right: Payment & Summary Panel (5 Cols) -->
+                <div class="lg:col-span-5 xl:col-span-4 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between overflow-y-auto p-4 sm:p-5 h-full space-y-4">
+                    
+                    <div class="space-y-4">
+                        <div class="pb-3 border-b border-slate-100 flex items-center justify-between">
+                            <h3 class="font-bold text-slate-900 text-sm sm:text-base">Ringkasan Pembayaran</h3>
+                            <span class="text-xs text-slate-400 font-medium">Kasir: <strong class="text-slate-700" x-text="cashierName"></strong></span>
+                        </div>
+
+                        <!-- Calculation breakdown -->
+                        <div class="space-y-2 text-xs sm:text-sm">
+                            <div class="flex justify-between text-slate-600">
+                                <span>Subtotal</span>
+                                <span class="font-semibold text-slate-800" x-text="formatRupiah(subtotal)"></span>
+                            </div>
+                            <div class="flex justify-between text-slate-600">
+                                <span>Pajak (10%)</span>
+                                <span class="font-semibold text-slate-800" x-text="formatRupiah(tax)"></span>
+                            </div>
+                            <div class="flex justify-between text-slate-600">
+                                <span>Diskon</span>
+                                <span class="font-semibold text-emerald-600" x-text="'- ' + formatRupiah(discount)"></span>
+                            </div>
+                            <div class="border-t border-slate-200 pt-3 flex justify-between items-baseline">
+                                <span class="font-bold text-slate-900 text-sm sm:text-base">Total Bayar</span>
+                                <span class="font-black text-xl sm:text-2xl text-sky-600" x-text="formatRupiah(total)"></span>
+                            </div>
+                        </div>
+
+                        <!-- Payment Method -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-2">Metode Pembayaran</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button 
+                                    @click="paymentMethod = 'cash'"
+                                    :class="paymentMethod === 'cash' ? 'bg-sky-500 text-white border-sky-500 shadow-md shadow-sky-500/20' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'"
+                                    class="py-2.5 px-3 rounded-xl text-xs font-bold border transition-all flex items-center justify-center space-x-1.5">
+                                    <span>💵</span><span>Tunai (Cash)</span>
+                                </button>
+                                <button 
+                                    @click="paymentMethod = 'qris'"
+                                    :class="paymentMethod === 'qris' ? 'bg-sky-500 text-white border-sky-500 shadow-md shadow-sky-500/20' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'"
+                                    class="py-2.5 px-3 rounded-xl text-xs font-bold border transition-all flex items-center justify-center space-x-1.5">
+                                    <span>📱</span><span>QRIS / QR</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Cash Input & Change (If Tunai) -->
+                        <div x-show="paymentMethod === 'cash'" class="space-y-2 bg-slate-50 p-3 rounded-xl border border-slate-200" x-cloak>
+                            <label class="block text-xs font-bold text-slate-700">Uang Diterima (Rp)</label>
+                            <input 
+                                type="number" 
+                                x-model.number="cashAmount" 
+                                placeholder="Masukkan nominal uang..." 
+                                class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-800 focus:outline-none focus:border-sky-500">
+                            
+                            <!-- Quick amount chips -->
+                            <div class="flex flex-wrap gap-1.5 pt-1">
+                                <button @click="setCash('pas')" class="px-2.5 py-1 bg-white hover:bg-sky-50 border border-slate-200 text-slate-700 rounded-lg text-[11px] font-semibold">Uang Pas</button>
+                                <button @click="setCash(20000)" class="px-2.5 py-1 bg-white hover:bg-sky-50 border border-slate-200 text-slate-700 rounded-lg text-[11px] font-semibold">20.000</button>
+                                <button @click="setCash(50000)" class="px-2.5 py-1 bg-white hover:bg-sky-50 border border-slate-200 text-slate-700 rounded-lg text-[11px] font-semibold">50.000</button>
+                                <button @click="setCash(100000)" class="px-2.5 py-1 bg-white hover:bg-sky-50 border border-slate-200 text-slate-700 rounded-lg text-[11px] font-semibold">100.000</button>
+                            </div>
+
+                            <div class="pt-2 border-t border-slate-200 flex justify-between items-center text-xs">
+                                <span class="font-semibold text-slate-600">Kembalian:</span>
+                                <span class="font-bold text-sm" :class="changeAmount >= 0 ? 'text-emerald-600' : 'text-rose-500'" x-text="formatRupiah(changeAmount)"></span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="flex justify-between text-slate-600">
-                        <span>Pajak (10%)</span>
-                        <span class="font-medium text-slate-800" x-text="formatRupiah(tax)"></span>
+
+                    <!-- Checkout / Selesaikan Button -->
+                    <div class="pt-2">
+                        <button 
+                            @click="checkout()"
+                            :disabled="cart.length === 0"
+                            :class="cart.length === 0 ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-sky-500 hover:bg-sky-600 text-white shadow-lg shadow-sky-500/30 active:scale-[0.99]'"
+                            class="w-full py-3.5 rounded-xl font-bold transition-all flex items-center justify-center space-x-2 text-sm sm:text-base">
+                            <span x-text="paymentMethod === 'qris' ? 'Buat QRIS & Cetak Struk' : 'Selesaikan Transaksi & Struk'"></span>
+                        </button>
                     </div>
-                    <div class="flex justify-between text-slate-600">
-                        <span>Diskon</span>
-                        <span class="font-medium text-emerald-600" x-text="'- ' + formatRupiah(discount)"></span>
-                    </div>
-                    <div class="border-t border-slate-100 pt-2 flex justify-between font-bold text-sm text-slate-900">
-                        <span>Total Pembayaran</span>
-                        <span class="text-sky-600" x-text="formatRupiah(total)"></span>
-                    </div>
+
                 </div>
 
-                <button 
-                    @click="checkout()"
-                    :disabled="cart.length === 0"
-                    :class="cart.length === 0 ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-sky-500 text-white hover:bg-sky-600 shadow-lg shadow-sky-500/30'"
-                    class="w-full py-3 rounded-xl font-semibold transition-all flex items-center justify-center space-x-2 text-sm">
-                    <span x-text="paymentMethod === 'qris' ? 'Buat QRIS & Checkout' : 'Selesaikan Transaksi'"></span>
-                </button>
             </div>
-
-        </aside>
 
         </div>
 
@@ -687,6 +701,66 @@
         </div>
     </div>
 
+    <!-- Modal Quick Menu Picker (for Cashier) -->
+    <div x-show="showMenuPicker" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4" x-cloak>
+        <div class="bg-white rounded-3xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl flex flex-col max-h-[85vh]">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 shrink-0">
+                <div class="flex items-center space-x-2">
+                    <span class="text-xl">📋</span>
+                    <h3 class="font-bold text-slate-900 text-base">Pilih Menu untuk Transaksi</h3>
+                </div>
+                <button @click="showMenuPicker = false" class="text-slate-400 hover:text-slate-600 font-bold text-xl leading-none">&times;</button>
+            </div>
+            
+            <!-- Filters -->
+            <div class="py-3 flex flex-col sm:flex-row gap-2 shrink-0">
+                <input 
+                    type="text" 
+                    x-model="menuPickerSearch" 
+                    placeholder="Cari nama menu..." 
+                    class="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:border-sky-500">
+                
+                <div class="flex items-center space-x-1.5 overflow-x-auto pb-1 sm:pb-0">
+                    <template x-for="cat in categories" :key="cat.id">
+                        <button 
+                            @click="menuPickerCategory = cat.id"
+                            :class="menuPickerCategory === cat.id ? 'bg-sky-500 text-white font-bold shadow-xs' : 'bg-slate-100 text-slate-600'"
+                            class="px-3 py-1.5 rounded-xl text-xs whitespace-nowrap transition-colors"
+                            x-text="cat.name">
+                        </button>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Products Grid in Modal -->
+            <div class="flex-1 overflow-y-auto pr-1 grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3 py-2">
+                <template x-for="p in filteredMenuPickerProducts" :key="p.id">
+                    <div 
+                        @click="addToCart(p)"
+                        class="p-2.5 bg-slate-50 hover:bg-sky-50 border border-slate-200 hover:border-sky-300 rounded-2xl cursor-pointer transition-all flex flex-col justify-between group active:scale-95">
+                        <div class="h-24 w-full rounded-xl overflow-hidden mb-2 bg-white">
+                            <img :src="p.image" :alt="p.name" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                        </div>
+                        <div>
+                            <p class="font-bold text-xs text-slate-800 line-clamp-1 group-hover:text-sky-600" x-text="p.name"></p>
+                            <p class="text-sky-600 font-bold text-xs mt-0.5" x-text="formatRupiah(p.price)"></p>
+                        </div>
+                        <button class="mt-2 w-full py-1 bg-sky-500 hover:bg-sky-600 text-white rounded-lg text-[11px] font-bold shadow-xs">
+                            + Masukkan
+                        </button>
+                    </div>
+                </template>
+            </div>
+
+            <div class="pt-3 border-t border-slate-100 flex justify-between items-center text-xs shrink-0">
+                <span class="text-slate-500 font-medium" x-text="totalItems + ' item dalam transaksi saat ini'"></span>
+                <button @click="showMenuPicker = false" class="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-xl shadow-xs">
+                    Selesai
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         function posApp() {
             return {
@@ -704,6 +778,10 @@
                 productCategory: 'all',
                 productSearch: '',
                 paymentMethod: 'cash',
+                cashAmount: '',
+                showMenuPicker: false,
+                menuPickerCategory: 'all',
+                menuPickerSearch: '',
                 showModal: false,
                 showMobileCart: false,
                 showAddProductModal: false,
@@ -771,6 +849,38 @@ get filteredProducts() {
                     });
                 },
 
+                get filteredMenuPickerProducts() {
+                    return this.products.filter(p => {
+                        const matchesCat = this.menuPickerCategory === 'all' || p.category === this.menuPickerCategory;
+                        const q = (this.menuPickerSearch || '').toLowerCase().trim();
+                        const matchesSearch = !q || p.name.toLowerCase().includes(q) || (p.barcode && p.barcode.toLowerCase().includes(q));
+                        return matchesCat && matchesSearch;
+                    });
+                },
+
+                get searchMatches() {
+                    const q = (this.searchQuery || '').trim().toLowerCase();
+                    if (!q) return [];
+                    return this.products.filter(p => 
+                        p.name.toLowerCase().includes(q) || 
+                        (p.barcode && p.barcode.toLowerCase().includes(q))
+                    ).slice(0, 8);
+                },
+
+                get changeAmount() {
+                    if (this.paymentMethod !== 'cash' || !this.cashAmount) return 0;
+                    const val = Number(this.cashAmount) || 0;
+                    return Math.max(0, val - this.total);
+                },
+
+                setCash(amount) {
+                    if (amount === 'pas') {
+                        this.cashAmount = this.total;
+                    } else {
+                        this.cashAmount = Number(amount);
+                    }
+                },
+
                 get filteredHistory() {
                     const startToday = new Date();
                     startToday.setHours(0, 0, 0, 0);
@@ -801,10 +911,17 @@ get filteredProducts() {
                 },
 
                 handleBarcodeSearch() {
-                    const query = this.searchQuery.trim().toLowerCase();
+                    const query = (this.searchQuery || '').trim().toLowerCase();
+                    if (!query) return;
                     const found = this.products.find(p => p.barcode && p.barcode.toLowerCase() === query);
                     if (found) {
                         this.addToCart(found);
+                        this.searchQuery = '';
+                        return;
+                    }
+                    const matches = this.searchMatches;
+                    if (matches.length > 0) {
+                        this.addToCart(matches[0]);
                         this.searchQuery = '';
                     }
                 },
@@ -832,6 +949,8 @@ get filteredProducts() {
                 
                 clearCart() {
                     this.cart = [];
+                    this.cashAmount = '';
+                    this.searchQuery = '';
                 },
                 
                 get subtotal() {
@@ -861,6 +980,9 @@ get filteredProducts() {
                     const dateStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' + now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
                     const trxId = 'TRX-' + Math.floor(100000 + Math.random() * 900000);
                     
+                    const cashVal = this.paymentMethod === 'cash' ? (Number(this.cashAmount) || this.total) : this.total;
+                    const changeVal = this.paymentMethod === 'cash' ? Math.max(0, cashVal - this.total) : 0;
+
                     this.receiptData = {
                         trxId: trxId,
                         date: dateStr,
@@ -869,7 +991,9 @@ get filteredProducts() {
                         subtotal: this.subtotal,
                         tax: this.tax,
                         discount: this.discount,
-                        total: this.total
+                        total: this.total,
+                        cashAmount: cashVal,
+                        changeAmount: changeVal
                     };
                     this.showMobileCart = false;
 
@@ -885,7 +1009,9 @@ get filteredProducts() {
                             subtotal: this.receiptData.subtotal,
                             tax: this.receiptData.tax,
                             discount: this.receiptData.discount,
-                            total: this.receiptData.total
+                            total: this.receiptData.total,
+                            cashAmount: cashVal,
+                            changeAmount: changeVal
                         });
                     } catch (err) {
                         console.error('Gagal simpan transaksi ke cloud:', err);
@@ -903,6 +1029,8 @@ get filteredProducts() {
                 
                 newTransaction() {
                     this.cart = [];
+                    this.cashAmount = '';
+                    this.searchQuery = '';
                     this.showModal = false;
                 },
                 
