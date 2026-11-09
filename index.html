@@ -47,6 +47,9 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <!-- bwip-js CDN for scannable barcode rendering -->
     <script src="https://cdn.jsdelivr.net/npm/bwip-js@4/dist/bwip-js.js"></script>
+    <!-- jsPDF & autoTable CDN for PDF Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
@@ -1101,6 +1104,249 @@ get filteredProducts() {
                     }
                 },
 
+                downloadHistoryPDF() {
+                    const list = this.filteredHistory;
+                    if (!list || list.length === 0) {
+                        alert('Tidak ada data transaksi untuk diunduh.');
+                        return;
+                    }
+
+                    const filterLabel = this.historyFilter === 'today' ? 'Hari Ini' : (this.historyFilter === 'week' ? '7 Hari Terakhir' : 'Semua Periode');
+                    const now = new Date();
+                    const datePrinted = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }) + ' ' + now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                    const summary = this.historySummary;
+
+                    // 1. Ekspor menggunakan jsPDF jika library siap
+                    if (window.jspdf && window.jspdf.jsPDF) {
+                        try {
+                            const { jsPDF } = window.jspdf;
+                            const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+                            // Header Banner Hijau Army Toko
+                            doc.setFillColor(78, 109, 66); // Army Green
+                            doc.rect(0, 0, 210, 24, 'F');
+                            doc.setTextColor(255, 255, 255);
+                            doc.setFontSize(16);
+                            doc.setFont('helvetica', 'bold');
+                            doc.text('INTI RASA CAFFE', 14, 11);
+                            doc.setFontSize(8.5);
+                            doc.setFont('helvetica', 'normal');
+                            doc.text('LAPORAN RIWAYAT PENJUALAN & TRANSAKSI KASIR', 14, 18);
+
+                            // Metadata Cetak
+                            doc.setTextColor(60, 60, 60);
+                            doc.setFontSize(8.5);
+                            doc.text(`Periode Filter : ${filterLabel}`, 14, 31);
+                            doc.text(`Waktu Cetak    : ${datePrinted}`, 14, 36);
+                            doc.text(`Kasir          : ${this.cashierName || 'Jeff'}`, 14, 41);
+
+                            doc.text(`Total Transaksi: ${summary.count} Transaksi`, 135, 31);
+                            doc.text(`Total Omset    : ${this.formatRupiah(summary.revenue)}`, 135, 36);
+                            doc.text(`Tunai / QRIS   : ${this.formatRupiah(summary.cash)} / ${this.formatRupiah(summary.qris)}`, 135, 41);
+
+                            // Garis Pembatas
+                            doc.setDrawColor(203, 220, 196);
+                            doc.setLineWidth(0.5);
+                            doc.line(14, 45, 196, 45);
+
+                            // Susun data tabel
+                            const tableRows = list.map((trx, idx) => {
+                                const itemsStr = (trx.items || []).map(i => `${i.qty}x ${i.name}`).join(', ');
+                                const methodStr = (trx.paymentMethod || 'cash').toUpperCase();
+                                const dateStr = trx.dateLabel || trx.date || '-';
+                                return [
+                                    idx + 1,
+                                    trx.trxId || '-',
+                                    dateStr,
+                                    itemsStr || '-',
+                                    methodStr,
+                                    this.formatRupiah(Number(trx.total || 0))
+                                ];
+                            });
+
+                            // Generate Tabel dengan autoTable
+                            doc.autoTable({
+                                startY: 49,
+                                head: [['No', 'ID Transaksi', 'Waktu', 'Rincian Pesanan', 'Metode', 'Total']],
+                                body: tableRows,
+                                theme: 'striped',
+                                headStyles: {
+                                    fillColor: [78, 109, 66],
+                                    textColor: [255, 255, 255],
+                                    fontSize: 8,
+                                    fontStyle: 'bold',
+                                    halign: 'left'
+                                },
+                                bodyStyles: {
+                                    fontSize: 7.5,
+                                    textColor: [40, 40, 40],
+                                    cellPadding: 2.5
+                                },
+                                columnStyles: {
+                                    0: { cellWidth: 9, halign: 'center' },
+                                    1: { cellWidth: 26, fontStyle: 'bold' },
+                                    2: { cellWidth: 32 },
+                                    3: { cellWidth: 70 },
+                                    4: { cellWidth: 17, halign: 'center' },
+                                    5: { cellWidth: 28, halign: 'right', fontStyle: 'bold' }
+                                },
+                                margin: { left: 14, right: 14 },
+                                didDrawPage: (data) => {
+                                    const pageCount = doc.internal.getNumberOfPages();
+                                    doc.setFontSize(7.5);
+                                    doc.setTextColor(150);
+                                    doc.text(`Halaman ${doc.internal.getCurrentPageInfo().pageNumber} dari ${pageCount} • Inti Rasa Caffe POS System`, 14, 290);
+                                }
+                            });
+
+                            const dateIso = now.toISOString().slice(0, 10);
+                            const filename = `Laporan-Riwayat-IntiRasaCaffe-${this.historyFilter}-${dateIso}.pdf`;
+                            doc.save(filename);
+                            return;
+                        } catch (err) {
+                            console.error('jsPDF gagal, menggunakan print fallback:', err);
+                        }
+                    }
+
+                    // 2. Fallback: Dialog cetak PDF bawaan browser
+                    this.printHistoryFallback(list, summary, filterLabel, datePrinted);
+                },
+
+                printHistoryFallback(list, summary, filterLabel, datePrinted) {
+                    const printWindow = window.open('', '_blank');
+                    if (!printWindow) {
+                        alert('Silakan izinkan popup pada browser untuk mengunduh laporan PDF.');
+                        return;
+                    }
+                    const rowsHtml = list.map((t, idx) => `
+                        <tr>
+                            <td style="text-align:center; padding: 6px; border-bottom: 1px solid #e2e8f0;">${idx + 1}</td>
+                            <td style="padding: 6px; font-weight: bold; border-bottom: 1px solid #e2e8f0;">${t.trxId}</td>
+                            <td style="padding: 6px; border-bottom: 1px solid #e2e8f0;">${t.dateLabel || t.date || '-'}</td>
+                            <td style="padding: 6px; border-bottom: 1px solid #e2e8f0;">${(t.items || []).map(i => `${i.qty}x ${i.name}`).join(', ')}</td>
+                            <td style="text-align:center; padding: 6px; text-transform: uppercase; border-bottom: 1px solid #e2e8f0;">${t.paymentMethod || 'cash'}</td>
+                            <td style="text-align:right; font-weight: bold; padding: 6px; border-bottom: 1px solid #e2e8f0;">${this.formatRupiah(Number(t.total || 0))}</td>
+                        </tr>
+                    `).join('');
+
+                    printWindow.document.write(`
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <title>Laporan Riwayat Penjualan - Inti Rasa Caffe</title>
+                            <style>
+                                body { font-family: 'Segoe UI', Arial, sans-serif; color: #1e293b; padding: 24px; }
+                                .header { background: #4e6d42; color: white; padding: 16px 20px; border-radius: 8px; margin-bottom: 16px; }
+                                .header h1 { margin: 0; font-size: 18px; }
+                                .header p { margin: 3px 0 0; font-size: 11px; opacity: 0.9; }
+                                .meta { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 14px; color: #475569; }
+                                .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 18px; }
+                                .card { background: #f4f6f1; border: 1px solid #cbdcc4; padding: 10px; border-radius: 8px; }
+                                .card-title { font-size: 9px; color: #64748b; font-weight: bold; text-transform: uppercase; }
+                                .card-val { font-size: 14px; font-weight: bold; color: #2f4228; margin-top: 3px; }
+                                table { width: 100%; border-collapse: collapse; font-size: 11px; }
+                                th { background: #4e6d42; color: white; padding: 8px; text-align: left; }
+                                @media print { body { padding: 0; } }
+                            </style>
+                        </head>
+                        <body>
+                            <div class="header">
+                                <h1>INTI RASA CAFFE</h1>
+                                <p>Laporan Riwayat Penjualan & Transaksi Kasir</p>
+                            </div>
+                            <div class="meta">
+                                <div><b>Periode:</b> ${filterLabel} | <b>Kasir:</b> ${this.cashierName || 'Jeff'}</div>
+                                <div><b>Waktu Cetak:</b> ${datePrinted}</div>
+                            </div>
+                            <div class="cards">
+                                <div class="card">
+                                    <div class="card-title">Total Penjualan</div>
+                                    <div class="card-val">${this.formatRupiah(summary.revenue)}</div>
+                                </div>
+                                <div class="card">
+                                    <div class="card-title">Transaksi Tunai</div>
+                                    <div class="card-val">${this.formatRupiah(summary.cash)}</div>
+                                </div>
+                                <div class="card">
+                                    <div class="card-title">Transaksi QRIS</div>
+                                    <div class="card-val">${this.formatRupiah(summary.qris)}</div>
+                                </div>
+                            </div>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center;">No</th>
+                                        <th>ID Transaksi</th>
+                                        <th>Waktu</th>
+                                        <th>Rincian Menu</th>
+                                        <th style="text-align:center;">Metode</th>
+                                        <th style="text-align:right;">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${rowsHtml}
+                                </tbody>
+                            </table>
+                        </body>
+                        </html>
+                    `);
+                    printWindow.document.close();
+                    printWindow.focus();
+                    setTimeout(() => { printWindow.print(); }, 400);
+                },
+
+                downloadTrxPDF(trx) {
+                    if (!trx) return;
+                    if (window.jspdf && window.jspdf.jsPDF) {
+                        try {
+                            const { jsPDF } = window.jspdf;
+                            const doc = new jsPDF({ unit: 'mm', format: [80, 160] });
+                            doc.setFont('courier', 'bold');
+                            doc.setFontSize(11);
+                            doc.text('INTI RASA CAFFE', 40, 10, { align: 'center' });
+                            doc.setFontSize(8);
+                            doc.setFont('courier', 'normal');
+                            doc.text('Jl. Kuliner Nusantara No. 88', 40, 15, { align: 'center' });
+                            doc.text('--------------------------------', 40, 19, { align: 'center' });
+                            doc.text(`No : ${trx.trxId}`, 6, 24);
+                            doc.text(`Tgl: ${trx.dateLabel || trx.date || '-'}`, 6, 28);
+                            doc.text(`Ksr: ${trx.kasir || 'Jeff'}`, 6, 32);
+                            doc.text(`Byr: ${(trx.paymentMethod || 'cash').toUpperCase()}`, 6, 36);
+                            doc.text('--------------------------------', 40, 40, { align: 'center' });
+                            
+                            let y = 45;
+                            (trx.items || []).forEach(item => {
+                                doc.setFont('courier', 'bold');
+                                doc.text((item.name || '').substring(0, 22), 6, y);
+                                doc.text(this.formatRupiah(item.price * item.qty), 74, y, { align: 'right' });
+                                y += 4;
+                                doc.setFont('courier', 'normal');
+                                doc.text(`${item.qty} x ${this.formatRupiah(item.price)}`, 6, y);
+                                y += 5;
+                            });
+
+                            doc.text('--------------------------------', 40, y, { align: 'center' });
+                            y += 5;
+                            doc.text(`Subtotal : ${this.formatRupiah(Number(trx.subtotal || 0))}`, 74, y, { align: 'right' });
+                            y += 4;
+                            doc.text(`Pajak    : ${this.formatRupiah(Number(trx.tax || 0))}`, 74, y, { align: 'right' });
+                            y += 4;
+                            doc.setFont('courier', 'bold');
+                            doc.text(`TOTAL    : ${this.formatRupiah(Number(trx.total || 0))}`, 74, y, { align: 'right' });
+                            y += 8;
+                            doc.setFontSize(7.5);
+                            doc.setFont('courier', 'normal');
+                            doc.text('Terima Kasih Atas Kunjungan Anda!', 40, y, { align: 'center' });
+
+                            doc.save(`Struk-${trx.trxId}.pdf`);
+                            return;
+                        } catch (e) {
+                            console.error('jsPDF receipt error:', e);
+                        }
+                    }
+                    this.reprintTrx();
+                },
+
                 handleImageUpload(event, target) {
                     const file = event.target.files && event.target.files[0];
                     if (!file) return;
@@ -1345,8 +1591,17 @@ get filteredProducts() {
     <div x-show="showHistoryModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4" x-cloak>
         <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl flex flex-col space-y-4 max-h-[85vh]">
             <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-                <h3 class="font-bold text-slate-900 text-base">History Penjualan</h3>
-                <button @click="showHistoryModal = false" class="text-slate-400 hover:text-slate-600 font-bold text-lg">&times;</button>
+                <div class="flex items-center space-x-2">
+                    <h3 class="font-bold text-slate-900 text-base">History Penjualan</h3>
+                    <span class="text-xs bg-sky-50 text-sky-800 font-semibold px-2 py-0.5 rounded-full" x-text="filteredHistory.length + ' Transaksi'"></span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button @click="downloadHistoryPDF()" class="flex items-center space-x-1.5 px-3 py-1.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-semibold text-xs transition-colors shadow-sm" title="Unduh Laporan PDF">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <span>Unduh PDF</span>
+                    </button>
+                    <button @click="showHistoryModal = false" class="text-slate-400 hover:text-slate-600 font-bold text-lg leading-none">&times;</button>
+                </div>
             </div>
 
             <!-- Ringkasan -->
@@ -1440,7 +1695,11 @@ get filteredProducts() {
                         </div>
                     </div>
                     <div class="flex space-x-2 pt-1">
-                        <button @click="reprintTrx()" class="flex-1 py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-semibold text-xs shadow-md shadow-sky-500/20">Cetak Ulang Struk</button>
+                        <button @click="reprintTrx()" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold text-xs">Cetak Struk</button>
+                        <button @click="downloadTrxPDF(selectedTransaction)" class="flex-1 py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-semibold text-xs shadow-md shadow-sky-500/20 flex items-center justify-center space-x-1.5" title="Unduh Struk PDF">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            <span>Unduh PDF</span>
+                        </button>
                         <button @click="deleteTrx(selectedTransaction)" class="py-2.5 px-3 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl font-semibold text-xs">Hapus</button>
                     </div>
                 </div>
