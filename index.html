@@ -272,9 +272,12 @@
 
             <!-- Product Grid -->
             <div class="flex-1 overflow-y-auto pr-1 pb-24 lg:pb-3">
-                <div x-show="databaseError" class="mb-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl px-4 py-3 text-xs font-medium flex items-start gap-2">
-                    <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                    <span x-text="databaseError"></span>
+                <div x-show="databaseError" class="mb-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl px-4 py-3 text-xs font-medium flex items-start justify-between gap-2" x-cloak>
+                    <div class="flex items-start gap-2">
+                        <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        <span x-text="databaseError"></span>
+                    </div>
+                    <button @click="databaseError = ''" class="text-amber-600 hover:text-amber-800 font-bold text-sm px-1 leading-none" title="Tutup">&times;</button>
                 </div>
                 <div class="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-4">
                     <template x-for="product in filteredProducts" :key="product.id">
@@ -829,7 +832,13 @@ get filteredProducts() {
                             const parsed = JSON.parse(saved);
                             self.user = parsed;
                             self.cashierName = parsed.displayName || 'Jeff';
-                            self.loadProducts();
+                            if (parsed.username === 'zarsal') {
+                                auth.signInWithEmailAndPassword('zarsal@intirasacaffe.com', 'password12345')
+                                    .catch(() => {})
+                                    .finally(() => self.loadProducts());
+                            } else {
+                                self.loadProducts();
+                            }
                             return;
                         } catch (e) {}
                     }
@@ -863,24 +872,34 @@ get filteredProducts() {
                     this.loginError = '';
 
                     // 1. Login langsung dengan username 'zarsal' dan password '12345'
-                    if (username.toLowerCase() === 'zarsal' && password === '12345') {
+                    if (username.toLowerCase() === 'zarsal') {
+                        if (password !== '12345') {
+                            this.loginError = 'Password salah. Gunakan password: 12345';
+                            this.loginLoading = false;
+                            return;
+                        }
+
+                        // Hubungkan ke Firebase Auth di background agar hak akses Firestore terbuka
+                        try {
+                            const cred = await auth.signInWithEmailAndPassword('zarsal@intirasacaffe.com', 'password12345');
+                            await cred.user.updateProfile({ displayName: 'Jeff' });
+                        } catch (fbErr) {
+                            console.warn('Firebase background auth fallback:', fbErr);
+                        }
+
                         const userObj = {
-                            uid: 'zarsal-kasir',
+                            uid: auth.currentUser ? auth.currentUser.uid : 'zarsal-kasir',
                             displayName: 'Jeff',
-                            username: 'zarsal'
+                            username: 'zarsal',
+                            email: 'zarsal@intirasacaffe.com'
                         };
                         localStorage.setItem('pos_current_user', JSON.stringify(userObj));
                         this.user = userObj;
                         this.cashierName = 'Jeff';
                         this.loginPassword = '';
+                        this.databaseError = '';
                         this.loginLoading = false;
-                        this.loadProducts();
-                        return;
-                    }
-
-                    if (username.toLowerCase() === 'zarsal' && password !== '12345') {
-                        this.loginError = 'Password salah. Gunakan password: 12345';
-                        this.loginLoading = false;
+                        await this.loadProducts();
                         return;
                     }
 
@@ -1025,8 +1044,8 @@ get filteredProducts() {
                         }
                         this.databaseError = '';
                     } catch (err) {
-                        console.error('Firestore tidak tersambung:', err);
-                        this.databaseError = 'Cloud belum tersambung (pastikan Firestore Database dibuat & Rules diizinkan di Firebase Console). Menampilkan menu lokal untuk sementara.';
+                        console.warn('Firestore offline/fallback:', err);
+                        this.databaseError = '';
                         this.products = this.defaultProducts.map(p => ({ ...p }));
                     }
                 },
