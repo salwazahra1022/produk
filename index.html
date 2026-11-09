@@ -132,15 +132,11 @@
                     <div class="space-y-4">
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">Username</label>
-                            <input type="text" x-model="loginUsername" @keydown.enter="login()" placeholder="Contoh: zarsal" autocomplete="username" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all">
+                            <input type="text" x-model="loginUsername" @keydown.enter="login()" placeholder="Masukkan username" autocomplete="off" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all">
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">Password</label>
-                            <input type="password" x-model="loginPassword" @keydown.enter="login()" placeholder="Contoh: 12345" autocomplete="current-password" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all">
-                        </div>
-                        <div class="bg-sky-50 border border-sky-200 rounded-xl p-2.5 text-xs text-sky-800 flex items-center justify-between">
-                            <span>Username: <b>zarsal</b></span>
-                            <span>Password: <b>12345</b></span>
+                            <input type="password" x-model="loginPassword" @keydown.enter="login()" placeholder="••••••••" autocomplete="off" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all">
                         </div>
                         <div x-show="loginError" x-text="loginError" class="text-rose-500 text-xs text-center bg-rose-50 rounded-lg py-2 px-3 border border-rose-100"></div>
                         <button @click="login()" :disabled="loginLoading" class="w-full py-3 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-sky-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
@@ -163,15 +159,15 @@
                     <div class="space-y-4">
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Kasir</label>
-                            <input type="text" x-model="registerName" placeholder="Nama kasir (misal: Jeff)" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all">
+                            <input type="text" x-model="registerName" placeholder="Nama kasir" autocomplete="off" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all">
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">Username</label>
-                            <input type="text" x-model="loginUsername" placeholder="Username (misal: jeff)" autocomplete="username" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all">
+                            <input type="text" x-model="loginUsername" placeholder="Masukkan username" autocomplete="off" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all">
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">Password</label>
-                            <input type="password" x-model="loginPassword" @keydown.enter="register()" placeholder="Minimal 6 karakter" autocomplete="new-password" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all">
+                            <input type="password" x-model="loginPassword" @keydown.enter="register()" placeholder="Minimal 6 karakter" autocomplete="off" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all">
                         </div>
                         <div x-show="loginError" x-text="loginError" class="text-rose-500 text-xs text-center bg-rose-50 rounded-lg py-2 px-3 border border-rose-100"></div>
                         <button @click="register()" :disabled="loginLoading" class="w-full py-3 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-sky-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
@@ -568,7 +564,7 @@
         function posApp() {
             return {
                 user: undefined,
-                loginUsername: 'zarsal',
+                loginUsername: '',
                 loginPassword: '',
                 loginError: '',
                 loginLoading: false,
@@ -877,7 +873,7 @@ get filteredProducts() {
                     // 1. Login langsung dengan username 'zarsal' dan password '12345'
                     if (username.toLowerCase() === 'zarsal') {
                         if (password !== '12345') {
-                            this.loginError = 'Password salah. Gunakan password: 12345';
+                            this.loginError = 'Username atau password salah.';
                             this.loginLoading = false;
                             return;
                         }
