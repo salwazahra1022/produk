@@ -85,12 +85,38 @@
         @media print {
             @page {
                 margin: 0;
-                size: 58mm 110mm;
+                size: auto;
             }
-            html, body { height: auto !important; overflow: hidden !important; margin: 0 !important; padding: 0 !important; }
-            body * { visibility: hidden !important; }
-            #printable-receipt, #printable-receipt * { visibility: visible !important; }
-            #printable-receipt {
+            body.print-barcode {
+                background: white !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                height: auto !important;
+                overflow: visible !important;
+            }
+            body.print-barcode * {
+                visibility: hidden !important;
+            }
+            body.print-barcode #printable-barcode-sheet,
+            body.print-barcode #printable-barcode-sheet * {
+                visibility: visible !important;
+            }
+            body.print-barcode #printable-barcode-sheet {
+                position: absolute !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                padding: 8mm !important;
+                margin: 0 !important;
+                background: white !important;
+                z-index: 999999 !important;
+                display: grid !important;
+            }
+
+            body:not(.print-barcode) html, body:not(.print-barcode) { height: auto !important; overflow: hidden !important; margin: 0 !important; padding: 0 !important; }
+            body:not(.print-barcode) * { visibility: hidden !important; }
+            body:not(.print-barcode) #printable-receipt, body:not(.print-barcode) #printable-receipt * { visibility: visible !important; }
+            body:not(.print-barcode) #printable-receipt {
                 position: absolute !important;
                 left: 0 !important;
                 top: 0 !important;
@@ -114,7 +140,7 @@
                 page-break-after: avoid !important;
                 break-after: avoid !important;
             }
-            #printable-receipt div { display: block !important; }
+            body:not(.print-barcode) #printable-receipt div { display: block !important; }
         }
     </style>
 </head>
@@ -195,62 +221,207 @@
         </div>
     </div>
 
-    <!-- POS App -->
-    <div x-show="user" x-cloak class="h-screen overflow-hidden flex flex-col">
+    <!-- POS App with Sidebar Navigation -->
+    <div x-show="user" x-cloak class="h-screen overflow-hidden flex flex-row bg-[#f4f6f1]">
 
-    <!-- Top Navbar -->
-    <header class="bg-white border-b border-slate-200 px-3 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between shrink-0 shadow-sm gap-2">
-        <div class="flex items-center space-x-2.5 sm:space-x-3 min-w-0">
-            <img src="assets/logo-inti-rasa.jpg" alt="Logo" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl object-cover shadow-md border border-sky-300 shrink-0">
-            <div class="truncate">
-                <h1 class="font-bold text-base sm:text-lg text-slate-900 leading-tight truncate">Inti Rasa Caffe</h1>
-                <p class="text-[11px] sm:text-xs text-slate-500 truncate" x-text="currentPage === 'kasir' ? 'Kasir / Transaksi Order' : 'Kelola Data Produk'"></p>
+        <!-- Mobile Sidebar Backdrop -->
+        <div x-show="sidebarOpen" @click="sidebarOpen = false" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 lg:hidden" x-cloak></div>
+
+        <!-- Left Sidebar Navigation -->
+        <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'" class="fixed lg:static inset-y-0 left-0 w-64 bg-white border-r border-slate-200 z-50 flex flex-col h-full transition-transform duration-300 ease-in-out shrink-0 select-none shadow-xl lg:shadow-none">
+            
+            <!-- Brand / Logo Header -->
+            <div class="h-16 px-4 border-b border-slate-200 flex items-center justify-between shrink-0 bg-white">
+                <div class="flex items-center space-x-3 min-w-0">
+                    <img src="assets/logo-inti-rasa.jpg" alt="Logo" class="w-9 h-9 rounded-xl object-cover shadow-sm border border-sky-300 shrink-0">
+                    <div class="truncate">
+                        <h1 class="font-bold text-sm text-slate-900 leading-tight truncate">Inti Rasa Caffe</h1>
+                        <p class="text-[10px] text-slate-500 font-medium truncate">Sistem Kasir & POS</p>
+                    </div>
+                </div>
+                <button @click="sidebarOpen = false" class="lg:hidden p-1.5 text-slate-400 hover:text-slate-600 rounded-lg">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
             </div>
-        </div>
 
-        <!-- Navigation Switch: Kasir vs Kelola Produk -->
-        <nav class="flex items-center bg-slate-100 p-1 rounded-2xl border border-slate-200 shrink-0">
-            <button 
-                @click="currentPage = 'kasir'"
-                :class="currentPage === 'kasir' ? 'bg-sky-500 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'"
-                class="flex items-center gap-1 sm:gap-1.5 px-3 sm:px-4 py-1.5 rounded-xl font-bold text-xs sm:text-sm transition-all">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                <span>Kasir</span>
-            </button>
-            <button 
-                @click="currentPage = 'produk'"
-                :class="currentPage === 'produk' ? 'bg-sky-500 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'"
-                class="flex items-center gap-1 sm:gap-1.5 px-3 sm:px-4 py-1.5 rounded-xl font-bold text-xs sm:text-sm transition-all">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-                <span>Kelola Produk</span>
-            </button>
-        </nav>
+            <!-- Navigation Menu Items (Scrollable) -->
+            <nav class="flex-1 overflow-y-auto p-3 space-y-1.5">
+                <!-- Kasir Menu -->
+                <button 
+                    @click="currentPage = 'kasir'; sidebarOpen = false"
+                    :class="currentPage === 'kasir' ? 'bg-sky-500 text-white font-bold shadow-md shadow-sky-500/20' : 'text-slate-700 hover:bg-slate-100 font-medium'"
+                    class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm transition-all text-left">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    <span class="flex-1">Kasir</span>
+                    <span x-show="cart.length > 0" class="px-2 py-0.5 text-[10px] bg-rose-500 text-white rounded-full font-bold" x-text="cart.reduce((s, i) => s + i.qty, 0)"></span>
+                </button>
 
-        <div class="flex items-center space-x-1.5 sm:space-x-3 shrink-0">
-            <div class="text-right hidden md:block">
-                <p class="text-sm font-semibold text-slate-800" x-text="cashierName"></p>
-                <p class="text-xs text-emerald-600 font-medium">● Kasir Aktif</p>
+                <!-- Menu Utama: BARANG (Dropdown / Accordion) -->
+                <div class="pt-1">
+                    <button 
+                        @click="barangMenuOpen = !barangMenuOpen" 
+                        class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-slate-800 hover:bg-slate-100 transition-colors">
+                        <div class="flex items-center gap-3">
+                            <svg class="w-4 h-4 text-sky-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                            <span>Barang</span>
+                        </div>
+                        <svg :class="barangMenuOpen ? 'rotate-180' : ''" class="w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+
+                    <!-- Sub-menu list accordion (7 Sub-menu) -->
+                    <div x-show="barangMenuOpen" class="pl-3 pr-1 mt-1 space-y-1">
+                        <!-- 1. Barang -->
+                        <button 
+                            @click="currentPage = 'barang'; sidebarOpen = false"
+                            :class="(currentPage === 'barang' || currentPage === 'produk') ? 'bg-sky-50 text-sky-700 font-bold border-l-2 border-sky-500' : 'text-slate-600 hover:bg-slate-50 font-medium'"
+                            class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-all text-left">
+                            <span class="text-sm">📦</span>
+                            <span class="flex-1">Barang</span>
+                            <span class="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-mono" x-text="products.length"></span>
+                        </button>
+
+                        <!-- 2. Cetak Barcode -->
+                        <button 
+                            @click="openCetakBarcode(); sidebarOpen = false"
+                            :class="currentPage === 'cetak-barcode' ? 'bg-sky-50 text-sky-700 font-bold border-l-2 border-sky-500' : 'text-slate-600 hover:bg-slate-50 font-medium'"
+                            class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-all text-left">
+                            <span class="text-sm">🏷️</span>
+                            <span class="flex-1">Cetak Barcode</span>
+                        </button>
+
+                        <!-- 3. Kartu Stok Barang -->
+                        <button 
+                            @click="openKartuStok(); sidebarOpen = false"
+                            :class="currentPage === 'kartu-stok' ? 'bg-sky-50 text-sky-700 font-bold border-l-2 border-sky-500' : 'text-slate-600 hover:bg-slate-50 font-medium'"
+                            class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-all text-left">
+                            <span class="text-sm">📊</span>
+                            <span class="flex-1">Kartu Stok Barang</span>
+                        </button>
+
+                        <!-- 4. Jenis Satuan -->
+                        <button 
+                            @click="currentPage = 'jenis-satuan'; sidebarOpen = false"
+                            :class="currentPage === 'jenis-satuan' ? 'bg-sky-50 text-sky-700 font-bold border-l-2 border-sky-500' : 'text-slate-600 hover:bg-slate-50 font-medium'"
+                            class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-all text-left">
+                            <span class="text-sm">📁</span>
+                            <span class="flex-1">Jenis Satuan</span>
+                            <span class="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-mono" x-text="jenisSatuanList.length"></span>
+                        </button>
+
+                        <!-- 5. Nama Satuan -->
+                        <button 
+                            @click="currentPage = 'nama-satuan'; sidebarOpen = false"
+                            :class="currentPage === 'nama-satuan' ? 'bg-sky-50 text-sky-700 font-bold border-l-2 border-sky-500' : 'text-slate-600 hover:bg-slate-50 font-medium'"
+                            class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-all text-left">
+                            <span class="text-sm">⚖️</span>
+                            <span class="flex-1">Nama Satuan</span>
+                            <span class="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-mono" x-text="satuanList.length"></span>
+                        </button>
+
+                        <!-- 6. Merek -->
+                        <button 
+                            @click="currentPage = 'merek'; sidebarOpen = false"
+                            :class="currentPage === 'merek' ? 'bg-sky-50 text-sky-700 font-bold border-l-2 border-sky-500' : 'text-slate-600 hover:bg-slate-50 font-medium'"
+                            class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-all text-left">
+                            <span class="text-sm">🔖</span>
+                            <span class="flex-1">Merek</span>
+                            <span class="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-mono" x-text="merekList.length"></span>
+                        </button>
+
+                        <!-- 7. Kategori -->
+                        <button 
+                            @click="currentPage = 'kategori'; sidebarOpen = false"
+                            :class="currentPage === 'kategori' ? 'bg-sky-50 text-sky-700 font-bold border-l-2 border-sky-500' : 'text-slate-600 hover:bg-slate-50 font-medium'"
+                            class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-all text-left">
+                            <span class="text-sm">📂</span>
+                            <span class="flex-1">Kategori</span>
+                            <span class="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-mono" x-text="categories.filter(c => c.id !== 'all').length"></span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Divider & Other Menus -->
+                <div class="pt-3 border-t border-slate-100 space-y-1">
+                    <!-- Riwayat Transaksi -->
+                    <button 
+                        @click="openHistory(); sidebarOpen = false"
+                        class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium text-slate-700 hover:bg-slate-100 transition-colors text-left">
+                        <svg class="w-4 h-4 text-sky-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                        <span class="flex-1">Riwayat Transaksi</span>
+                    </button>
+
+                    <!-- Menu HP Pelanggan -->
+                    <button 
+                        @click="openCustomerMenuModal(); sidebarOpen = false"
+                        class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium text-emerald-700 hover:bg-emerald-50 transition-colors text-left">
+                        <span class="text-base">📱</span>
+                        <span class="flex-1">Menu HP Pelanggan</span>
+                    </button>
+                </div>
+            </nav>
+
+            <!-- Sidebar Footer / Kasir Info -->
+            <div class="p-3 border-t border-slate-200 bg-slate-50/70 shrink-0">
+                <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center space-x-2.5 min-w-0">
+                        <div class="w-8 h-8 rounded-full bg-sky-500 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
+                            <span x-text="cashierName ? cashierName.charAt(0).toUpperCase() : 'K'"></span>
+                        </div>
+                        <div class="truncate">
+                            <p class="text-xs font-bold text-slate-800 truncate" x-text="cashierName"></p>
+                            <p class="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Online
+                            </p>
+                        </div>
+                    </div>
+                    <button @click="logout()" title="Keluar / Ganti Akun" class="p-2 text-rose-500 hover:bg-rose-50 rounded-xl transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    </button>
+                </div>
             </div>
-            <img src="assets/logo-inti-rasa.jpg" alt="Foto Profil" class="h-8 w-8 sm:h-9 sm:w-9 rounded-full object-cover border-2 border-sky-400 shadow-sm hidden sm:block">
+        </aside>
 
-            <button @click="openCustomerMenuModal()" class="flex items-center space-x-1.5 p-2 sm:px-3 sm:py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl font-bold text-xs transition-colors shadow-2xs" title="Menu Digital HP Pelanggan (QR Code)">
-                <span>📱</span>
-                <span class="hidden md:inline">Menu HP Pelanggan</span>
-            </button>
+        <!-- Main Content Area (Right Side) -->
+        <div class="flex-1 flex flex-col h-full overflow-hidden min-w-0">
+            
+            <!-- Top Header Bar -->
+            <header class="bg-white border-b border-slate-200 px-3 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between shrink-0 shadow-xs gap-3">
+                <div class="flex items-center space-x-3 min-w-0">
+                    <!-- Mobile Hamburger Toggle -->
+                    <button @click="sidebarOpen = !sidebarOpen" class="lg:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-xl transition-colors" title="Buka Menu">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                    </button>
 
-            <button @click="openHistory()" class="flex items-center space-x-1.5 p-2 sm:px-3 sm:py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-semibold text-xs transition-colors shadow-md shadow-sky-500/20" title="Riwayat Transaksi">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-                <span class="hidden sm:inline">Riwayat</span>
-            </button>
-            <button @click="logout()" class="flex items-center space-x-1 px-2.5 py-1.5 sm:px-3 sm:py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl font-semibold text-xs transition-colors" title="Keluar / Ganti Akun">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-                <span>Keluar</span>
-            </button>
-        </div>
-    </header>
+                    <!-- Page Title and Breadcrumb -->
+                    <div class="truncate">
+                        <div class="flex items-center gap-2">
+                            <template x-if="isBarangSubmenu">
+                                <span class="text-xs font-semibold text-sky-600">Barang</span>
+                            </template>
+                            <template x-if="isBarangSubmenu">
+                                <span class="text-xs text-slate-300">/</span>
+                            </template>
+                            <h2 class="font-bold text-sm sm:text-base text-slate-800 truncate" x-text="pageTitle"></h2>
+                        </div>
+                        <p class="text-[11px] text-slate-400 hidden sm:block truncate" x-text="pageSubtitle"></p>
+                    </div>
+                </div>
 
-    <!-- Main Content Area -->
-    <div class="flex-1 flex overflow-hidden relative">
+                <!-- Top Header Right Actions -->
+                <div class="flex items-center space-x-1.5 sm:space-x-2 shrink-0">
+                    <button @click="openCustomerMenuModal()" class="flex items-center space-x-1.5 px-2.5 sm:px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl font-bold text-xs transition-colors shadow-2xs" title="Menu Digital HP Pelanggan">
+                        <span>📱</span>
+                        <span class="hidden md:inline">Menu HP Pelanggan</span>
+                    </button>
+                    <button @click="openHistory()" class="flex items-center space-x-1.5 px-2.5 sm:px-3 py-1.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-semibold text-xs transition-colors shadow-md shadow-sky-500/20" title="Riwayat Transaksi">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                        <span class="hidden sm:inline">Riwayat</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Main Scrollable Content Views -->
+            <div class="flex-1 flex overflow-hidden relative">
         
         <!-- Halaman Kasir (Hanya Tampilan Transaksi) -->
         <div x-show="currentPage === 'kasir'" class="flex-1 flex flex-col h-full overflow-hidden p-3 sm:p-5 lg:p-6 w-full max-w-7xl mx-auto" x-cloak>
@@ -489,7 +660,7 @@
         </div>
 
         <!-- Halaman Kelola Produk -->
-        <section x-show="currentPage === 'produk'" class="flex-1 flex flex-col h-full overflow-hidden p-3 sm:p-5 lg:p-6 w-full" x-cloak>
+        <section x-show="currentPage === 'barang' || currentPage === 'produk'" class="flex-1 flex flex-col h-full overflow-hidden p-3 sm:p-5 lg:p-6 w-full" x-cloak>
             
             <!-- Product Management Header & Filter Bar -->
             <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm mb-3 sm:mb-4 shrink-0 flex flex-col md:flex-row md:items-center justify-between gap-3">
@@ -549,6 +720,15 @@
                                 <h3 class="font-bold text-slate-800 text-sm line-clamp-1 group-hover:text-sky-600 transition-colors" x-text="product.name"></h3>
                                 <p class="text-sky-600 font-bold text-sm mt-0.5" x-text="formatRupiah(product.price)"></p>
 
+                                <!-- Unit, Brand & Stock Info Badges -->
+                                <div class="flex flex-wrap items-center gap-1 mt-2 text-[10px]">
+                                    <span class="bg-slate-100 text-slate-700 font-medium px-2 py-0.5 rounded border border-slate-200" x-text="product.satuan || 'Pcs'"></span>
+                                    <span class="bg-amber-50 text-amber-700 font-medium px-2 py-0.5 rounded border border-amber-200 truncate max-w-[110px]" x-text="product.merek || 'Inti Rasa'"></span>
+                                    <span class="font-bold px-2 py-0.5 rounded ml-auto" 
+                                        :class="(product.stock !== undefined ? product.stock : 45) > 10 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : ((product.stock !== undefined ? product.stock : 45) > 0 ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-rose-50 text-rose-700 border border-rose-200')" 
+                                        x-text="'Stok: ' + (product.stock !== undefined ? product.stock : 45)"></span>
+                                </div>
+
                                 <!-- Barcode Preview -->
                                 <div class="mt-2.5">
                                     <template x-if="product.barcode">
@@ -596,7 +776,529 @@
                 </div>
             </div>
         </section>
-    </div>
+
+        <!-- Sub-menu 2: Halaman Cetak Barcode -->
+        <section x-show="currentPage === 'cetak-barcode'" class="flex-1 flex flex-col h-full overflow-hidden p-3 sm:p-5 lg:p-6 w-full max-w-7xl mx-auto" x-cloak>
+            <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm mb-4 shrink-0 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div>
+                    <h2 class="font-bold text-base sm:text-lg text-slate-800 flex items-center gap-2">
+                        <span>🏷️</span>
+                        <span>Cetak Label Barcode</span>
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Generate dan cetak label barcode stiker berdasarkan barang, satuan, dan jumlah cetak</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button @click="printBarcodeLabels()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-emerald-600/20 transition-all flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                        <span>Cetak Label (Print)</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Configuration & Live Preview Grid -->
+            <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 overflow-hidden">
+                
+                <!-- Left Configuration Panel -->
+                <div class="lg:col-span-4 bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm overflow-y-auto space-y-4 shrink-0">
+                    <h3 class="font-bold text-sm text-slate-800 border-b border-slate-100 pb-2 flex items-center gap-2">
+                        <span>⚙️</span>
+                        <span>Pengaturan Stiker Barcode</span>
+                    </h3>
+
+                    <!-- Pilih Produk -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Pilih Produk / Barang</label>
+                        <select x-model="barcodePrintProductId" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-medium focus:outline-none focus:border-sky-500">
+                            <template x-for="p in products" :key="p.id">
+                                <option :value="p.id" x-text="p.name + ' (' + (p.barcode || 'Tanpa Barcode') + ')'"></option>
+                            </template>
+                        </select>
+                    </div>
+
+                    <!-- Satuan & Harga -->
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Satuan Cetak</label>
+                            <select x-model="barcodePrintSatuan" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-medium focus:outline-none focus:border-sky-500">
+                                <template x-for="s in satuanList" :key="s.id">
+                                    <option :value="s.nama" x-text="s.nama"></option>
+                                </template>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Jumlah Label (Qty)</label>
+                            <input type="number" x-model.number="barcodePrintQty" min="1" max="100" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-medium focus:outline-none focus:border-sky-500">
+                        </div>
+                    </div>
+
+                    <!-- Kolom Grid Per Baris -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Kolom Tata Letak</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button @click="barcodePrintCols = 2" :class="barcodePrintCols === 2 ? 'bg-sky-500 text-white font-bold' : 'bg-slate-100 text-slate-700'" class="py-1.5 rounded-lg text-xs transition-colors">2 Kolom</button>
+                            <button @click="barcodePrintCols = 3" :class="barcodePrintCols === 3 ? 'bg-sky-500 text-white font-bold' : 'bg-slate-100 text-slate-700'" class="py-1.5 rounded-lg text-xs transition-colors">3 Kolom</button>
+                            <button @click="barcodePrintCols = 4" :class="barcodePrintCols === 4 ? 'bg-sky-500 text-white font-bold' : 'bg-slate-100 text-slate-700'" class="py-1.5 rounded-lg text-xs transition-colors">4 Kolom</button>
+                        </div>
+                    </div>
+
+                    <!-- Tampilan Label Checkbox -->
+                    <div class="space-y-2 pt-2 border-t border-slate-100">
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Informasi yang Ditampilkan</label>
+                        <label class="flex items-center gap-2 text-xs text-slate-700 cursor-pointer">
+                            <input type="checkbox" x-model="barcodeShowStore" class="rounded text-sky-600 focus:ring-0">
+                            <span>Tampilkan Nama Usaha ("Inti Rasa Caffe")</span>
+                        </label>
+                        <label class="flex items-center gap-2 text-xs text-slate-700 cursor-pointer">
+                            <input type="checkbox" x-model="barcodeShowName" class="rounded text-sky-600 focus:ring-0">
+                            <span>Tampilkan Nama Barang</span>
+                        </label>
+                        <label class="flex items-center gap-2 text-xs text-slate-700 cursor-pointer">
+                            <input type="checkbox" x-model="barcodeShowPrice" class="rounded text-sky-600 focus:ring-0">
+                            <span>Tampilkan Harga Jual</span>
+                        </label>
+                        <label class="flex items-center gap-2 text-xs text-slate-700 cursor-pointer">
+                            <input type="checkbox" x-model="barcodeShowCode" class="rounded text-sky-600 focus:ring-0">
+                            <span>Tampilkan Angka Barcode</span>
+                        </label>
+                    </div>
+
+                    <div class="pt-3 border-t border-slate-100">
+                        <button @click="printBarcodeLabels()" class="w-full py-2.5 bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs rounded-xl shadow-md shadow-sky-500/20 transition-all flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                            <span>Cetak Sekarang (<span x-text="barcodePrintQty"></span> Label)</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right Live Preview Sheet -->
+                <div class="lg:col-span-8 bg-slate-100 rounded-2xl p-4 border border-slate-200 overflow-y-auto">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-bold text-slate-600 flex items-center gap-1.5">
+                            <span>📄</span>
+                            <span>Preview Lembar Cetak (<span x-text="barcodePrintQty"></span> Label)</span>
+                        </span>
+                        <span class="text-[11px] text-slate-400">Ukuran Kertas: A4 / Sticker Sheet</span>
+                    </div>
+
+                    <!-- Printable Container for preview & printing -->
+                    <div id="printable-barcode-sheet" 
+                        class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6" 
+                        :class="barcodePrintCols === 2 ? 'grid grid-cols-2 gap-3 sm:gap-4' : (barcodePrintCols === 3 ? 'grid grid-cols-2 sm:grid-cols-3 gap-3' : 'grid grid-cols-2 sm:grid-cols-4 gap-2.5')">
+                        
+                        <template x-for="n in Math.min(barcodePrintQty, 100)" :key="n">
+                            <div class="border border-dashed border-slate-300 rounded-xl p-2.5 text-center flex flex-col items-center justify-between bg-white hover:border-sky-400 transition-colors">
+                                <template x-if="barcodeShowStore">
+                                    <p class="text-[9px] font-bold text-slate-700 uppercase tracking-widest leading-none mb-1">INTI RASA CAFFE</p>
+                                </template>
+                                <template x-if="barcodeShowName && barcodeSelectedProduct">
+                                    <p class="text-xs font-bold text-slate-900 line-clamp-1 leading-tight mb-1" x-text="barcodeSelectedProduct.name"></p>
+                                </template>
+
+                                <!-- SVG Barcode Display -->
+                                <div class="my-1 w-full flex justify-center overflow-hidden">
+                                    <template x-if="barcodeSelectedProduct && barcodeSelectedProduct.barcode">
+                                        <div x-init="renderBarcode($el, barcodeSelectedProduct.barcode)"></div>
+                                    </template>
+                                    <template x-if="!barcodeSelectedProduct || !barcodeSelectedProduct.barcode">
+                                        <div class="text-[10px] text-slate-400 italic py-2">Barcode Kosong</div>
+                                    </template>
+                                </div>
+
+                                <template x-if="barcodeShowCode && barcodeSelectedProduct && barcodeSelectedProduct.barcode">
+                                    <p class="text-[9px] font-mono text-slate-600 tracking-wider mb-1" x-text="barcodeSelectedProduct.barcode"></p>
+                                </template>
+
+                                <template x-if="barcodeShowPrice && barcodeSelectedProduct">
+                                    <div class="w-full pt-1 border-t border-slate-100 flex items-center justify-between text-[10px]">
+                                        <span class="font-bold text-sky-700" x-text="formatRupiah(barcodeSelectedProduct.price)"></span>
+                                        <span class="text-slate-500 uppercase font-medium" x-text="'/' + barcodePrintSatuan"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Sub-menu 3: Halaman Kartu Stok Barang -->
+        <section x-show="currentPage === 'kartu-stok'" class="flex-1 flex flex-col h-full overflow-hidden p-3 sm:p-5 lg:p-6 w-full max-w-7xl mx-auto" x-cloak>
+            
+            <!-- Header Filter Bar -->
+            <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm mb-4 shrink-0 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div>
+                    <h2 class="font-bold text-base sm:text-lg text-slate-800 flex items-center gap-2">
+                        <span>📊</span>
+                        <span>Kartu Stok Barang</span>
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Pantau riwayat mutasi keluar-masuk stok barang secara detail dan real-time</p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <!-- Dropdown Pilih Produk -->
+                    <select x-model="selectedStockProductId" class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-800 focus:outline-none focus:border-sky-500">
+                        <template x-for="p in products" :key="p.id">
+                            <option :value="p.id" x-text="p.name + ' (Sisa: ' + (p.stock !== undefined ? p.stock : 45) + ' ' + (p.satuan || 'Pcs') + ')'"></option>
+                        </template>
+                    </select>
+
+                    <button @click="openAddStockMutation()" class="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-sky-500/20 transition-all flex items-center gap-1.5 active:scale-95">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        <span>+ Catat Mutasi Stok</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 4 Stat Summary Cards -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4 shrink-0">
+                <div class="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-xs">
+                    <p class="text-[11px] font-semibold text-slate-500">Sisa Stok Saat Ini</p>
+                    <div class="flex items-baseline justify-between mt-1">
+                        <span class="text-xl sm:text-2xl font-black text-slate-900" x-text="stockSummary.current"></span>
+                        <span class="text-xs font-bold px-2 py-0.5 rounded-full" 
+                            :class="stockSummary.statusColor === 'emerald' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : (stockSummary.statusColor === 'amber' ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-rose-50 text-rose-700 border border-rose-200')" 
+                            x-text="stockSummary.status"></span>
+                    </div>
+                    <p class="text-[10px] text-slate-400 mt-0.5" x-text="'Satuan: ' + (selectedStockProduct ? (selectedStockProduct.satuan || 'Pcs') : 'Pcs')"></p>
+                </div>
+
+                <div class="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-xs">
+                    <p class="text-[11px] font-semibold text-slate-500">Total Stok Masuk</p>
+                    <div class="flex items-baseline justify-between mt-1">
+                        <span class="text-xl sm:text-2xl font-black text-emerald-600" x-text="'+' + stockSummary.totalIn"></span>
+                        <span class="text-xs text-emerald-600 font-bold">📥 Masuk</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400 mt-0.5">Restock & Pembelian</p>
+                </div>
+
+                <div class="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-xs">
+                    <p class="text-[11px] font-semibold text-slate-500">Total Stok Keluar</p>
+                    <div class="flex items-baseline justify-between mt-1">
+                        <span class="text-xl sm:text-2xl font-black text-rose-600" x-text="'-' + stockSummary.totalOut"></span>
+                        <span class="text-xs text-rose-600 font-bold">📤 Keluar</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400 mt-0.5">Penjualan Kasir & Rusak</p>
+                </div>
+
+                <div class="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-xs">
+                    <p class="text-[11px] font-semibold text-slate-500">Nilai Aset Stok</p>
+                    <div class="flex items-baseline justify-between mt-1">
+                        <span class="text-base sm:text-lg font-black text-sky-700" x-text="formatRupiah(stockSummary.assetValue)"></span>
+                    </div>
+                    <p class="text-[10px] text-slate-400 mt-0.5">Berdasarkan Harga Jual</p>
+                </div>
+            </div>
+
+            <!-- Table Riwayat Mutasi Stok -->
+            <div class="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                
+                <!-- Table Filter Sub-bar -->
+                <div class="p-3 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 bg-slate-50/60">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-semibold text-slate-600">Filter Tipe:</span>
+                        <select x-model="stockFilterType" class="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-medium">
+                            <option value="all">Semua Tipe Mutasi</option>
+                            <option value="in">Masuk (Restock)</option>
+                            <option value="out">Keluar (Penjualan/Rusak)</option>
+                            <option value="adj">Penyesuaian Opname</option>
+                        </select>
+                        <select x-model="stockFilterPeriod" class="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-medium">
+                            <option value="all">Semua Waktu</option>
+                            <option value="today">Hari Ini</option>
+                            <option value="week">7 Hari Terakhir</option>
+                            <option value="month">Bulan Ini</option>
+                        </select>
+                    </div>
+
+                    <div class="relative w-48 sm:w-60">
+                        <input type="text" x-model="stockSearchQuery" placeholder="Cari ref / catatan..." class="w-full pl-7 pr-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-sky-500">
+                        <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    </div>
+                </div>
+
+                <!-- Table Content -->
+                <div class="flex-1 overflow-y-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead class="bg-slate-50 sticky top-0 border-b border-slate-200 text-slate-600 font-bold uppercase text-[10px] tracking-wider">
+                            <tr>
+                                <th class="py-3 px-4">Tanggal & Waktu</th>
+                                <th class="py-3 px-3">No. Referensi</th>
+                                <th class="py-3 px-3">Tipe Mutasi</th>
+                                <th class="py-3 px-4">Keterangan</th>
+                                <th class="py-3 px-3 text-center">Satuan</th>
+                                <th class="py-3 px-3 text-right text-emerald-600">Masuk (+)</th>
+                                <th class="py-3 px-3 text-right text-rose-600">Keluar (-)</th>
+                                <th class="py-3 px-3 text-right text-slate-900">Sisa Saldo</th>
+                                <th class="py-3 px-4 text-right">Operator</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            <template x-for="m in filteredStockMovements" :key="m.id">
+                                <tr class="hover:bg-slate-50/80 transition-colors">
+                                    <td class="py-3 px-4 font-medium text-slate-800 whitespace-nowrap" x-text="m.dateLabel || m.date"></td>
+                                    <td class="py-3 px-3 font-mono text-slate-600 text-[11px]" x-text="m.refNo || '-'"></td>
+                                    <td class="py-3 px-3">
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold" 
+                                            :class="m.type === 'in' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : (m.type === 'out' ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-sky-50 text-sky-700 border border-sky-200')" 
+                                            x-text="m.typeLabel || m.type"></span>
+                                    </td>
+                                    <td class="py-3 px-4 text-slate-700 font-medium" x-text="m.note"></td>
+                                    <td class="py-3 px-3 text-center text-slate-500 font-semibold" x-text="m.satuan || 'Pcs'"></td>
+                                    <td class="py-3 px-3 text-right font-bold text-emerald-600" x-text="m.type === 'in' ? '+' + m.qty : '-'"></td>
+                                    <td class="py-3 px-3 text-right font-bold text-rose-600" x-text="m.type === 'out' ? '-' + m.qty : '-'"></td>
+                                    <td class="py-3 px-3 text-right font-bold text-slate-900" x-text="m.sisaStock !== undefined ? m.sisaStock : '-'"></td>
+                                    <td class="py-3 px-4 text-right text-slate-500 font-medium" x-text="m.operator || 'Kasir'"></td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+
+                    <div x-show="filteredStockMovements.length === 0" class="py-12 text-center text-slate-400">
+                        <svg class="w-12 h-12 mx-auto mb-2 text-slate-300 stroke-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <p class="font-medium text-xs">Belum ada riwayat mutasi stok untuk produk ini</p>
+                        <button @click="openAddStockMutation()" class="mt-2 text-xs font-bold text-sky-600 hover:underline">+ Catat Mutasi Baru</button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Sub-menu 4: Halaman Master Jenis Satuan -->
+        <section x-show="currentPage === 'jenis-satuan'" class="flex-1 flex flex-col h-full overflow-hidden p-3 sm:p-5 lg:p-6 w-full max-w-7xl mx-auto" x-cloak>
+            <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm mb-4 shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                    <h2 class="font-bold text-base sm:text-lg text-slate-800 flex items-center gap-2">
+                        <span>📁</span>
+                        <span>Master Data Jenis Satuan</span>
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Kelompok dan klasifikasi tipe satuan barang (Dasar, Kemasan, Berat, Volume)</p>
+                </div>
+                <button @click="openAddJenisSatuan()" class="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-sky-500/20 transition-all flex items-center gap-1.5 active:scale-95 shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    <span>+ Tambah Jenis Satuan</span>
+                </button>
+            </div>
+
+            <!-- Master Table -->
+            <div class="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                <div class="flex-1 overflow-y-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead class="bg-slate-50 sticky top-0 border-b border-slate-200 text-slate-600 font-bold uppercase text-[10px] tracking-wider">
+                            <tr>
+                                <th class="py-3 px-4">Kode Jenis</th>
+                                <th class="py-3 px-4">Nama Kelompok / Jenis Satuan</th>
+                                <th class="py-3 px-6">Deskripsi & Peruntukan</th>
+                                <th class="py-3 px-4 text-center">Status</th>
+                                <th class="py-3 px-4 text-right">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            <template x-for="j in jenisSatuanList" :key="j.id">
+                                <tr class="hover:bg-slate-50/80 transition-colors">
+                                    <td class="py-3 px-4 font-mono font-bold text-sky-700">
+                                        <span class="bg-sky-50 px-2 py-0.5 rounded border border-sky-200" x-text="j.kode"></span>
+                                    </td>
+                                    <td class="py-3 px-4 font-bold text-slate-900 text-sm" x-text="j.nama"></td>
+                                    <td class="py-3 px-6 text-slate-600 font-medium" x-text="j.deskripsi"></td>
+                                    <td class="py-3 px-4 text-center">
+                                        <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 font-semibold rounded-full text-[10px] border border-emerald-200">Aktif</span>
+                                    </td>
+                                    <td class="py-3 px-4 text-right">
+                                        <div class="flex items-center justify-end space-x-1">
+                                            <button @click="openEditJenisSatuan(j)" class="p-1.5 text-sky-600 hover:bg-sky-50 rounded-lg transition-colors" title="Edit">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                            </button>
+                                            <button @click="deleteJenisSatuan(j.id)" class="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors" title="Hapus">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sub-menu 5: Halaman Master Nama Satuan -->
+        <section x-show="currentPage === 'nama-satuan'" class="flex-1 flex flex-col h-full overflow-hidden p-3 sm:p-5 lg:p-6 w-full max-w-7xl mx-auto" x-cloak>
+            <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm mb-4 shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                    <h2 class="font-bold text-base sm:text-lg text-slate-800 flex items-center gap-2">
+                        <span>⚖️</span>
+                        <span>Master Data Nama Satuan</span>
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Daftar satuan barang (Pcs, Box, Lusin, Karton, Kg, Liter) beserta relasi jenis & konversi</p>
+                </div>
+                <button @click="openAddSatuan()" class="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-sky-500/20 transition-all flex items-center gap-1.5 active:scale-95 shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    <span>+ Tambah Nama Satuan</span>
+                </button>
+            </div>
+
+            <!-- Master Table -->
+            <div class="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                <div class="flex-1 overflow-y-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead class="bg-slate-50 sticky top-0 border-b border-slate-200 text-slate-600 font-bold uppercase text-[10px] tracking-wider">
+                            <tr>
+                                <th class="py-3 px-4">Kode Satuan</th>
+                                <th class="py-3 px-4">Nama Satuan</th>
+                                <th class="py-3 px-4">Jenis Satuan</th>
+                                <th class="py-3 px-4">Konversi Nilai Dasar</th>
+                                <th class="py-3 px-3 text-center">Pengali</th>
+                                <th class="py-3 px-4 text-right">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            <template x-for="s in satuanList" :key="s.id">
+                                <tr class="hover:bg-slate-50/80 transition-colors">
+                                    <td class="py-3 px-4 font-mono font-bold text-slate-700">
+                                        <span class="bg-slate-100 px-2 py-0.5 rounded border border-slate-200" x-text="s.kode"></span>
+                                    </td>
+                                    <td class="py-3 px-4 font-bold text-slate-900 text-sm" x-text="s.nama"></td>
+                                    <td class="py-3 px-4">
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-sky-50 text-sky-700 border border-sky-200" x-text="s.jenis"></span>
+                                    </td>
+                                    <td class="py-3 px-4 text-slate-600 font-medium" x-text="s.konversi"></td>
+                                    <td class="py-3 px-3 text-center font-mono font-bold text-slate-800" x-text="s.pengali + 'x'"></td>
+                                    <td class="py-3 px-4 text-right">
+                                        <div class="flex items-center justify-end space-x-1">
+                                            <button @click="openEditSatuan(s)" class="p-1.5 text-sky-600 hover:bg-sky-50 rounded-lg transition-colors" title="Edit">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                            </button>
+                                            <button @click="deleteSatuan(s.id)" class="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors" title="Hapus">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sub-menu 6: Halaman Master Merek -->
+        <section x-show="currentPage === 'merek'" class="flex-1 flex flex-col h-full overflow-hidden p-3 sm:p-5 lg:p-6 w-full max-w-7xl mx-auto" x-cloak>
+            <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm mb-4 shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                    <h2 class="font-bold text-base sm:text-lg text-slate-800 flex items-center gap-2">
+                        <span>🔖</span>
+                        <span>Master Data Merek (Brand)</span>
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Master data nama brand / merek barang dan informasi supplier produsen</p>
+                </div>
+                <button @click="openAddMerek()" class="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-sky-500/20 transition-all flex items-center gap-1.5 active:scale-95 shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    <span>+ Tambah Merek</span>
+                </button>
+            </div>
+
+            <!-- Master Table -->
+            <div class="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                <div class="flex-1 overflow-y-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead class="bg-slate-50 sticky top-0 border-b border-slate-200 text-slate-600 font-bold uppercase text-[10px] tracking-wider">
+                            <tr>
+                                <th class="py-3 px-4 w-12 text-center">Icon</th>
+                                <th class="py-3 px-4">Nama Merek</th>
+                                <th class="py-3 px-4">Produsen / Supplier</th>
+                                <th class="py-3 px-6">Keterangan</th>
+                                <th class="py-3 px-4 text-center">Status</th>
+                                <th class="py-3 px-4 text-right">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            <template x-for="m in merekList" :key="m.id">
+                                <tr class="hover:bg-slate-50/80 transition-colors">
+                                    <td class="py-3 px-4 text-center text-lg" x-text="m.icon || '🏷️'"></td>
+                                    <td class="py-3 px-4 font-bold text-slate-900 text-sm" x-text="m.nama"></td>
+                                    <td class="py-3 px-4 text-sky-700 font-semibold" x-text="m.supplier"></td>
+                                    <td class="py-3 px-6 text-slate-600 font-medium" x-text="m.deskripsi"></td>
+                                    <td class="py-3 px-4 text-center">
+                                        <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 font-semibold rounded-full text-[10px] border border-emerald-200">Aktif</span>
+                                    </td>
+                                    <td class="py-3 px-4 text-right">
+                                        <div class="flex items-center justify-end space-x-1">
+                                            <button @click="openEditMerek(m)" class="p-1.5 text-sky-600 hover:bg-sky-50 rounded-lg transition-colors" title="Edit">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                            </button>
+                                            <button @click="deleteMerek(m.id)" class="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors" title="Hapus">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sub-menu 7: Halaman Master Kategori -->
+        <section x-show="currentPage === 'kategori'" class="flex-1 flex flex-col h-full overflow-hidden p-3 sm:p-5 lg:p-6 w-full max-w-7xl mx-auto" x-cloak>
+            <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm mb-4 shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                    <h2 class="font-bold text-base sm:text-lg text-slate-800 flex items-center gap-2">
+                        <span>📂</span>
+                        <span>Master Data Kategori</span>
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Kelompok kategori menu kafe (Makanan, Minuman, Cemilan, Paket Hemat)</p>
+                </div>
+                <button @click="openAddKategori()" class="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-sky-500/20 transition-all flex items-center gap-1.5 active:scale-95 shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    <span>+ Tambah Kategori</span>
+                </button>
+            </div>
+
+            <!-- Master Table -->
+            <div class="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                <div class="flex-1 overflow-y-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead class="bg-slate-50 sticky top-0 border-b border-slate-200 text-slate-600 font-bold uppercase text-[10px] tracking-wider">
+                            <tr>
+                                <th class="py-3 px-4 w-12 text-center">Icon</th>
+                                <th class="py-3 px-4">Nama Kategori</th>
+                                <th class="py-3 px-4">Slug / Kode Sistem</th>
+                                <th class="py-3 px-4 text-center">Total Produk Terdaftar</th>
+                                <th class="py-3 px-4 text-center">Status</th>
+                                <th class="py-3 px-4 text-right">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            <template x-for="c in categories.filter(cat => cat.id !== 'all')" :key="c.id">
+                                <tr class="hover:bg-slate-50/80 transition-colors">
+                                    <td class="py-3 px-4 text-center text-lg" x-text="c.icon || '📂'"></td>
+                                    <td class="py-3 px-4 font-bold text-slate-900 text-sm" x-text="c.name"></td>
+                                    <td class="py-3 px-4 font-mono text-slate-500 text-[11px]" x-text="c.id"></td>
+                                    <td class="py-3 px-4 text-center font-bold text-sky-700" x-text="products.filter(p => p.category === c.id).length + ' Produk'"></td>
+                                    <td class="py-3 px-4 text-center">
+                                        <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 font-semibold rounded-full text-[10px] border border-emerald-200">Aktif</span>
+                                    </td>
+                                    <td class="py-3 px-4 text-right">
+                                        <div class="flex items-center justify-end space-x-1">
+                                            <button @click="openEditKategori(c)" class="p-1.5 text-sky-600 hover:bg-sky-50 rounded-lg transition-colors" title="Edit">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                            </button>
+                                            <button @click="deleteKategori(c.id)" class="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors" title="Hapus">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div> <!-- Closes Main Scrollable Content Views -->
+    </div> <!-- Closes Main Content Area (Right Side) -->
 
     <!-- Receipt / Checkout Modal with QR Code -->
     <div x-show="showModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4" x-cloak>
@@ -829,6 +1531,82 @@
         function posApp() {
             return {
                 currentPage: 'kasir',
+                sidebarOpen: false,
+                barangMenuOpen: true,
+
+                // Master Data: Jenis Satuan
+                jenisSatuanList: [
+                    { id: 'JNS-01', kode: 'DASAR', nama: 'Satuan Dasar', deskripsi: 'Satuan unit terkecil untuk penjualan langsung per butir atau porsi', totalItem: 2 },
+                    { id: 'JNS-02', kode: 'KEMASAN', nama: 'Satuan Kemasan', deskripsi: 'Satuan kemasan/isi banyak seperti box, pack, lusin, karton', totalItem: 4 },
+                    { id: 'JNS-03', kode: 'BERAT', nama: 'Satuan Berat', deskripsi: 'Satuan timbangan massa bahan seperti Kilogram, Gram', totalItem: 1 },
+                    { id: 'JNS-04', kode: 'VOLUME', nama: 'Satuan Volume', deskripsi: 'Satuan volume cairan minuman seperti Liter, Cup, Botol', totalItem: 3 }
+                ],
+                showJenisSatuanModal: false,
+                isEditJenisSatuan: false,
+                jenisSatuanForm: { id: '', kode: '', nama: '', deskripsi: '' },
+
+                // Master Data: Nama Satuan
+                satuanList: [
+                    { id: 'STN-01', kode: 'PCS', nama: 'Pcs', jenis: 'Satuan Dasar', jenisKode: 'DASAR', konversi: '1 Unit / Pcs', pengali: 1 },
+                    { id: 'STN-02', kode: 'PRS', nama: 'Porsi', jenis: 'Satuan Dasar', jenisKode: 'DASAR', konversi: '1 Porsi Sajian', pengali: 1 },
+                    { id: 'STN-03', kode: 'CUP', nama: 'Cup', jenis: 'Satuan Volume', jenisKode: 'VOLUME', konversi: '1 Cup Saji', pengali: 1 },
+                    { id: 'STN-04', kode: 'BTL', nama: 'Botol', jenis: 'Satuan Volume', jenisKode: 'VOLUME', konversi: '1 Botol Kemasan', pengali: 1 },
+                    { id: 'STN-05', kode: 'BOX', nama: 'Box', jenis: 'Satuan Kemasan', jenisKode: 'KEMASAN', konversi: '1 Box = 12 Pcs', pengali: 12 },
+                    { id: 'STN-06', kode: 'LSN', nama: 'Lusin', jenis: 'Satuan Kemasan', jenisKode: 'KEMASAN', konversi: '1 Lusin = 12 Pcs', pengali: 12 },
+                    { id: 'STN-07', kode: 'KTN', nama: 'Karton', jenis: 'Satuan Kemasan', jenisKode: 'KEMASAN', konversi: '1 Karton = 24 Pcs', pengali: 24 },
+                    { id: 'STN-08', kode: 'PCK', nama: 'Pack', jenis: 'Satuan Kemasan', jenisKode: 'KEMASAN', konversi: '1 Pack = 10 Pcs', pengali: 10 },
+                    { id: 'STN-09', kode: 'KG', nama: 'Kg', jenis: 'Satuan Berat', jenisKode: 'BERAT', konversi: '1 Kg = 1000 Gram', pengali: 1000 },
+                    { id: 'STN-10', kode: 'LTR', nama: 'Liter', jenis: 'Satuan Volume', jenisKode: 'VOLUME', konversi: '1 Liter = 1000 ml', pengali: 1000 }
+                ],
+                showNamaSatuanModal: false,
+                isEditSatuan: false,
+                satuanForm: { id: '', kode: '', nama: '', jenis: 'Satuan Dasar', jenisKode: 'DASAR', konversi: '', pengali: 1 },
+
+                // Master Data: Merek
+                merekList: [
+                    { id: 'MRK-01', nama: 'Inti Rasa Kitchen', supplier: 'Dapur Utama Inti Rasa', deskripsi: 'Produk olahan & menu masakan racikan khas kafe', icon: '🍲' },
+                    { id: 'MRK-02', nama: 'Sosro', supplier: 'PT Sinar Sosro', deskripsi: 'Minuman kemasan teh botol dan kotak', icon: '🧃' },
+                    { id: 'MRK-03', nama: 'Ultra Milk', supplier: 'PT Ultrajaya Milk Industry', deskripsi: 'Susu UHT berkualitas berbagai varian rasa', icon: '🥛' },
+                    { id: 'MRK-04', nama: 'Indomie', supplier: 'PT Indofood CBP Sukses Makmur', deskripsi: 'Mie instan goreng dan rebus aneka selera', icon: '🍜' },
+                    { id: 'MRK-05', nama: 'Torabika', supplier: 'PT Mayora Indah Tbk', deskripsi: 'Kopi bubuk premium dan cappuccino', icon: '☕' },
+                    { id: 'MRK-06', nama: 'Nestle', supplier: 'PT Nestle Indonesia', deskripsi: 'Produk minuman cokelat, susu, & krimer', icon: '🍫' },
+                    { id: 'MRK-07', nama: 'Teh Pucuk Harum', supplier: 'Mayora Group', deskripsi: 'Teh melati dalam kemasan botol segar', icon: '🍃' }
+                ],
+                showMerekModal: false,
+                isEditMerek: false,
+                merekForm: { id: '', nama: '', supplier: '', deskripsi: '', icon: '🏷️' },
+
+                // Master Data: Kategori Form
+                showKategoriModal: false,
+                isEditKategori: false,
+                kategoriForm: { id: '', name: '', icon: '📂', deskripsi: '' },
+
+                // Cetak Barcode State
+                barcodePrintProductId: '',
+                barcodePrintSatuan: 'Pcs',
+                barcodePrintQty: 12,
+                barcodePrintCols: 3,
+                barcodeShowStore: true,
+                barcodeShowName: true,
+                barcodeShowPrice: true,
+                barcodeShowCode: true,
+                barcodeCustomPrice: '',
+
+                // Kartu Stok State
+                selectedStockProductId: '',
+                stockFilterType: 'all',
+                stockFilterPeriod: 'all',
+                stockSearchQuery: '',
+                showStockMutationModal: false,
+                stockMutationForm: {
+                    productId: '',
+                    type: 'in',
+                    qty: 10,
+                    satuan: 'Pcs',
+                    refNo: '',
+                    note: ''
+                },
+                stockHistory: [],
                 user: undefined,
                 loginUsername: '',
                 loginPassword: '',
@@ -858,7 +1636,10 @@
                     category: 'makanan',
                     price: '',
                     barcode: '',
-                    image: ''
+                    image: '',
+                    satuan: 'Pcs',
+                    merek: 'Inti Rasa Kitchen',
+                    stock: 50
                 },
                 editProductData: {
                     id: null,
@@ -881,10 +1662,10 @@
                 },
                 
                 categories: [
-                    { id: 'all', name: 'Semua Menu' },
-                    { id: 'makanan', name: 'Makanan' },
-                    { id: 'minuman', name: 'Minuman' },
-                    { id: 'cemilan', name: 'Cemilan' }
+                    { id: 'all', name: 'Semua Menu', icon: '🍽️' },
+                    { id: 'makanan', name: 'Makanan', icon: '🍲' },
+                    { id: 'minuman', name: 'Minuman', icon: '🧋' },
+                    { id: 'cemilan', name: 'Cemilan', icon: '🍟' }
                 ],
                 
                 products: [],
@@ -1087,6 +1868,31 @@ get filteredProducts() {
                     // Simpan ke history lokal supaya langsung muncul meski cloud lambat/gagal
                     this.transactions.unshift({ ...this.receiptData, kasir: kasir, _ts: now.getTime() });
 
+                    // Kurangi stok produk & catat ke kartu stok otomatis
+                    this.receiptData.items.forEach(item => {
+                        const prod = this.products.find(p => p.id === item.id || p.name === item.name);
+                        if (prod) {
+                            if (prod.stock === undefined) prod.stock = 45;
+                            prod.stock = Math.max(0, Number(prod.stock) - Number(item.qty));
+                        }
+                        this.stockHistory.unshift({
+                            id: 'STK-' + Date.now() + '-' + Math.floor(Math.random() * 100),
+                            productId: prod ? prod.id : item.id,
+                            productName: item.name,
+                            type: 'out',
+                            typeLabel: 'Stok Keluar (Penjualan)',
+                            qty: Number(item.qty),
+                            satuan: prod ? (prod.satuan || 'Pcs') : 'Pcs',
+                            refNo: trxId,
+                            note: 'Penjualan Kasir #' + trxId,
+                            sisaStock: prod ? prod.stock : 0,
+                            date: now.toISOString(),
+                            dateLabel: dateStr,
+                            operator: kasir
+                        });
+                    });
+                    this.saveStockToStorage();
+
                     this.showModal = true;
                 },
                 
@@ -1159,6 +1965,24 @@ get filteredProducts() {
                     this.cashierName = 'Jeff';
                     this.loginUsername = '';
                     this.loginPassword = '';
+
+                    // Load persistent master data
+                    try {
+                        const savedJns = localStorage.getItem('pos_jenis_satuan');
+                        if (savedJns) this.jenisSatuanList = JSON.parse(savedJns);
+                        const savedStn = localStorage.getItem('pos_nama_satuan');
+                        if (savedStn) this.satuanList = JSON.parse(savedStn);
+                        const savedMrk = localStorage.getItem('pos_merek');
+                        if (savedMrk) this.merekList = JSON.parse(savedMrk);
+                        const savedCat = localStorage.getItem('pos_categories');
+                        if (savedCat) this.categories = JSON.parse(savedCat);
+                        const savedStk = localStorage.getItem('pos_stock_history');
+                        if (savedStk) {
+                            this.stockHistory = JSON.parse(savedStk);
+                        } else {
+                            this.seedInitialStock();
+                        }
+                    } catch (e) {}
 
                     // 1. Cek sesi login aktif yang tersimpan
                     const saved = localStorage.getItem('pos_current_user');
@@ -1357,6 +2181,441 @@ get filteredProducts() {
                         await batch.commit();
                         console.log('Backfill barcode:', updated, 'produk diperbarui di cloud.');
                     }
+                },
+
+                get pageTitle() {
+                    switch (this.currentPage) {
+                        case 'kasir': return 'Kasir & Transaksi Order';
+                        case 'barang':
+                        case 'produk': return 'Daftar Master Barang';
+                        case 'cetak-barcode': return 'Cetak Label Barcode';
+                        case 'kartu-stok': return 'Kartu Stok Barang';
+                        case 'jenis-satuan': return 'Master Jenis Satuan';
+                        case 'nama-satuan': return 'Master Nama Satuan';
+                        case 'merek': return 'Master Merek / Brand';
+                        case 'kategori': return 'Master Kategori Barang';
+                        default: return 'Kasir POS';
+                    }
+                },
+
+                get pageSubtitle() {
+                    switch (this.currentPage) {
+                        case 'kasir': return 'Scan barcode produk atau pilih menu untuk memproses pesanan pelanggan';
+                        case 'barang':
+                        case 'produk': return 'Kelola katalog master barang, harga jual, stok minimum, dan barcode';
+                        case 'cetak-barcode': return 'Generate label stiker barcode siap print berdasarkan barang dan satuan';
+                        case 'kartu-stok': return 'Pantau mutasi riwayat keluar-masuk stok barang secara detail & real-time';
+                        case 'jenis-satuan': return 'Master pengelompokan jenis satuan barang (Dasar, Kemasan, Berat, Volume)';
+                        case 'nama-satuan': return 'Daftar nama satuan barang lengkap dengan konversi dan relasi jenis';
+                        case 'merek': return 'Kelola master merek/brand produk dan pemasok (supplier)';
+                        case 'kategori': return 'Kelola kelompok kategori menu makanan, minuman, dan cemilan';
+                        default: return 'Inti Rasa Caffe POS';
+                    }
+                },
+
+                get isBarangSubmenu() {
+                    return ['barang', 'produk', 'cetak-barcode', 'kartu-stok', 'jenis-satuan', 'nama-satuan', 'merek', 'kategori'].includes(this.currentPage);
+                },
+
+                get barcodeSelectedProduct() {
+                    const id = this.barcodePrintProductId;
+                    if (!id && this.products.length > 0) return this.products[0];
+                    return this.products.find(p => String(p.id) === String(id)) || this.products[0] || null;
+                },
+
+                get selectedStockProduct() {
+                    const id = this.selectedStockProductId;
+                    if (!id && this.products.length > 0) return this.products[0];
+                    return this.products.find(p => String(p.id) === String(id)) || this.products[0] || null;
+                },
+
+                get filteredStockMovements() {
+                    const prod = this.selectedStockProduct;
+                    if (!prod) return [];
+                    let list = this.stockHistory.filter(h => String(h.productId) === String(prod.id));
+
+                    // Filter type
+                    if (this.stockFilterType !== 'all') {
+                        list = list.filter(h => h.type === this.stockFilterType);
+                    }
+
+                    // Filter period
+                    if (this.stockFilterPeriod !== 'all') {
+                        const now = new Date();
+                        list = list.filter(h => {
+                            const d = new Date(h.date || h._ts || Date.now());
+                            if (this.stockFilterPeriod === 'today') {
+                                return d.toDateString() === now.toDateString();
+                            } else if (this.stockFilterPeriod === 'week') {
+                                const diffTime = Math.abs(now - d);
+                                return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) <= 7;
+                            } else if (this.stockFilterPeriod === 'month') {
+                                return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+                            }
+                            return true;
+                        });
+                    }
+
+                    // Filter query
+                    const q = (this.stockSearchQuery || '').toLowerCase().trim();
+                    if (q) {
+                        list = list.filter(h => 
+                            (h.refNo && h.refNo.toLowerCase().includes(q)) || 
+                            (h.note && h.note.toLowerCase().includes(q)) ||
+                            (h.operator && h.operator.toLowerCase().includes(q))
+                        );
+                    }
+
+                    return list;
+                },
+
+                get stockSummary() {
+                    const prod = this.selectedStockProduct;
+                    if (!prod) return { current: 0, totalIn: 0, totalOut: 0, assetValue: 0, status: 'Habis', statusColor: 'rose' };
+                    
+                    const prodMovements = this.stockHistory.filter(h => String(h.productId) === String(prod.id));
+                    let totalIn = 0;
+                    let totalOut = 0;
+                    
+                    prodMovements.forEach(m => {
+                        const q = Number(m.qty) || 0;
+                        if (m.type === 'in') totalIn += q;
+                        else if (m.type === 'out') totalOut += q;
+                        else if (m.type === 'adj') {
+                            if (q > 0) totalIn += q;
+                            else totalOut += Math.abs(q);
+                        }
+                    });
+
+                    const current = Number(prod.stock !== undefined ? prod.stock : 45);
+                    const assetValue = current * Number(prod.price || 0);
+
+                    let status = 'Aman';
+                    let statusColor = 'emerald';
+                    if (current <= 0) {
+                        status = 'Habis';
+                        statusColor = 'rose';
+                    } else if (current <= 10) {
+                        status = 'Menipis';
+                        statusColor = 'amber';
+                    }
+
+                    return { current, totalIn, totalOut, assetValue, status, statusColor };
+                },
+
+                // Cetak Barcode Methods
+                openCetakBarcode(product) {
+                    if (product) {
+                        this.barcodePrintProductId = product.id;
+                        this.barcodePrintSatuan = product.satuan || 'Pcs';
+                    } else if (this.products.length > 0) {
+                        this.barcodePrintProductId = this.products[0].id;
+                        this.barcodePrintSatuan = this.products[0].satuan || 'Pcs';
+                    }
+                    this.currentPage = 'cetak-barcode';
+                },
+
+                printBarcodeLabels() {
+                    document.body.classList.add('print-barcode');
+                    setTimeout(() => {
+                        window.print();
+                        setTimeout(() => {
+                            document.body.classList.remove('print-barcode');
+                        }, 500);
+                    }, 150);
+                },
+
+                // Kartu Stok Methods
+                openKartuStok(product) {
+                    if (product) {
+                        this.selectedStockProductId = product.id;
+                    } else if (this.products.length > 0) {
+                        this.selectedStockProductId = this.products[0].id;
+                    }
+                    this.currentPage = 'kartu-stok';
+                },
+
+                openAddStockMutation() {
+                    const prod = this.selectedStockProduct;
+                    this.stockMutationForm = {
+                        productId: prod ? prod.id : (this.products[0] ? this.products[0].id : ''),
+                        type: 'in',
+                        qty: 10,
+                        satuan: prod ? (prod.satuan || 'Pcs') : 'Pcs',
+                        refNo: 'MUT-' + Math.floor(1000 + Math.random() * 9000),
+                        note: 'Restock / Pembelian Harian'
+                    };
+                    this.showStockMutationModal = true;
+                },
+
+                saveStockMutation() {
+                    const form = this.stockMutationForm;
+                    const prod = this.products.find(p => String(p.id) === String(form.productId));
+                    if (!prod) return;
+
+                    const qty = Number(form.qty) || 0;
+                    if (qty <= 0) {
+                        alert('Jumlah mutasi harus lebih besar dari 0');
+                        return;
+                    }
+
+                    if (prod.stock === undefined) prod.stock = 45;
+
+                    let typeLabel = '';
+                    if (form.type === 'in') {
+                        typeLabel = 'Stok Masuk (Restock)';
+                        prod.stock = Number(prod.stock) + qty;
+                    } else if (form.type === 'out') {
+                        typeLabel = 'Stok Keluar (Pengeluaran)';
+                        prod.stock = Math.max(0, Number(prod.stock) - qty);
+                    } else if (form.type === 'adj') {
+                        typeLabel = 'Penyesuaian Opname';
+                        prod.stock = qty;
+                    }
+
+                    const now = new Date();
+                    const dateStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+                    const record = {
+                        id: 'STK-' + Date.now(),
+                        productId: prod.id,
+                        productName: prod.name,
+                        type: form.type,
+                        typeLabel: typeLabel,
+                        qty: qty,
+                        satuan: form.satuan || prod.satuan || 'Pcs',
+                        refNo: form.refNo || ('MUT-' + Date.now().toString().slice(-4)),
+                        note: form.note || (form.type === 'in' ? 'Stok Masuk' : (form.type === 'out' ? 'Stok Keluar' : 'Stock Opname')),
+                        sisaStock: prod.stock,
+                        date: now.toISOString(),
+                        dateLabel: dateStr,
+                        operator: this.cashierName || 'Jeff'
+                    };
+
+                    this.stockHistory.unshift(record);
+                    this.saveStockToStorage();
+                    this.showStockMutationModal = false;
+                },
+
+                saveStockToStorage() {
+                    try {
+                        localStorage.setItem('pos_stock_history', JSON.stringify(this.stockHistory.slice(0, 500)));
+                        localStorage.setItem('pos_products_cache', JSON.stringify(this.products));
+                    } catch (e) {}
+                },
+
+                // Master Jenis Satuan Methods
+                openAddJenisSatuan() {
+                    this.isEditJenisSatuan = false;
+                    this.jenisSatuanForm = {
+                        id: 'JNS-' + String(this.jenisSatuanList.length + 1).padStart(2, '0'),
+                        kode: '',
+                        nama: '',
+                        deskripsi: ''
+                    };
+                    this.showJenisSatuanModal = true;
+                },
+
+                openEditJenisSatuan(item) {
+                    this.isEditJenisSatuan = true;
+                    this.jenisSatuanForm = { ...item };
+                    this.showJenisSatuanModal = true;
+                },
+
+                saveJenisSatuan() {
+                    const f = this.jenisSatuanForm;
+                    if (!f.nama || !f.kode) {
+                        alert('Kode dan Nama Jenis Satuan wajib diisi');
+                        return;
+                    }
+                    f.kode = f.kode.toUpperCase().trim();
+                    if (this.isEditJenisSatuan) {
+                        const idx = this.jenisSatuanList.findIndex(j => j.id === f.id);
+                        if (idx !== -1) {
+                            this.jenisSatuanList[idx] = { ...this.jenisSatuanList[idx], ...f };
+                        }
+                    } else {
+                        this.jenisSatuanList.push({
+                            id: f.id || ('JNS-' + Date.now()),
+                            kode: f.kode,
+                            nama: f.nama,
+                            deskripsi: f.deskripsi || '-',
+                            totalItem: 0
+                        });
+                    }
+                    try { localStorage.setItem('pos_jenis_satuan', JSON.stringify(this.jenisSatuanList)); } catch (e) {}
+                    this.showJenisSatuanModal = false;
+                },
+
+                deleteJenisSatuan(id) {
+                    if (!confirm('Yakin ingin menghapus jenis satuan ini?')) return;
+                    this.jenisSatuanList = this.jenisSatuanList.filter(j => j.id !== id);
+                    try { localStorage.setItem('pos_jenis_satuan', JSON.stringify(this.jenisSatuanList)); } catch (e) {}
+                },
+
+                // Master Nama Satuan Methods
+                openAddSatuan() {
+                    this.isEditSatuan = false;
+                    this.satuanForm = {
+                        id: 'STN-' + String(this.satuanList.length + 1).padStart(2, '0'),
+                        kode: '',
+                        nama: '',
+                        jenis: this.jenisSatuanList[0] ? this.jenisSatuanList[0].nama : 'Satuan Dasar',
+                        jenisKode: this.jenisSatuanList[0] ? this.jenisSatuanList[0].kode : 'DASAR',
+                        konversi: '',
+                        pengali: 1
+                    };
+                    this.showNamaSatuanModal = true;
+                },
+
+                openEditSatuan(item) {
+                    this.isEditSatuan = true;
+                    this.satuanForm = { ...item };
+                    this.showNamaSatuanModal = true;
+                },
+
+                saveSatuan() {
+                    const f = this.satuanForm;
+                    if (!f.nama || !f.kode) {
+                        alert('Kode dan Nama Satuan wajib diisi');
+                        return;
+                    }
+                    f.kode = f.kode.toUpperCase().trim();
+                    if (this.isEditSatuan) {
+                        const idx = this.satuanList.findIndex(s => s.id === f.id);
+                        if (idx !== -1) {
+                            this.satuanList[idx] = { ...this.satuanList[idx], ...f };
+                        }
+                    } else {
+                        this.satuanList.push({
+                            id: f.id || ('STN-' + Date.now()),
+                            kode: f.kode,
+                            nama: f.nama,
+                            jenis: f.jenis,
+                            jenisKode: f.jenisKode,
+                            konversi: f.konversi || ('1 ' + f.nama),
+                            pengali: Number(f.pengali) || 1
+                        });
+                    }
+                    try { localStorage.setItem('pos_nama_satuan', JSON.stringify(this.satuanList)); } catch (e) {}
+                    this.showNamaSatuanModal = false;
+                },
+
+                deleteSatuan(id) {
+                    if (!confirm('Yakin ingin menghapus nama satuan ini?')) return;
+                    this.satuanList = this.satuanList.filter(s => s.id !== id);
+                    try { localStorage.setItem('pos_nama_satuan', JSON.stringify(this.satuanList)); } catch (e) {}
+                },
+
+                // Master Merek Methods
+                openAddMerek() {
+                    this.isEditMerek = false;
+                    this.merekForm = {
+                        id: 'MRK-' + String(this.merekList.length + 1).padStart(2, '0'),
+                        nama: '',
+                        supplier: '',
+                        deskripsi: '',
+                        icon: '🏷️'
+                    };
+                    this.showMerekModal = true;
+                },
+
+                openEditMerek(item) {
+                    this.isEditMerek = true;
+                    this.merekForm = { ...item };
+                    this.showMerekModal = true;
+                },
+
+                saveMerek() {
+                    const f = this.merekForm;
+                    if (!f.nama) {
+                        alert('Nama Merek wajib diisi');
+                        return;
+                    }
+                    if (this.isEditMerek) {
+                        const idx = this.merekList.findIndex(m => m.id === f.id);
+                        if (idx !== -1) {
+                            this.merekList[idx] = { ...this.merekList[idx], ...f };
+                        }
+                    } else {
+                        this.merekList.push({
+                            id: f.id || ('MRK-' + Date.now()),
+                            nama: f.nama,
+                            supplier: f.supplier || 'Pemasok Umum',
+                            deskripsi: f.deskripsi || '-',
+                            icon: f.icon || '🏷️'
+                        });
+                    }
+                    try { localStorage.setItem('pos_merek', JSON.stringify(this.merekList)); } catch (e) {}
+                    this.showMerekModal = false;
+                },
+
+                deleteMerek(id) {
+                    if (!confirm('Yakin ingin menghapus merek ini?')) return;
+                    this.merekList = this.merekList.filter(m => m.id !== id);
+                    try { localStorage.setItem('pos_merek', JSON.stringify(this.merekList)); } catch (e) {}
+                },
+
+                // Master Kategori Methods
+                openAddKategori() {
+                    this.isEditKategori = false;
+                    this.kategoriForm = {
+                        id: '',
+                        name: '',
+                        icon: '📂',
+                        deskripsi: ''
+                    };
+                    this.showKategoriModal = true;
+                },
+
+                openEditKategori(item) {
+                    this.isEditKategori = true;
+                    this.kategoriForm = { ...item };
+                    this.showKategoriModal = true;
+                },
+
+                saveKategori() {
+                    const f = this.kategoriForm;
+                    if (!f.name) {
+                        alert('Nama Kategori wajib diisi');
+                        return;
+                    }
+                    const slug = f.id ? f.id : f.name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                    if (this.isEditKategori) {
+                        const idx = this.categories.findIndex(c => c.id === f.id);
+                        if (idx !== -1) {
+                            this.categories[idx] = { ...this.categories[idx], name: f.name, icon: f.icon, deskripsi: f.deskripsi };
+                        }
+                    } else {
+                        this.categories.push({
+                            id: slug,
+                            name: f.name,
+                            icon: f.icon || '📂',
+                            deskripsi: f.deskripsi || '-'
+                        });
+                    }
+                    try { localStorage.setItem('pos_categories', JSON.stringify(this.categories)); } catch (e) {}
+                    this.showKategoriModal = false;
+                },
+
+                deleteKategori(id) {
+                    if (id === 'all') {
+                        alert('Kategori default tidak dapat dihapus');
+                        return;
+                    }
+                    if (!confirm('Yakin ingin menghapus kategori ini?')) return;
+                    this.categories = this.categories.filter(c => c.id !== id);
+                    try { localStorage.setItem('pos_categories', JSON.stringify(this.categories)); } catch (e) {}
+                },
+
+                seedInitialStock() {
+                    const now = new Date();
+                    const dateStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                    this.stockHistory = [
+                        { id: 'STK-001', productId: 1, productName: 'Nasi Goreng Spesial', type: 'in', typeLabel: 'Stok Masuk (Restock)', qty: 50, satuan: 'Porsi', refNo: 'PO-2026-001', note: 'Restock bahan harian dapur', sisaStock: 50, date: now.toISOString(), dateLabel: dateStr, operator: 'Jeff' },
+                        { id: 'STK-002', productId: 2, productName: 'Mie Ayam Bakso', type: 'in', typeLabel: 'Stok Masuk (Restock)', qty: 40, satuan: 'Porsi', refNo: 'PO-2026-001', note: 'Restock bahan harian dapur', sisaStock: 40, date: now.toISOString(), dateLabel: dateStr, operator: 'Jeff' },
+                        { id: 'STK-003', productId: 5, productName: 'Es Teh Manis', type: 'in', typeLabel: 'Stok Masuk (Restock)', qty: 100, satuan: 'Cup', refNo: 'PO-2026-002', note: 'Stok cup & daun teh', sisaStock: 100, date: now.toISOString(), dateLabel: dateStr, operator: 'Jeff' }
+                    ];
                 },
 
                 async loadProducts() {
@@ -1759,10 +3018,13 @@ get filteredProducts() {
                         categoryName: catName,
                         price: Number(this.newProduct.price),
                         barcode: this.newProduct.barcode.trim(),
-                        image: this.newProduct.image || 'https://images.unsplash.com/photo-1541529086526-db283c563270?auto=format&fit=crop&w=500&q=80'
+                        image: this.newProduct.image || 'https://images.unsplash.com/photo-1541529086526-db283c563270?auto=format&fit=crop&w=500&q=80',
+                        satuan: this.newProduct.satuan || 'Pcs',
+                        merek: this.newProduct.merek || 'Inti Rasa Kitchen',
+                        stock: Number(this.newProduct.stock) || 50
                     };
                     this.products.push(product);
-                    this.newProduct = { name: '', category: 'makanan', price: '', barcode: '', image: '' };
+                    this.newProduct = { name: '', category: 'makanan', price: '', barcode: '', image: '', satuan: 'Pcs', merek: 'Inti Rasa Kitchen', stock: 50 };
                     this.showAddProductModal = false;
                     try {
                         await db.collection('products').doc(String(newId)).set(product);
@@ -1780,7 +3042,10 @@ get filteredProducts() {
                         category: product.category,
                         price: product.price,
                         barcode: product.barcode || '',
-                        image: product.image || 'https://images.unsplash.com/photo-1541529086526-db283c563270?auto=format&fit=crop&w=500&q=80'
+                        image: product.image || 'https://images.unsplash.com/photo-1541529086526-db283c563270?auto=format&fit=crop&w=500&q=80',
+                        satuan: product.satuan || 'Pcs',
+                        merek: product.merek || 'Inti Rasa Kitchen',
+                        stock: product.stock !== undefined ? product.stock : 45
                     };
                     this.showEditProductModal = true;
                 },
@@ -1867,9 +3132,33 @@ get filteredProducts() {
                         <option value="cemilan">Cemilan</option>
                     </select>
                 </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Harga (Rp)</label>
-                    <input type="number" x-model.number="newProduct.price" placeholder="10000" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500">
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Harga (Rp)</label>
+                        <input type="number" x-model.number="newProduct.price" placeholder="10000" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Stok Awal</label>
+                        <input type="number" x-model.number="newProduct.stock" placeholder="50" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Satuan</label>
+                        <select x-model="newProduct.satuan" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500">
+                            <template x-for="s in satuanList" :key="s.id">
+                                <option :value="s.nama" x-text="s.nama"></option>
+                            </template>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Merek (Brand)</label>
+                        <select x-model="newProduct.merek" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500">
+                            <template x-for="m in merekList" :key="m.id">
+                                <option :value="m.nama" x-text="m.nama"></option>
+                            </template>
+                        </select>
+                    </div>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Nomor Barcode / Serial</label>
@@ -1929,9 +3218,33 @@ get filteredProducts() {
                         <option value="cemilan">Cemilan</option>
                     </select>
                 </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Harga (Rp)</label>
-                    <input type="number" x-model.number="editProductData.price" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500">
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Harga (Rp)</label>
+                        <input type="number" x-model.number="editProductData.price" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Jumlah Stok</label>
+                        <input type="number" x-model.number="editProductData.stock" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Satuan</label>
+                        <select x-model="editProductData.satuan" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500">
+                            <template x-for="s in satuanList" :key="s.id">
+                                <option :value="s.nama" x-text="s.nama"></option>
+                            </template>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Merek (Brand)</label>
+                        <select x-model="editProductData.merek" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500">
+                            <template x-for="m in merekList" :key="m.id">
+                                <option :value="m.nama" x-text="m.nama"></option>
+                            </template>
+                        </select>
+                    </div>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Nomor Barcode / Serial</label>
@@ -2066,6 +3379,194 @@ get filteredProducts() {
                     </div>
                 </div>
             </template>
+        </div>
+    </div>
+
+    <!-- Modal Mutasi Stok Baru -->
+    <div x-show="showStockMutationModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4" x-cloak>
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl flex flex-col space-y-4">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h3 class="font-bold text-slate-900 text-base">Catat Mutasi Stok</h3>
+                <button @click="showStockMutationModal = false" class="text-slate-400 hover:text-slate-600 font-bold text-lg">&times;</button>
+            </div>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Barang / Menu</label>
+                    <select x-model="stockMutationForm.productId" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500">
+                        <template x-for="p in products" :key="p.id">
+                            <option :value="p.id" x-text="p.name"></option>
+                        </template>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Jenis Mutasi</label>
+                    <select x-model="stockMutationForm.type" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500 font-medium">
+                        <option value="in">📥 Masuk (Restock / Pembelian Baru)</option>
+                        <option value="out">📤 Keluar (Rusak / Kadaluarsa / Hilang)</option>
+                        <option value="adj">⚖️ Penyesuaian (Stock Opname Fisik)</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Jumlah (Qty)</label>
+                        <input type="number" x-model.number="stockMutationForm.qty" min="1" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Satuan</label>
+                        <select x-model="stockMutationForm.satuan" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500">
+                            <template x-for="s in satuanList" :key="s.id">
+                                <option :value="s.nama" x-text="s.nama"></option>
+                            </template>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">No. Referensi (Opsional)</label>
+                    <input type="text" x-model="stockMutationForm.refNo" placeholder="PO-2026 / ADJ-001" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Catatan / Keterangan</label>
+                    <input type="text" x-model="stockMutationForm.note" placeholder="Alasan mutasi..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500">
+                </div>
+            </div>
+            <div class="flex space-x-3 pt-2">
+                <button @click="showStockMutationModal = false" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold text-xs">Batal</button>
+                <button @click="saveStockMutation()" class="flex-1 py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-semibold text-xs shadow-md shadow-sky-500/20">Simpan Mutasi</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Tambah/Edit Jenis Satuan -->
+    <div x-show="showJenisSatuanModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4" x-cloak>
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl flex flex-col space-y-4">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h3 class="font-bold text-slate-900 text-base" x-text="isEditJenisSatuan ? 'Edit Jenis Satuan' : 'Tambah Jenis Satuan'"></h3>
+                <button @click="showJenisSatuanModal = false" class="text-slate-400 hover:text-slate-600 font-bold text-lg">&times;</button>
+            </div>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Kode Jenis</label>
+                    <input type="text" x-model="jenisSatuanForm.kode" placeholder="Misal: DASAR, KEMASAN" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500 font-mono uppercase">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Jenis Satuan</label>
+                    <input type="text" x-model="jenisSatuanForm.nama" placeholder="Misal: Satuan Kemasan" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Deskripsi / Peruntukan</label>
+                    <textarea x-model="jenisSatuanForm.deskripsi" rows="2" placeholder="Keterangan jenis satuan..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500"></textarea>
+                </div>
+            </div>
+            <div class="flex space-x-3 pt-2">
+                <button @click="showJenisSatuanModal = false" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold text-xs">Batal</button>
+                <button @click="saveJenisSatuan()" class="flex-1 py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-semibold text-xs shadow-md shadow-sky-500/20">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Tambah/Edit Nama Satuan -->
+    <div x-show="showNamaSatuanModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4" x-cloak>
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl flex flex-col space-y-4">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h3 class="font-bold text-slate-900 text-base" x-text="isEditSatuan ? 'Edit Nama Satuan' : 'Tambah Nama Satuan'"></h3>
+                <button @click="showNamaSatuanModal = false" class="text-slate-400 hover:text-slate-600 font-bold text-lg">&times;</button>
+            </div>
+            <div class="space-y-3">
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Kode Satuan</label>
+                        <input type="text" x-model="satuanForm.kode" placeholder="PCS / BOX" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500 font-mono uppercase">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Satuan</label>
+                        <input type="text" x-model="satuanForm.nama" placeholder="Pcs / Box" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Kelompok Jenis Satuan</label>
+                    <select x-model="satuanForm.jenis" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500">
+                        <template x-for="j in jenisSatuanList" :key="j.id">
+                            <option :value="j.nama" x-text="j.nama"></option>
+                        </template>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Keterangan Konversi</label>
+                    <input type="text" x-model="satuanForm.konversi" placeholder="Misal: 1 Box = 12 Pcs" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Nilai Pengali Konversi</label>
+                    <input type="number" x-model.number="satuanForm.pengali" min="1" placeholder="1" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500">
+                </div>
+            </div>
+            <div class="flex space-x-3 pt-2">
+                <button @click="showNamaSatuanModal = false" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold text-xs">Batal</button>
+                <button @click="saveSatuan()" class="flex-1 py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-semibold text-xs shadow-md shadow-sky-500/20">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Tambah/Edit Merek -->
+    <div x-show="showMerekModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4" x-cloak>
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl flex flex-col space-y-4">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h3 class="font-bold text-slate-900 text-base" x-text="isEditMerek ? 'Edit Merek' : 'Tambah Merek Baru'"></h3>
+                <button @click="showMerekModal = false" class="text-slate-400 hover:text-slate-600 font-bold text-lg">&times;</button>
+            </div>
+            <div class="space-y-3">
+                <div class="grid grid-cols-4 gap-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Icon</label>
+                        <input type="text" x-model="merekForm.icon" placeholder="🏷️" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-center focus:outline-none focus:border-sky-500">
+                    </div>
+                    <div class="col-span-3">
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Merek / Brand</label>
+                        <input type="text" x-model="merekForm.nama" placeholder="Misal: Sosro, Indomie" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Produsen / Pemasok (Supplier)</label>
+                    <input type="text" x-model="merekForm.supplier" placeholder="Nama PT / Pemasok..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Deskripsi Merek</label>
+                    <textarea x-model="merekForm.deskripsi" rows="2" placeholder="Keterangan brand..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500"></textarea>
+                </div>
+            </div>
+            <div class="flex space-x-3 pt-2">
+                <button @click="showMerekModal = false" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold text-xs">Batal</button>
+                <button @click="saveMerek()" class="flex-1 py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-semibold text-xs shadow-md shadow-sky-500/20">Simpan Merek</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Tambah/Edit Kategori -->
+    <div x-show="showKategoriModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4" x-cloak>
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl flex flex-col space-y-4">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h3 class="font-bold text-slate-900 text-base" x-text="isEditKategori ? 'Edit Kategori' : 'Tambah Kategori Baru'"></h3>
+                <button @click="showKategoriModal = false" class="text-slate-400 hover:text-slate-600 font-bold text-lg">&times;</button>
+            </div>
+            <div class="space-y-3">
+                <div class="grid grid-cols-4 gap-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Icon</label>
+                        <input type="text" x-model="kategoriForm.icon" placeholder="📂" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-center focus:outline-none focus:border-sky-500">
+                    </div>
+                    <div class="col-span-3">
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Kategori</label>
+                        <input type="text" x-model="kategoriForm.name" placeholder="Misal: Paket Hemat" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Deskripsi Kategori</label>
+                    <textarea x-model="kategoriForm.deskripsi" rows="2" placeholder="Keterangan kategori menu..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500"></textarea>
+                </div>
+            </div>
+            <div class="flex space-x-3 pt-2">
+                <button @click="showKategoriModal = false" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold text-xs">Batal</button>
+                <button @click="saveKategori()" class="flex-1 py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-semibold text-xs shadow-md shadow-sky-500/20">Simpan Kategori</button>
+            </div>
         </div>
     </div>
     </div>
