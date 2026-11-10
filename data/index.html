@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#090d16">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Smart LED Controller</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Top Status Bar -->
+    <header class="app-header">
+        <div class="brand">
+            <div class="logo-dot"></div>
+            <h1>Smart LED <span>WS2812B</span></h1>
+        </div>
+        <div class="connection-status" id="connStatus">
+            <span class="status-indicator"></span>
+            <span class="status-text">Connecting</span>
+        </div>
+    </header>
+
+    <main class="app-content">
+        <!-- TAB 1: KONTROL UTAMA -->
+        <section id="tab-home" class="tab-pane active">
+            <!-- Power Control -->
+            <div class="power-container">
+                <button class="power-btn" id="powerBtn" aria-label="Power Button">
+                    <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                        <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
+                        <line x1="12" y1="2" x2="12" y2="12"></line>
+                    </svg>
+                </button>
+                <div class="power-label" id="powerLabel">MENYALA</div>
+            </div>
+
+            <!-- Color Wheel Card -->
+            <div class="card glass-card">
+                <div class="card-header">
+                    <h2>Warna LED</h2>
+                    <span class="color-badge" id="colorBadge">#FF0096</span>
+                </div>
+                <div class="wheel-wrapper">
+                    <canvas id="colorWheel" width="280" height="280"></canvas>
+                    <div id="wheelCursor" class="wheel-cursor"></div>
+                </div>
+                
+                <div class="color-inputs">
+                    <div class="input-group">
+                        <label>Hex</label>
+                        <input type="text" id="hexInput" maxlength="7" value="#FF0096" spellcheck="false">
+                    </div>
+                    <div class="rgb-preview" id="rgbDisplay">RGB: 255, 0, 150</div>
+                </div>
+            </div>
+
+            <!-- Brightness Card -->
+            <div class="card glass-card">
+                <div class="card-header">
+                    <h2>Kecerahan (Brightness)</h2>
+                    <span class="val-badge" id="brightVal">60%</span>
+                </div>
+                <div class="slider-wrapper">
+                    <input type="range" id="brightSlider" min="0" max="255" value="150" class="neon-slider">
+                </div>
+                <div class="quick-chips">
+                    <button class="chip" data-bright="25">25%</button>
+                    <button class="chip" data-bright="50">50%</button>
+                    <button class="chip" data-bright="75">75%</button>
+                    <button class="chip" data-bright="100">100%</button>
+                </div>
+            </div>
+
+            <!-- Color Temperature Card -->
+            <div class="card glass-card">
+                <div class="card-header">
+                    <h2>Color Temperature</h2>
+                    <span class="val-badge" id="tempVal">4000K</span>
+                </div>
+                <div class="temp-slider-wrapper">
+                    <input type="range" id="tempSlider" min="2700" max="6500" step="50" value="4000" class="temp-slider">
+                </div>
+                <div class="temp-labels">
+                    <span>2700K (Warm)</span>
+                    <span>4500K (Neutral)</span>
+                    <span>6500K (Cool)</span>
+                </div>
+            </div>
+
+            <!-- Quick Presets -->
+            <div class="card glass-card">
+                <div class="card-header">
+                    <h2>Quick Presets</h2>
+                </div>
+                <div class="preset-grid">
+                    <button class="preset-btn" data-color="#FFA845" data-temp="2700" data-name="Warm Relax">
+                        <span class="preset-swatch" style="background:#FFA845"></span>
+                        <span class="preset-name">Warm Relax</span>
+                    </button>
+                    <button class="preset-btn" data-color="#D8EEFF" data-temp="6500" data-name="Cool Focus">
+                        <span class="preset-swatch" style="background:#D8EEFF"></span>
+                        <span class="preset-name">Cool Focus</span>
+                    </button>
+                    <button class="preset-btn" data-color="#FF007F" data-name="Cyberpunk">
+                        <span class="preset-swatch" style="background: linear-gradient(135deg, #ff007f, #00f0ff)"></span>
+                        <span class="preset-name">Cyberpunk</span>
+                    </button>
+                    <button class="preset-btn" data-color="#FF4500" data-name="Sunset">
+                        <span class="preset-swatch" style="background: linear-gradient(135deg, #ff4500, #ffaa00)"></span>
+                        <span class="preset-name">Sunset</span>
+                    </button>
+                    <button class="preset-btn" data-color="#FF0022" data-name="Night Red">
+                        <span class="preset-swatch" style="background:#FF0022"></span>
+                        <span class="preset-name">Night Red</span>
+                    </button>
+                    <button class="preset-btn" data-color="#00FF88" data-name="Aurora">
+                        <span class="preset-swatch" style="background: linear-gradient(135deg, #00ff88, #0099ff)"></span>
+                        <span class="preset-name">Aurora</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: EFEK & ANIMASI -->
+        <section id="tab-effects" class="tab-pane">
+            <!-- Effect Controls (Speed & Intensity) -->
+            <div class="card glass-card sticky-effect-ctrl">
+                <div class="slider-row">
+                    <div class="slider-item">
+                        <div class="slider-title">
+                            <span>Kecepatan</span>
+                            <span id="speedVal">50</span>
+                        </div>
+                        <input type="range" id="speedSlider" min="1" max="100" value="50" class="neon-slider">
+                    </div>
+                    <div class="slider-item">
+                        <div class="slider-title">
+                            <span>Intensitas / Trail</span>
+                            <span id="intensityVal">50</span>
+                        </div>
+                        <input type="range" id="intensitySlider" min="1" max="100" value="50" class="neon-slider">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Effects Grid -->
+            <div class="card glass-card">
+                <div class="card-header">
+                    <h2>Pilihan Efek Animasi</h2>
+                    <span class="badge-count">21 Efek</span>
+                </div>
+                <div class="effects-grid" id="effectsGrid">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: CUSTOM GRADIENT -->
+        <section id="tab-gradient" class="tab-pane">
+            <div class="card glass-card">
+                <div class="card-header">
+                    <h2>Pembuat Gradasi Kustom</h2>
+                    <span class="badge-count" id="gradientStopsCount">2 Titik</span>
+                </div>
+                <p class="card-desc">Atur 2 hingga 4 warna untuk dipetakan secara dinamis dan mulus ke seluruh panjang strip LED WS2812B.</p>
+
+                <!-- Gradient Live Preview -->
+                <div class="gradient-preview-bar" id="gradientPreviewBar"></div>
+
+                <!-- Gradient Color Stops List -->
+                <div class="gradient-stops-list" id="gradientStopsList">
+                    <!-- Color stop pickers inserted dynamically -->
+                </div>
+
+                <div class="gradient-actions">
+                    <button class="btn btn-secondary" id="addStopBtn">+ Tambah Titik</button>
+                    <button class="btn btn-primary" id="applyGradientBtn">Terapkan Gradasi</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 4: JADWAL & TIMER -->
+        <section id="tab-timer" class="tab-pane">
+            <!-- Sleep Timer Card -->
+            <div class="card glass-card">
+                <div class="card-header">
+                    <h2>Sleep Timer (Timer Tidur)</h2>
+                    <span class="timer-badge" id="timerBadge">Tidak Aktif</span>
+                </div>
+                <p class="card-desc">Lampu akan mati secara otomatis setelah durasi yang dipilih tercapai.</p>
+                
+                <div class="quick-chips">
+                    <button class="chip timer-chip" data-mins="15">15 Menit</button>
+                    <button class="chip timer-chip" data-mins="30">30 Menit</button>
+                    <button class="chip timer-chip" data-mins="45">45 Menit</button>
+                    <button class="chip timer-chip" data-mins="60">60 Menit</button>
+                </div>
+
+                <div class="toggle-row">
+                    <div class="toggle-info">
+                        <strong>Gradual Dim (Meredup Halus)</strong>
+                        <span>Meredupkan lampu secara perlahan sebelum mati sepenuhnya.</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="gradualDimCheck" checked>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+
+                <div class="timer-countdown" id="timerCountdownBox" style="display:none;">
+                    <div class="countdown-val" id="countdownVal">--:--</div>
+                    <button class="btn btn-danger btn-sm" id="cancelTimerBtn">Batalkan Timer</button>
+                </div>
+            </div>
+
+            <!-- Daily Schedule Card -->
+            <div class="card glass-card">
+                <div class="card-header">
+                    <h2>Jadwal Harian (NTP Clock)</h2>
+                    <span class="clock-display" id="clockDisplay">WIB --:--:--</span>
+                </div>
+                <p class="card-desc">Sinkronisasi otomatis dengan server waktu internet zona waktu Indonesia Barat (UTC+7 / WIB).</p>
+
+                <div class="toggle-row">
+                    <div class="toggle-info">
+                        <strong>Aktifkan Jadwal Otomatis</strong>
+                        <span>Menyalakan dan mematikan strip LED setiap hari sesuai jam.</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="scheduleEnableCheck">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+
+                <div class="schedule-inputs">
+                    <div class="time-field">
+                        <label>Jam Nyala Otomatis</label>
+                        <input type="time" id="onTimeInput" value="18:00">
+                    </div>
+                    <div class="time-field">
+                        <label>Jam Mati Otomatis</label>
+                        <input type="time" id="offTimeInput" value="06:00">
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" id="saveScheduleBtn">Simpan Jadwal</button>
+            </div>
+        </section>
+
+        <!-- TAB 5: PENGATURAN -->
+        <section id="tab-settings" class="tab-pane">
+            <!-- Hardware Settings -->
+            <div class="card glass-card">
+                <div class="card-header">
+                    <h2>Konfigurasi Hardware</h2>
+                </div>
+                
+                <div class="setting-item">
+                    <div class="setting-title">
+                        <span>Jumlah Titik LED (WS2812B)</span>
+                        <strong id="numLedsVal">30 LED</strong>
+                    </div>
+                    <input type="range" id="numLedsSlider" min="1" max="300" value="30" class="neon-slider">
+                    <small class="hint">Default 30 titik, mendukung hingga 300 titik tanpa flash ulang.</small>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-title">
+                        <span>Batas Arus Maksimal (FastLED Power Limit)</span>
+                        <strong id="maxMaVal">1500 mA</strong>
+                    </div>
+                    <input type="range" id="maxMaSlider" min="300" max="3000" step="50" value="1500" class="neon-slider">
+                    <small class="hint">Melindungi power supply dan mikrokontroler agar tidak overload/hang.</small>
+                </div>
+
+                <button class="btn btn-primary" id="saveSettingsBtn">Terapkan Pengaturan Hardware</button>
+            </div>
+
+            <!-- Diagnostics -->
+            <div class="card glass-card">
+                <div class="card-header">
+                    <h2>Informasi & Diagnostik Sistem</h2>
+                </div>
+                <div class="diag-list">
+                    <div class="diag-row">
+                        <span>Alamat IP ESP8266</span>
+                        <strong id="diagIp">--</strong>
+                    </div>
+                    <div class="diag-row">
+                        <span>mDNS Hostname</span>
+                        <strong><a href="http://smartled.local" target="_blank" class="accent-link">smartled.local</a></strong>
+                    </div>
+                    <div class="diag-row">
+                        <span>Free Heap RAM</span>
+                        <strong id="diagHeap">-- KB</strong>
+                    </div>
+                    <div class="diag-row">
+                        <span>Kekuatan Sinyal WiFi (RSSI)</span>
+                        <strong id="diagRssi">-- dBm</strong>
+                    </div>
+                    <div class="diag-row">
+                        <span>Waktu Aktif (Uptime)</span>
+                        <strong id="diagUptime">--</strong>
+                    </div>
+                    <div class="diag-row">
+                        <span>Klien Terhubung</span>
+                        <strong id="diagClients">1</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Maintenance & Actions -->
+            <div class="card glass-card">
+                <div class="card-header">
+                    <h2>Pemeliharaan & Update</h2>
+                </div>
+                <div class="btn-group-vertical">
+                    <a href="/update" class="btn btn-secondary text-center" target="_blank">
+                        Buka ElegantOTA Firmware Update
+                    </a>
+                    <button class="btn btn-danger" id="resetWifiBtn">
+                        Reset Pengaturan WiFi
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="bottom-nav">
+        <button class="nav-item active" data-tab="tab-home">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <circle cx="12" cy="12" r="5"></circle>
+                <path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72 1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path>
+            </svg>
+            <span>Kontrol</span>
+        </button>
+        <button class="nav-item" data-tab="tab-effects">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+            <span>Efek</span>
+        </button>
+        <button class="nav-item" data-tab="tab-gradient">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <rect x="2" y="7" width="20" height="10" rx="3"></rect>
+                <circle cx="6" cy="12" r="2"></circle>
+                <circle cx="12" cy="12" r="2"></circle>
+                <circle cx="18" cy="12" r="2"></circle>
+            </svg>
+            <span>Gradasi</span>
+        </button>
+        <button class="nav-item" data-tab="tab-timer">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            <span>Jadwal</span>
+        </button>
+        <button class="nav-item" data-tab="tab-settings">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+            <span>Setting</span>
+        </button>
+    </nav>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">Pengaturan Tersimpan</div>
+
+    <script src="app.js"></script>
+</body>
+</html>
