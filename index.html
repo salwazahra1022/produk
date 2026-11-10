@@ -178,6 +178,19 @@
                                 Masuk...
                             </span>
                         </button>
+                        <div class="pt-2 border-t border-slate-100 space-y-2">
+                            <p class="text-[10px] text-center font-bold text-slate-400 uppercase tracking-wider">Pilih Role Akses Masuk Cepat</p>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button type="button" @click="quickLogin('admin')" class="py-2 px-2.5 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-xl text-xs font-bold border border-purple-200 transition-all flex items-center justify-center gap-1.5 shadow-2xs">
+                                    <span>👑</span>
+                                    <span>Akun Admin</span>
+                                </button>
+                                <button type="button" @click="quickLogin('kasir')" class="py-2 px-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl text-xs font-bold border border-emerald-200 transition-all flex items-center justify-center gap-1.5 shadow-2xs">
+                                    <span>💼</span>
+                                    <span>Akun Kasir</span>
+                                </button>
+                            </div>
+                        </div>
                         <p class="text-center text-xs text-slate-500">
                             Belum punya akun?
                             <button @click="showRegister = true; loginError = ''" class="text-sky-600 font-semibold hover:underline">Daftar</button>
@@ -242,6 +255,15 @@
                 <button @click="sidebarOpen = false" class="lg:hidden p-1.5 text-slate-400 hover:text-slate-600 rounded-lg">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
+            </div>
+
+            <!-- Role Badge & Switcher Pill -->
+            <div class="mx-3 mt-2.5 px-3 py-2 rounded-xl text-xs flex items-center justify-between shadow-2xs transition-colors" :class="userRole === 'admin' ? 'bg-purple-50 text-purple-800 border border-purple-200' : 'bg-emerald-50 text-emerald-800 border border-emerald-200'">
+                <div class="flex items-center gap-1.5 font-bold">
+                    <span x-text="userRole === 'admin' ? '👑 Mode Admin' : '💼 Mode Kasir'"></span>
+                    <span class="text-[9px] px-1.5 py-0.5 rounded font-mono" :class="userRole === 'admin' ? 'bg-purple-200/80 text-purple-900' : 'bg-emerald-200/80 text-emerald-900'" x-text="userRole === 'admin' ? 'Full Akses' : 'Terbatas'"></span>
+                </div>
+                <button @click="roleSwitch(userRole === 'admin' ? 'kasir' : 'admin')" class="text-[10px] font-bold text-sky-700 hover:text-sky-900 underline cursor-pointer" x-text="userRole === 'admin' ? 'Pindah Kasir' : 'Pindah Admin'" title="Ganti Role Akun"></button>
             </div>
 
             <!-- Navigation Menu Items (Scrollable) -->
@@ -342,6 +364,55 @@
 
                 <!-- Divider & Other Menus -->
                 <div class="pt-3 border-t border-slate-100 space-y-1">
+                    
+                    <!-- MENU KHUSUS ADMIN: Data Karyawan -->
+                    <template x-if="userRole === 'admin'">
+                        <button 
+                            @click="currentPage = 'karyawan'; sidebarOpen = false"
+                            :class="currentPage === 'karyawan' ? 'bg-sky-500 text-white font-bold shadow-md shadow-sky-500/20' : 'text-slate-700 hover:bg-slate-100 font-medium'"
+                            class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm transition-all text-left">
+                            <span class="text-base">👥</span>
+                            <span class="flex-1">Data Karyawan</span>
+                            <span class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-mono" :class="currentPage === 'karyawan' ? 'bg-white/20 text-white' : ''" x-text="karyawanList.length"></span>
+                        </button>
+                    </template>
+
+                    <!-- MENU KHUSUS ADMIN: Log Kegiatan Kasir -->
+                    <template x-if="userRole === 'admin'">
+                        <button 
+                            @click="currentPage = 'log-kegiatan'; sidebarOpen = false"
+                            :class="currentPage === 'log-kegiatan' ? 'bg-purple-600 text-white font-bold shadow-md shadow-purple-600/20' : 'text-purple-800 hover:bg-purple-50 font-medium'"
+                            class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm transition-all text-left">
+                            <span class="text-base">📜</span>
+                            <span class="flex-1">Log Kegiatan Kasir</span>
+                            <span class="text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-mono" :class="currentPage === 'log-kegiatan' ? 'bg-white/20 text-white' : ''" x-text="activityLogs.length"></span>
+                        </button>
+                    </template>
+
+                    <!-- MENU KHUSUS ADMIN: Rekap Laporan Kasir Masuk -->
+                    <template x-if="userRole === 'admin'">
+                        <button 
+                            @click="currentPage = 'laporan-admin'; sidebarOpen = false"
+                            :class="currentPage === 'laporan-admin' ? 'bg-sky-500 text-white font-bold shadow-md shadow-sky-500/20' : 'text-slate-700 hover:bg-slate-100 font-medium'"
+                            class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm transition-all text-left">
+                            <span class="text-base">📑</span>
+                            <span class="flex-1">Laporan Kasir Masuk</span>
+                            <span class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-mono" :class="currentPage === 'laporan-admin' ? 'bg-white/20 text-white' : ''" x-text="laporanKasirList.length"></span>
+                        </button>
+                    </template>
+
+                    <!-- MENU KHUSUS KASIR: Buat Laporan Penjualan Hari Ini -->
+                    <template x-if="userRole === 'kasir'">
+                        <button 
+                            @click="currentPage = 'laporan-kasir'; sidebarOpen = false"
+                            :class="currentPage === 'laporan-kasir' ? 'bg-emerald-600 text-white font-bold shadow-md shadow-emerald-600/20' : 'text-emerald-800 hover:bg-emerald-50 font-medium'"
+                            class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm transition-all text-left">
+                            <span class="text-base">📝</span>
+                            <span class="flex-1">Laporan Hari Ini</span>
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        </button>
+                    </template>
+
                     <!-- Riwayat Transaksi -->
                     <button 
                         @click="openHistory(); sidebarOpen = false"
@@ -401,6 +472,14 @@
 
                 <!-- Top Header Right Actions -->
                 <div class="flex items-center space-x-1.5 sm:space-x-2 shrink-0">
+                    <!-- Quick Role Switch Pill -->
+                    <button @click="roleSwitch(userRole === 'admin' ? 'kasir' : 'admin')" 
+                        class="px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5"
+                        :class="userRole === 'admin' ? 'bg-purple-50 text-purple-800 border-purple-200 hover:bg-purple-100' : 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'">
+                        <span x-text="userRole === 'admin' ? '👑 Admin' : '💼 Kasir'"></span>
+                        <span class="text-[10px] text-slate-400 font-normal hidden md:inline">| Ganti Role</span>
+                    </button>
+
                     <button @click="openHistory()" class="flex items-center space-x-1.5 px-2.5 sm:px-3 py-1.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-semibold text-xs transition-colors shadow-md shadow-sky-500/20" title="Riwayat Transaksi">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
                         <span class="hidden sm:inline">Riwayat</span>
@@ -1285,6 +1364,386 @@
                 </div>
             </div>
         </section>
+
+        <!-- Halaman Data Karyawan (HANYA ADMIN) -->
+        <section x-show="currentPage === 'karyawan'" class="flex-1 flex flex-col h-full overflow-hidden p-3 sm:p-5 lg:p-6 w-full max-w-7xl mx-auto" x-cloak>
+            
+            <!-- Kasir Access Warning if in Kasir mode -->
+            <template x-if="userRole !== 'admin'">
+                <div class="bg-amber-50 border border-amber-200 rounded-2xl p-6 text-center my-auto max-w-md mx-auto">
+                    <span class="text-3xl mb-2 block">🔒</span>
+                    <h3 class="font-bold text-amber-900 text-base">Akses Terbatas: Khusus Admin</h3>
+                    <p class="text-xs text-amber-700 mt-1">Halaman Data Karyawan hanya dapat dilihat dan dikelola oleh Administrator.</p>
+                    <button @click="roleSwitch('admin')" class="mt-4 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold shadow-xs">
+                        Beralih ke Akun Admin
+                    </button>
+                </div>
+            </template>
+
+            <!-- Admin View -->
+            <template x-if="userRole === 'admin'">
+                <div class="flex-1 flex flex-col h-full overflow-hidden">
+                    <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm mb-4 shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                            <h2 class="font-bold text-base sm:text-lg text-slate-800 flex items-center gap-2">
+                                <span>👥</span>
+                                <span>Data Karyawan & Bagian Penugasan</span>
+                            </h2>
+                            <p class="text-xs text-slate-500 mt-0.5">Kelola daftar nama karyawan lengkap dengan bagian/divisi yang ditetapkan</p>
+                        </div>
+                        <button @click="openAddKaryawan()" class="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-sky-500/20 transition-all flex items-center gap-1.5 active:scale-95 shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                            <span>+ Tambah Karyawan</span>
+                        </button>
+                    </div>
+
+                    <!-- 4 Stat Summary Cards -->
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4 shrink-0">
+                        <div class="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-xs">
+                            <p class="text-[11px] font-semibold text-slate-500">Total Karyawan</p>
+                            <p class="text-2xl font-black text-slate-900 mt-1" x-text="karyawanList.length + ' Orang'"></p>
+                            <p class="text-[10px] text-emerald-600 font-medium mt-0.5">● Semua staf aktif</p>
+                        </div>
+                        <div class="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-xs">
+                            <p class="text-[11px] font-semibold text-slate-500">Bagian Kasir</p>
+                            <p class="text-2xl font-black text-sky-700 mt-1" x-text="karyawanList.filter(k => k.bagian.toLowerCase().includes('kasir')).length + ' Kasir'"></p>
+                            <p class="text-[10px] text-slate-400 mt-0.5">Frontliner Penjualan</p>
+                        </div>
+                        <div class="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-xs">
+                            <p class="text-[11px] font-semibold text-slate-500">Bagian Dapur & Bar</p>
+                            <p class="text-2xl font-black text-amber-600 mt-1" x-text="karyawanList.filter(k => k.bagian.toLowerCase().includes('barista') || k.bagian.toLowerCase().includes('koki')).length + ' Staf'"></p>
+                            <p class="text-[10px] text-slate-400 mt-0.5">Barista & Koki Dapur</p>
+                        </div>
+                        <div class="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-xs">
+                            <p class="text-[11px] font-semibold text-slate-500">Pelayanan & Staf Lain</p>
+                            <p class="text-2xl font-black text-purple-600 mt-1" x-text="karyawanList.filter(k => !k.bagian.toLowerCase().includes('kasir') && !k.bagian.toLowerCase().includes('barista') && !k.bagian.toLowerCase().includes('koki')).length + ' Staf'"></p>
+                            <p class="text-[10px] text-slate-400 mt-0.5">Waiter & Supervisor</p>
+                        </div>
+                    </div>
+
+                    <!-- Search & Filter Bar -->
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col flex-1">
+                        <div class="p-3 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 bg-slate-50/60">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-semibold text-slate-600">Filter Bagian:</span>
+                                <select x-model="karyawanFilterBagian" class="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-medium">
+                                    <option value="all">Semua Bagian</option>
+                                    <option value="Kasir">Kasir</option>
+                                    <option value="Barista">Barista</option>
+                                    <option value="Koki / Dapur">Koki / Dapur</option>
+                                    <option value="Pramusaji / Waiter">Pramusaji / Waiter</option>
+                                    <option value="Supervisor">Supervisor</option>
+                                </select>
+                            </div>
+
+                            <div class="relative w-48 sm:w-64">
+                                <input type="text" x-model="karyawanSearch" placeholder="Cari nama karyawan / bagian..." class="w-full pl-7 pr-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-sky-500">
+                                <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            </div>
+                        </div>
+
+                        <!-- Table Data Karyawan -->
+                        <div class="flex-1 overflow-y-auto">
+                            <table class="w-full text-left border-collapse text-xs">
+                                <thead class="bg-slate-50 sticky top-0 border-b border-slate-200 text-slate-600 font-bold uppercase text-[10px] tracking-wider">
+                                    <tr>
+                                        <th class="py-3 px-4">No. ID</th>
+                                        <th class="py-3 px-4">Nama Karyawan</th>
+                                        <th class="py-3 px-4">Bagian yang Ditetapkan</th>
+                                        <th class="py-3 px-4">Kontak / No. HP</th>
+                                        <th class="py-3 px-4">Shift Kerja</th>
+                                        <th class="py-3 px-4 text-center">Status</th>
+                                        <th class="py-3 px-4 text-right">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    <template x-for="k in filteredKaryawan" :key="k.id">
+                                        <tr class="hover:bg-slate-50/80 transition-colors">
+                                            <td class="py-3 px-4 font-mono font-bold text-slate-500 text-[11px]" x-text="k.id"></td>
+                                            <td class="py-3 px-4">
+                                                <div class="flex items-center space-x-2.5">
+                                                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-sky-400 to-sky-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs" x-text="k.nama.charAt(0)"></div>
+                                                    <div>
+                                                        <p class="font-bold text-slate-900 text-sm" x-text="k.nama"></p>
+                                                        <p class="text-[10px] text-slate-400">Staf Kafe</p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="py-3 px-4">
+                                                <span class="px-2.5 py-1 rounded-full text-xs font-bold shadow-2xs inline-flex items-center gap-1"
+                                                    :class="k.bagian.toLowerCase().includes('kasir') ? 'bg-sky-50 text-sky-700 border border-sky-200' : (k.bagian.toLowerCase().includes('barista') ? 'bg-amber-50 text-amber-800 border border-amber-200' : (k.bagian.toLowerCase().includes('koki') ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-purple-50 text-purple-700 border border-purple-200'))">
+                                                    <span x-text="k.bagian.toLowerCase().includes('kasir') ? '🛒' : (k.bagian.toLowerCase().includes('barista') ? '☕' : (k.bagian.toLowerCase().includes('koki') ? '👨‍🍳' : '📋'))"></span>
+                                                    <span x-text="k.bagian"></span>
+                                                </span>
+                                            </td>
+                                            <td class="py-3 px-4 font-mono text-slate-700" x-text="k.noHp || '-'"></td>
+                                            <td class="py-3 px-4 text-slate-600 font-medium" x-text="k.shift || 'Pagi'"></td>
+                                            <td class="py-3 px-4 text-center">
+                                                <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 font-semibold rounded-full text-[10px] border border-emerald-200" x-text="k.status || 'Aktif'"></span>
+                                            </td>
+                                            <td class="py-3 px-4 text-right">
+                                                <div class="flex items-center justify-end space-x-1">
+                                                    <button @click="openEditKaryawan(k)" class="p-1.5 text-sky-600 hover:bg-sky-50 rounded-lg transition-colors" title="Edit Karyawan">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                                    </button>
+                                                    <button @click="deleteKaryawan(k.id)" class="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors" title="Hapus Karyawan">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </section>
+
+        <!-- Halaman Log Kegiatan Kasir & Audit (HANYA ADMIN) -->
+        <section x-show="currentPage === 'log-kegiatan'" class="flex-1 flex flex-col h-full overflow-hidden p-3 sm:p-5 lg:p-6 w-full max-w-7xl mx-auto" x-cloak>
+            
+            <template x-if="userRole !== 'admin'">
+                <div class="bg-amber-50 border border-amber-200 rounded-2xl p-6 text-center my-auto max-w-md mx-auto">
+                    <span class="text-3xl mb-2 block">🔒</span>
+                    <h3 class="font-bold text-amber-900 text-base">Akses Ditolak: Hanya untuk Admin</h3>
+                    <p class="text-xs text-amber-700 mt-1">Kasir tidak diizinkan melihat log kegiatan sistem dan audit aktivitas.</p>
+                    <button @click="roleSwitch('admin')" class="mt-4 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold shadow-xs">
+                        Beralih ke Akun Admin
+                    </button>
+                </div>
+            </template>
+
+            <template x-if="userRole === 'admin'">
+                <div class="flex-1 flex flex-col h-full overflow-hidden">
+                    <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm mb-4 shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                            <h2 class="font-bold text-base sm:text-lg text-purple-900 flex items-center gap-2">
+                                <span>📜</span>
+                                <span>Log Kegiatan Kasir & Audit Trail</span>
+                            </h2>
+                            <p class="text-xs text-slate-500 mt-0.5">Admin dapat melihat semua kegiatan yang dilakukan kasir secara real-time</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs bg-purple-50 text-purple-700 font-bold px-3 py-1.5 rounded-xl border border-purple-200" x-text="activityLogs.length + ' Total Kegiatan Tercatat'"></span>
+                        </div>
+                    </div>
+
+                    <!-- Filter Bar Log -->
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col flex-1">
+                        <div class="p-3 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 bg-slate-50/60">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-semibold text-slate-600">Filter Tipe:</span>
+                                <select x-model="logFilterType" class="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-medium">
+                                    <option value="all">Semua Aktivitas</option>
+                                    <option value="transaksi">Transaksi Penjualan</option>
+                                    <option value="produk">Perubahan Produk</option>
+                                    <option value="stok">Mutasi Stok</option>
+                                    <option value="laporan">Laporan Harian Kasir</option>
+                                    <option value="auth">Sesi / Login</option>
+                                </select>
+                            </div>
+                            <div class="relative w-48 sm:w-64">
+                                <input type="text" x-model="logSearchQuery" placeholder="Cari aksi / nama kasir..." class="w-full pl-7 pr-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-purple-500">
+                                <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            </div>
+                        </div>
+
+                        <!-- Activity Table -->
+                        <div class="flex-1 overflow-y-auto">
+                            <table class="w-full text-left border-collapse text-xs">
+                                <thead class="bg-slate-50 sticky top-0 border-b border-slate-200 text-slate-600 font-bold uppercase text-[10px] tracking-wider">
+                                    <tr>
+                                        <th class="py-3 px-4">Waktu & Jam</th>
+                                        <th class="py-3 px-4">Pelaku / Kasir</th>
+                                        <th class="py-3 px-3">Tipe</th>
+                                        <th class="py-3 px-4">Aktivitas</th>
+                                        <th class="py-3 px-4">Rincian Kegiatan</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    <template x-for="log in filteredLogs" :key="log.id">
+                                        <tr class="hover:bg-slate-50/80 transition-colors">
+                                            <td class="py-3 px-4 font-mono whitespace-nowrap">
+                                                <span class="font-bold text-slate-800" x-text="log.time"></span>
+                                                <span class="text-[10px] text-slate-400 block" x-text="log.date"></span>
+                                            </td>
+                                            <td class="py-3 px-4">
+                                                <span class="font-bold text-slate-900 block" x-text="log.actor"></span>
+                                                <span class="text-[9px] uppercase px-1.5 py-0.2 rounded font-semibold inline-block mt-0.5" 
+                                                    :class="log.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-emerald-100 text-emerald-700'" 
+                                                    x-text="log.role"></span>
+                                            </td>
+                                            <td class="py-3 px-3">
+                                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase"
+                                                    :class="log.badgeColor === 'emerald' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : (log.badgeColor === 'amber' ? 'bg-amber-50 text-amber-700 border border-amber-200' : (log.badgeColor === 'purple' ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-sky-50 text-sky-700 border border-sky-200'))"
+                                                    x-text="log.type"></span>
+                                            </td>
+                                            <td class="py-3 px-4 font-bold text-slate-800" x-text="log.action"></td>
+                                            <td class="py-3 px-4 text-slate-600 font-medium" x-text="log.detail"></td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </section>
+
+        <!-- Halaman Buat Laporan Penjualan Hari Ini (KHUSUS KASIR) -->
+        <section x-show="currentPage === 'laporan-kasir'" class="flex-1 flex flex-col h-full overflow-hidden p-3 sm:p-5 lg:p-6 w-full max-w-5xl mx-auto" x-cloak>
+            <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm mb-4 shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                    <h2 class="font-bold text-base sm:text-lg text-emerald-800 flex items-center gap-2">
+                        <span>📝</span>
+                        <span>Buat Laporan Penjualan Hari Ini</span>
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Kasir merekap total transaksi hari ini dan mengirimkannya untuk diperiksa oleh Admin</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs bg-emerald-50 text-emerald-700 font-bold px-3 py-1.5 rounded-xl border border-emerald-200" x-text="new Date().toLocaleDateString('id-ID', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })"></span>
+                </div>
+            </div>
+
+            <!-- Report Card Form -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 space-y-5 overflow-y-auto flex-1">
+                
+                <!-- Ringkasan Penjualan Hari Ini -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div class="bg-slate-50 rounded-xl p-3 border border-slate-200 text-center">
+                        <p class="text-[10px] uppercase font-bold text-slate-500">Total Transaksi</p>
+                        <p class="text-2xl font-black text-slate-900 mt-1" x-text="todaySalesSummary.count"></p>
+                    </div>
+                    <div class="bg-emerald-50 rounded-xl p-3 border border-emerald-200 text-center">
+                        <p class="text-[10px] uppercase font-bold text-emerald-700">Total Omset Hari Ini</p>
+                        <p class="text-xl font-black text-emerald-700 mt-1" x-text="formatRupiah(todaySalesSummary.omset)"></p>
+                    </div>
+                    <div class="bg-sky-50 rounded-xl p-3 border border-sky-200 text-center">
+                        <p class="text-[10px] uppercase font-bold text-sky-700">Pembayaran Tunai</p>
+                        <p class="text-lg font-black text-sky-800 mt-1" x-text="formatRupiah(todaySalesSummary.cash)"></p>
+                    </div>
+                    <div class="bg-purple-50 rounded-xl p-3 border border-purple-200 text-center">
+                        <p class="text-[10px] uppercase font-bold text-purple-700">Pembayaran QRIS</p>
+                        <p class="text-lg font-black text-purple-800 mt-1" x-text="formatRupiah(todaySalesSummary.qris)"></p>
+                    </div>
+                </div>
+
+                <!-- Input Kas Kasir & Catatan untuk Admin -->
+                <div class="space-y-4 pt-2">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Kas Modal Awal Laci (Rp)</label>
+                            <input type="number" x-model.number="laporanKasirForm.kasAwal" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 focus:outline-none focus:border-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Total Uang Fisik Kasir (Kas Awal + Tunai)</label>
+                            <input type="text" :value="formatRupiah(Number(laporanKasirForm.kasAwal || 0) + Number(todaySalesSummary.cash))" disabled class="w-full px-3 py-2 bg-emerald-50/60 border border-emerald-200 rounded-xl text-sm font-black text-emerald-800 cursor-not-allowed">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Catatan / Laporan Tambahan untuk Admin</label>
+                        <textarea x-model="laporanKasirForm.kasirCatatan" rows="3" placeholder="Tuliskan catatan shift, kondisi stok bahan, selisih uang laci, atau kendala toko hari ini..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500"></textarea>
+                    </div>
+                </div>
+
+                <!-- Status & Action Button -->
+                <div class="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div>
+                        <template x-if="laporanKasirForm.status === 'terkirim'">
+                            <span class="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl inline-flex items-center gap-1.5">
+                                <span>✓</span>
+                                <span>Terkirim ke Admin (<span x-text="laporanKasirForm.terkirimWaktu"></span>)</span>
+                            </span>
+                        </template>
+                        <template x-if="laporanKasirForm.status !== 'terkirim'">
+                            <span class="text-xs text-slate-400 font-medium">Laporan siap dikirimkan kepada Admin.</span>
+                        </template>
+                    </div>
+
+                    <button @click="kirimLaporanKeAdmin()" class="w-full sm:w-auto px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md shadow-emerald-600/25 transition-all flex items-center justify-center gap-2 active:scale-95">
+                        <span>🚀</span>
+                        <span>Kirim Laporan Hari Ini ke Admin</span>
+                    </button>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Halaman Rekap Laporan Kasir Masuk (HANYA ADMIN) -->
+        <section x-show="currentPage === 'laporan-admin'" class="flex-1 flex flex-col h-full overflow-hidden p-3 sm:p-5 lg:p-6 w-full max-w-7xl mx-auto" x-cloak>
+            
+            <template x-if="userRole !== 'admin'">
+                <div class="bg-amber-50 border border-amber-200 rounded-2xl p-6 text-center my-auto max-w-md mx-auto">
+                    <span class="text-3xl mb-2 block">🔒</span>
+                    <h3 class="font-bold text-amber-900 text-base">Akses Khusus Admin</h3>
+                    <p class="text-xs text-amber-700 mt-1">Halaman ini digunakan Admin untuk memverifikasi laporan harian yang diserahkan oleh kasir.</p>
+                </div>
+            </template>
+
+            <template x-if="userRole === 'admin'">
+                <div class="flex-1 flex flex-col h-full overflow-hidden">
+                    <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm mb-4 shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                            <h2 class="font-bold text-base sm:text-lg text-slate-800 flex items-center gap-2">
+                                <span>📑</span>
+                                <span>Rekap Laporan Kasir Masuk</span>
+                            </h2>
+                            <p class="text-xs text-slate-500 mt-0.5">Daftar laporan penjualan harian yang diserahkan oleh kasir untuk diperiksa Admin</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex-1 overflow-y-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead class="bg-slate-50 sticky top-0 border-b border-slate-200 text-slate-600 font-bold uppercase text-[10px] tracking-wider">
+                                <tr>
+                                    <th class="py-3 px-4">Tanggal & Jam</th>
+                                    <th class="py-3 px-4">Nama Kasir</th>
+                                    <th class="py-3 px-3 text-center">Transaksi</th>
+                                    <th class="py-3 px-4 text-right">Total Omset</th>
+                                    <th class="py-3 px-4 text-right">Uang Kasir</th>
+                                    <th class="py-3 px-4">Catatan Kasir</th>
+                                    <th class="py-3 px-4 text-center">Status</th>
+                                    <th class="py-3 px-4 text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                <template x-for="lap in laporanKasirList" :key="lap.id">
+                                    <tr class="hover:bg-slate-50/80 transition-colors">
+                                        <td class="py-3 px-4 font-mono font-bold text-slate-800">
+                                            <span x-text="lap.tanggal"></span>
+                                            <span class="text-[10px] text-slate-400 block" x-text="lap.jam"></span>
+                                        </td>
+                                        <td class="py-3 px-4 font-bold text-slate-900" x-text="lap.kasir"></td>
+                                        <td class="py-3 px-3 text-center font-bold text-sky-700" x-text="lap.totalTrx + ' Trx'"></td>
+                                        <td class="py-3 px-4 text-right font-black text-emerald-600" x-text="formatRupiah(lap.totalOmset)"></td>
+                                        <td class="py-3 px-4 text-right font-bold text-slate-800" x-text="formatRupiah(lap.kasAkhir)"></td>
+                                        <td class="py-3 px-4 text-slate-600 max-w-[200px] truncate" x-text="lap.catatan"></td>
+                                        <td class="py-3 px-4 text-center">
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold"
+                                                :class="lap.status.includes('Terverifikasi') ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'"
+                                                x-text="lap.status"></span>
+                                        </td>
+                                        <td class="py-3 px-4 text-right">
+                                            <button @click="verifikasiLaporanAdmin(lap)" class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white rounded-lg font-bold text-[11px] transition-colors shadow-2xs">
+                                                Verifikasi
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+
+                        <div x-show="laporanKasirList.length === 0" class="py-12 text-center text-slate-400">
+                            <span class="text-3xl block mb-2">📑</span>
+                            <p class="text-xs font-semibold">Belum ada laporan yang diserahkan oleh kasir hari ini.</p>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </section>
     </div> <!-- Closes Main Scrollable Content Views -->
     </div> <!-- Closes Main Content Area (Right Side) -->
 
@@ -1466,6 +1925,54 @@
                 currentPage: 'kasir',
                 sidebarOpen: false,
                 barangMenuOpen: true,
+
+                // Role Akses: 'admin' atau 'kasir'
+                userRole: 'admin',
+                
+                // 1. Data Karyawan
+                karyawanList: [
+                    { id: 'KRY-001', nama: 'Jeff', bagian: 'Kasir Utama', noHp: '0812-3456-7801', shift: 'Pagi', status: 'Aktif' },
+                    { id: 'KRY-002', nama: 'Ica Marpuah', bagian: 'Kasir', noHp: '0812-3456-7802', shift: 'Siang', status: 'Aktif' },
+                    { id: 'KRY-003', nama: 'Rian Hidayat', bagian: 'Barista', noHp: '0812-3456-7803', shift: 'Full Time', status: 'Aktif' },
+                    { id: 'KRY-004', nama: 'Siti Aisyah', bagian: 'Koki / Dapur', noHp: '0812-3456-7804', shift: 'Pagi', status: 'Aktif' },
+                    { id: 'KRY-005', nama: 'Budi Santoso', bagian: 'Pramusaji / Waiter', noHp: '0812-3456-7805', shift: 'Siang', status: 'Aktif' },
+                    { id: 'KRY-006', nama: 'Dewi Lestari', bagian: 'Supervisor', noHp: '0812-3456-7806', shift: 'Full Time', status: 'Aktif' }
+                ],
+                karyawanSearch: '',
+                karyawanFilterBagian: 'all',
+                showKaryawanModal: false,
+                isEditKaryawan: false,
+                karyawanForm: { id: '', nama: '', bagian: 'Kasir', noHp: '', shift: 'Pagi', status: 'Aktif' },
+
+                // 2. Log Kegiatan Kasir (Audit Trail - Hanya Admin)
+                activityLogs: [],
+                logFilterType: 'all',
+                logSearchQuery: '',
+
+                // 3. Laporan Penjualan Hari Ini (Dari Kasir untuk Dilihat Admin)
+                laporanKasirForm: {
+                    kasAwal: 150000,
+                    kasirCatatan: '',
+                    status: 'draft',
+                    terkirimWaktu: ''
+                },
+                laporanKasirList: [
+                    {
+                        id: 'LAP-001',
+                        tanggal: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }),
+                        jam: '11:45',
+                        kasir: 'Ica Marpuah',
+                        totalTrx: 14,
+                        totalOmset: 245000,
+                        totalCash: 165000,
+                        totalQris: 80000,
+                        totalItems: 18,
+                        kasAwal: 150000,
+                        kasAkhir: 315000,
+                        catatan: 'Shift pagi lancar, stok susu UHT menipis 2 botol',
+                        status: 'Terverifikasi oleh Admin'
+                    }
+                ],
 
                 // Master Data: Jenis Satuan
                 jenisSatuanList: [
@@ -1799,6 +2306,9 @@ get filteredProducts() {
                     // Simpan ke history lokal supaya langsung muncul meski cloud lambat/gagal
                     this.transactions.unshift({ ...this.receiptData, kasir: kasir, _ts: now.getTime() });
 
+                    // Catat ke Log Kegiatan Kasir untuk dipantau Admin
+                    this.logActivity('transaksi', 'Transaksi Kasir #' + trxId, 'Kasir ' + kasir + ' memproses order total ' + this.formatRupiah(this.receiptData.total) + ' (' + this.receiptData.items.length + ' item via ' + this.paymentMethod.toUpperCase() + ')', kasir);
+
                     // Kurangi stok produk & catat ke kartu stok otomatis
                     this.receiptData.items.forEach(item => {
                         const prod = this.products.find(p => p.id === item.id || p.name === item.name);
@@ -1913,6 +2423,18 @@ get filteredProducts() {
                         } else {
                             this.seedInitialStock();
                         }
+
+                        // Load data Karyawan, Log Kegiatan Kasir, dan Laporan Kasir
+                        const savedKry = localStorage.getItem('pos_karyawan_list');
+                        if (savedKry) this.karyawanList = JSON.parse(savedKry);
+                        const savedLogs = localStorage.getItem('pos_activity_logs');
+                        if (savedLogs) {
+                            this.activityLogs = JSON.parse(savedLogs);
+                        } else {
+                            this.seedInitialLogs();
+                        }
+                        const savedLap = localStorage.getItem('pos_laporan_kasir');
+                        if (savedLap) this.laporanKasirList = JSON.parse(savedLap);
                     } catch (e) {}
 
                     // 1. Cek sesi login aktif yang tersimpan
@@ -1961,6 +2483,31 @@ get filteredProducts() {
                     this.loginLoading = true;
                     this.loginError = '';
 
+                    // Login Khusus Admin
+                    if (username.toLowerCase() === 'admin') {
+                        if (password !== '12345' && password !== 'admin123') {
+                            this.loginError = 'Password admin salah (Gunakan: 12345 atau admin123)';
+                            this.loginLoading = false;
+                            return;
+                        }
+                        const userObj = {
+                            uid: 'admin-inti-rasa',
+                            displayName: 'Administrator',
+                            username: 'admin',
+                            role: 'admin',
+                            email: 'admin@intirasacaffe.com'
+                        };
+                        localStorage.setItem('pos_current_user', JSON.stringify(userObj));
+                        this.user = userObj;
+                        this.userRole = 'admin';
+                        this.cashierName = 'Administrator';
+                        this.loginPassword = '';
+                        this.loginLoading = false;
+                        this.logActivity('auth', 'Login Administrator', 'Admin berhasil login ke sistem', 'Administrator');
+                        await this.loadProducts();
+                        return;
+                    }
+
                     // 1. Login langsung dengan username 'zarsal' dan password '12345'
                     if (username.toLowerCase() === 'zarsal') {
                         if (password !== '12345') {
@@ -1985,7 +2532,9 @@ get filteredProducts() {
                         };
                         localStorage.setItem('pos_current_user', JSON.stringify(userObj));
                         this.user = userObj;
-                        this.cashierName = 'Jeff';
+                        this.userRole = 'kasir';
+                        this.cashierName = 'Jeff (Kasir)';
+                        this.logActivity('auth', 'Login Kasir', 'Kasir Jeff masuk ke sistem kasir', 'Jeff (Kasir)');
                         this.loginPassword = '';
                         this.databaseError = '';
                         this.loginLoading = false;
@@ -2125,6 +2674,10 @@ get filteredProducts() {
                         case 'nama-satuan': return 'Master Nama Satuan';
                         case 'merek': return 'Master Merek / Brand';
                         case 'kategori': return 'Master Kategori Barang';
+                        case 'karyawan': return 'Data Karyawan & Bagian';
+                        case 'log-kegiatan': return 'Log Kegiatan Kasir & Audit Trail';
+                        case 'laporan-kasir': return 'Buat Laporan Penjualan Hari Ini';
+                        case 'laporan-admin': return 'Rekap Laporan Kasir Masuk';
                         default: return 'Kasir POS';
                     }
                 },
@@ -2140,6 +2693,10 @@ get filteredProducts() {
                         case 'nama-satuan': return 'Daftar nama satuan barang lengkap dengan konversi dan relasi jenis';
                         case 'merek': return 'Kelola master merek/brand produk dan pemasok (supplier)';
                         case 'kategori': return 'Kelola kelompok kategori menu makanan, minuman, dan cemilan';
+                        case 'karyawan': return 'Daftar nama karyawan lengkap dengan bagian yang ditetapkan';
+                        case 'log-kegiatan': return 'Admin memantau semua riwayat aktivitas yang dilakukan kasir';
+                        case 'laporan-kasir': return 'Kasir merekap penjualan harian untuk dilaporkan ke Admin';
+                        case 'laporan-admin': return 'Admin memeriksa dan memverifikasi laporan penjualan kasir';
                         default: return 'Inti Rasa Caffe POS';
                     }
                 },
@@ -2549,6 +3106,227 @@ get filteredProducts() {
                     ];
                 },
 
+                // Role Switcher
+                roleSwitch(role) {
+                    this.userRole = role;
+                    if (role === 'kasir') {
+                        this.cashierName = 'Jeff (Kasir)';
+                        if (!['kasir', 'barang', 'laporan-kasir'].includes(this.currentPage)) {
+                            this.currentPage = 'kasir';
+                        }
+                    } else {
+                        this.cashierName = 'Administrator';
+                    }
+                    this.logActivity('auth', 'Peralihan Peran Akun', 'Masuk ke mode ' + (role === 'admin' ? 'Administrator' : 'Kasir'), this.cashierName);
+                },
+
+                quickLogin(role) {
+                    if (role === 'admin') {
+                        this.loginUsername = 'admin';
+                        this.loginPassword = '12345';
+                    } else {
+                        this.loginUsername = 'zarsal';
+                        this.loginPassword = '12345';
+                    }
+                    this.login();
+                },
+
+                // Getters Karyawan
+                get filteredKaryawan() {
+                    let list = this.karyawanList;
+                    if (this.karyawanFilterBagian !== 'all') {
+                        list = list.filter(k => k.bagian.toLowerCase().includes(this.karyawanFilterBagian.toLowerCase()));
+                    }
+                    const q = (this.karyawanSearch || '').toLowerCase().trim();
+                    if (q) {
+                        list = list.filter(k => k.nama.toLowerCase().includes(q) || k.bagian.toLowerCase().includes(q) || (k.noHp && k.noHp.includes(q)));
+                    }
+                    return list;
+                },
+
+                // Methods Karyawan
+                openAddKaryawan() {
+                    this.isEditKaryawan = false;
+                    this.karyawanForm = {
+                        id: 'KRY-' + String(this.karyawanList.length + 1).padStart(3, '0'),
+                        nama: '',
+                        bagian: 'Kasir',
+                        noHp: '',
+                        shift: 'Pagi',
+                        status: 'Aktif'
+                    };
+                    this.showKaryawanModal = true;
+                },
+
+                openEditKaryawan(k) {
+                    this.isEditKaryawan = true;
+                    this.karyawanForm = { ...k };
+                    this.showKaryawanModal = true;
+                },
+
+                saveKaryawan() {
+                    const f = this.karyawanForm;
+                    if (!f.nama || !f.bagian) {
+                        alert('Nama Karyawan dan Bagian yang Ditetapkan wajib diisi');
+                        return;
+                    }
+                    if (this.isEditKaryawan) {
+                        const idx = this.karyawanList.findIndex(k => k.id === f.id);
+                        if (idx !== -1) {
+                            this.karyawanList[idx] = { ...this.karyawanList[idx], ...f };
+                            this.logActivity('admin', 'Perbarui Data Karyawan', 'Mengubah data karyawan ' + f.nama + ' (Bagian: ' + f.bagian + ')', this.cashierName);
+                        }
+                    } else {
+                        this.karyawanList.push({
+                            id: f.id || ('KRY-' + Date.now().toString().slice(-4)),
+                            nama: f.nama,
+                            bagian: f.bagian,
+                            noHp: f.noHp || '-',
+                            shift: f.shift || 'Pagi',
+                            status: f.status || 'Aktif'
+                        });
+                        this.logActivity('admin', 'Tambah Karyawan Baru', 'Menambahkan karyawan baru ' + f.nama + ' (Bagian: ' + f.bagian + ')', this.cashierName);
+                    }
+                    try { localStorage.setItem('pos_karyawan_list', JSON.stringify(this.karyawanList)); } catch (e) {}
+                    this.showKaryawanModal = false;
+                },
+
+                deleteKaryawan(id) {
+                    const item = this.karyawanList.find(k => k.id === id);
+                    if (!confirm('Yakin ingin menghapus karyawan ' + (item ? item.nama : '') + '?')) return;
+                    this.karyawanList = this.karyawanList.filter(k => k.id !== id);
+                    try { localStorage.setItem('pos_karyawan_list', JSON.stringify(this.karyawanList)); } catch (e) {}
+                    if (item) {
+                        this.logActivity('admin', 'Hapus Data Karyawan', 'Menghapus karyawan ' + item.nama + ' (Bagian: ' + item.bagian + ')', this.cashierName);
+                    }
+                },
+
+                // Getters & Methods Log Kegiatan Kasir
+                get filteredLogs() {
+                    let list = this.activityLogs;
+                    if (this.logFilterType !== 'all') {
+                        list = list.filter(l => l.type === this.logFilterType);
+                    }
+                    const q = (this.logSearchQuery || '').toLowerCase().trim();
+                    if (q) {
+                        list = list.filter(l => l.actor.toLowerCase().includes(q) || l.action.toLowerCase().includes(q) || l.detail.toLowerCase().includes(q));
+                    }
+                    return list;
+                },
+
+                logActivity(type, action, detail, actorName) {
+                    const now = new Date();
+                    const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                    const dateStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+                    
+                    let badgeColor = 'sky';
+                    if (type === 'transaksi') badgeColor = 'emerald';
+                    else if (type === 'produk') badgeColor = 'amber';
+                    else if (type === 'stok') badgeColor = 'indigo';
+                    else if (type === 'laporan') badgeColor = 'purple';
+                    else if (type === 'auth') badgeColor = 'slate';
+
+                    const log = {
+                        id: 'LOG-' + Date.now() + '-' + Math.floor(Math.random() * 100),
+                        time: timeStr,
+                        date: dateStr,
+                        timestamp: Date.now(),
+                        actor: actorName || this.cashierName || 'Kasir',
+                        role: this.userRole,
+                        type: type,
+                        action: action,
+                        detail: detail,
+                        badgeColor: badgeColor
+                    };
+                    this.activityLogs.unshift(log);
+                    try {
+                        localStorage.setItem('pos_activity_logs', JSON.stringify(this.activityLogs.slice(0, 500)));
+                    } catch (e) {}
+                },
+
+                seedInitialLogs() {
+                    const now = new Date();
+                    const timeStr = (minsAgo) => {
+                        const d = new Date(now.getTime() - minsAgo * 60000);
+                        return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                    };
+                    const dateStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+                    this.activityLogs = [
+                        { id: 'LOG-001', time: timeStr(12), date: dateStr, timestamp: Date.now() - 720000, actor: 'Jeff (Kasir)', role: 'kasir', type: 'transaksi', action: 'Transaksi Penjualan #TRX-202611-0082', detail: 'Total Rp 45.000 (2 item via QRIS)', badgeColor: 'emerald' },
+                        { id: 'LOG-002', time: timeStr(35), date: dateStr, timestamp: Date.now() - 2100000, actor: 'Jeff (Kasir)', role: 'kasir', type: 'produk', action: 'Perbarui Data Produk', detail: 'Mengubah harga produk "Es Teh Manis" menjadi Rp 5.000', badgeColor: 'amber' },
+                        { id: 'LOG-003', time: timeStr(55), date: dateStr, timestamp: Date.now() - 3300000, actor: 'Jeff (Kasir)', role: 'kasir', type: 'stok', action: 'Mutasi Stok Masuk', detail: 'Restock bahan 50 Cup Es Teh Manis (PO-002)', badgeColor: 'indigo' },
+                        { id: 'LOG-004', time: timeStr(90), date: dateStr, timestamp: Date.now() - 5400000, actor: 'Ica Marpuah (Kasir)', role: 'kasir', type: 'transaksi', action: 'Transaksi Penjualan #TRX-202611-0081', detail: 'Total Rp 62.000 (Ayam Geprek + Kopi via TUNAI)', badgeColor: 'emerald' },
+                        { id: 'LOG-005', time: timeStr(140), date: dateStr, timestamp: Date.now() - 8400000, actor: 'Jeff (Kasir)', role: 'kasir', type: 'laporan', action: 'Kirim Laporan Shift Pagi', detail: 'Laporan shift pagi dikirim ke Admin (Omset Rp 385.000)', badgeColor: 'purple' }
+                    ];
+                },
+
+                // Getters & Methods Laporan Penjualan Hari Ini
+                get todaySalesSummary() {
+                    const todayStr = new Date().toDateString();
+                    const todayTrx = this.transactions.filter(t => {
+                        const d = new Date(t._ts || t.date || Date.now());
+                        return d.toDateString() === todayStr;
+                    });
+                    const totalOmset = todayTrx.reduce((sum, t) => sum + (Number(t.total) || 0), 0);
+                    const cashTotal = todayTrx.filter(t => t.paymentMethod === 'cash').reduce((sum, t) => sum + (Number(t.total) || 0), 0);
+                    const qrisTotal = todayTrx.filter(t => t.paymentMethod === 'qris').reduce((sum, t) => sum + (Number(t.total) || 0), 0);
+                    const totalItems = todayTrx.reduce((sum, t) => sum + ((t.items || []).reduce((isum, i) => isum + (Number(i.qty) || 0), 0)), 0);
+
+                    return {
+                        count: todayTrx.length,
+                        omset: totalOmset,
+                        cash: cashTotal,
+                        qris: qrisTotal,
+                        items: totalItems
+                    };
+                },
+
+                kirimLaporanKeAdmin() {
+                    const summary = this.todaySalesSummary;
+                    const now = new Date();
+                    const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                    const dateStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+                    
+                    const kasAwal = Number(this.laporanKasirForm.kasAwal) || 0;
+                    const kasAkhir = kasAwal + summary.cash;
+
+                    const laporan = {
+                        id: 'LAP-' + Date.now(),
+                        tanggal: dateStr,
+                        jam: timeStr,
+                        kasir: this.cashierName || 'Kasir',
+                        totalTrx: summary.count,
+                        totalOmset: summary.omset,
+                        totalCash: summary.cash,
+                        totalQris: summary.qris,
+                        totalItems: summary.items,
+                        kasAwal: kasAwal,
+                        kasAkhir: kasAkhir,
+                        catatan: this.laporanKasirForm.kasirCatatan || 'Laporan penjualan harian kasir telah selesai',
+                        status: 'Terkirim (Menunggu Verifikasi Admin)'
+                    };
+
+                    this.laporanKasirList.unshift(laporan);
+                    this.laporanKasirForm.status = 'terkirim';
+                    this.laporanKasirForm.terkirimWaktu = dateStr + ' ' + timeStr;
+                    
+                    try {
+                        localStorage.setItem('pos_laporan_kasir', JSON.stringify(this.laporanKasirList));
+                    } catch (e) {}
+
+                    this.logActivity('laporan', 'Kirim Laporan Penjualan Hari Ini', 'Kasir ' + laporan.kasir + ' menyerahkan laporan omset ' + this.formatRupiah(laporan.totalOmset) + ' (' + laporan.totalTrx + ' transaksi)', laporan.kasir);
+
+                    alert('Laporan penjualan hari ini berhasil dikirim ke Admin!');
+                },
+
+                verifikasiLaporanAdmin(lap) {
+                    lap.status = 'Terverifikasi oleh Admin (' + new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ')';
+                    try {
+                        localStorage.setItem('pos_laporan_kasir', JSON.stringify(this.laporanKasirList));
+                    } catch (e) {}
+                    this.logActivity('admin', 'Verifikasi Laporan Kasir', 'Admin memverifikasi laporan penjualan kasir ' + lap.kasir + ' (Omset ' + this.formatRupiah(lap.totalOmset) + ')', this.cashierName);
+                    alert('Laporan kasir berhasil diverifikasi oleh Admin.');
+                },
                 async loadProducts() {
                     try {
                         const snapshot = await db.collection('products').orderBy('id').get();
@@ -2927,6 +3705,7 @@ get filteredProducts() {
                         stock: Number(this.newProduct.stock) || 50
                     };
                     this.products.push(product);
+                    this.logActivity('produk', 'Tambah Produk Baru', 'Menambahkan produk baru "' + product.name + '" (Harga: ' + this.formatRupiah(product.price) + ', Satuan: ' + product.satuan + ')', this.cashierName);
                     this.newProduct = { name: '', category: 'makanan', price: '', barcode: '', image: '', satuan: 'Pcs', merek: 'Inti Rasa Kitchen', stock: 50 };
                     this.showAddProductModal = false;
                     try {
@@ -2966,6 +3745,7 @@ get filteredProducts() {
                             image: this.editProductData.image || this.products[idx].image
                         };
                         Object.assign(this.products[idx], updates);
+                        this.logActivity('produk', 'Ubah Produk', 'Memperbarui data produk "' + this.editProductData.name + '" (Harga: ' + this.formatRupiah(this.editProductData.price) + ')', this.cashierName);
                         this.showEditProductModal = false;
                         try {
                             await db.collection('products').doc(String(this.editProductData.id)).update(updates);
@@ -2978,7 +3758,9 @@ get filteredProducts() {
                 },
 
                 async deleteProduct(id) {
+                    const delProd = this.products.find(p => p.id === id);
                     this.products = this.products.filter(p => p.id !== id);
+                    this.logActivity('produk', 'Hapus Produk', 'Menghapus produk ' + (delProd ? delProd.name : ('ID ' + id)), this.cashierName);
                     this.showEditProductModal = false;
                     try {
                         await db.collection('products').doc(String(id)).delete();
@@ -3439,6 +4221,59 @@ get filteredProducts() {
             <div class="flex space-x-3 pt-2">
                 <button @click="showMerekModal = false" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold text-xs">Batal</button>
                 <button @click="saveMerek()" class="flex-1 py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-semibold text-xs shadow-md shadow-sky-500/20">Simpan Merek</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Tambah/Edit Karyawan -->
+    <div x-show="showKaryawanModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4" x-cloak>
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl flex flex-col space-y-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h3 class="font-bold text-slate-900 text-base" x-text="isEditKaryawan ? 'Edit Data Karyawan' : 'Tambah Karyawan Baru'"></h3>
+                <button @click="showKaryawanModal = false" class="text-slate-400 hover:text-slate-600 font-bold text-lg">&times;</button>
+            </div>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Lengkap Karyawan</label>
+                    <input type="text" x-model="karyawanForm.nama" placeholder="Misal: Jeff, Siti, Budi" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Bagian yang Ditetapkan</label>
+                    <select x-model="karyawanForm.bagian" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500 font-medium">
+                        <option value="Kasir">Kasir</option>
+                        <option value="Kasir Utama">Kasir Utama</option>
+                        <option value="Barista">Barista</option>
+                        <option value="Koki / Dapur">Koki / Dapur</option>
+                        <option value="Pramusaji / Waiter">Pramusaji / Waiter</option>
+                        <option value="Supervisor">Supervisor</option>
+                        <option value="Gudang & Logistik">Gudang & Logistik</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Nomor Kontak / WhatsApp</label>
+                    <input type="text" x-model="karyawanForm.noHp" placeholder="0812-3456-7890" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Shift Kerja</label>
+                        <select x-model="karyawanForm.shift" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500">
+                            <option value="Pagi">Pagi</option>
+                            <option value="Siang">Siang</option>
+                            <option value="Full Time">Full Time</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Status</label>
+                        <select x-model="karyawanForm.status" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500">
+                            <option value="Aktif">Aktif</option>
+                            <option value="Cuti">Cuti</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="flex space-x-3 pt-2">
+                <button @click="showKaryawanModal = false" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold text-xs">Batal</button>
+                <button @click="saveKaryawan()" class="flex-1 py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-semibold text-xs shadow-md shadow-sky-500/20">Simpan</button>
             </div>
         </div>
     </div>
