@@ -320,26 +320,6 @@
                             <span class="flex-1">Kartu Stok Barang</span>
                         </button>
 
-                        <!-- 4. Jenis Satuan -->
-                        <button 
-                            @click="currentPage = 'jenis-satuan'; sidebarOpen = false"
-                            :class="currentPage === 'jenis-satuan' ? 'bg-sky-50 text-sky-700 font-bold border-l-2 border-sky-500' : 'text-slate-600 hover:bg-slate-50 font-medium'"
-                            class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-all text-left">
-                            <span class="text-sm">📁</span>
-                            <span class="flex-1">Jenis Satuan</span>
-                            <span class="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-mono" x-text="jenisSatuanList.length"></span>
-                        </button>
-
-                        <!-- 5. Nama Satuan -->
-                        <button 
-                            @click="currentPage = 'nama-satuan'; sidebarOpen = false"
-                            :class="currentPage === 'nama-satuan' ? 'bg-sky-50 text-sky-700 font-bold border-l-2 border-sky-500' : 'text-slate-600 hover:bg-slate-50 font-medium'"
-                            class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-all text-left">
-                            <span class="text-sm">⚖️</span>
-                            <span class="flex-1">Nama Satuan</span>
-                            <span class="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-mono" x-text="satuanList.length"></span>
-                        </button>
-
                         <!-- 6. Merek -->
                         <button 
                             @click="currentPage = 'merek'; sidebarOpen = false"
@@ -1131,124 +1111,6 @@
             </div>
         </section>
 
-        <!-- Sub-menu 4: Halaman Master Jenis Satuan -->
-        <section x-show="currentPage === 'jenis-satuan'" class="flex-1 flex flex-col h-full overflow-hidden p-3 sm:p-5 lg:p-6 w-full max-w-7xl mx-auto" x-cloak>
-            <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm mb-4 shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div>
-                    <h2 class="font-bold text-base sm:text-lg text-slate-800 flex items-center gap-2">
-                        <span>📁</span>
-                        <span>Master Data Jenis Satuan</span>
-                    </h2>
-                    <p class="text-xs text-slate-500 mt-0.5">Kelompok dan klasifikasi tipe satuan barang (Dasar, Kemasan, Berat, Volume)</p>
-                </div>
-                <button @click="openAddJenisSatuan()" class="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-sky-500/20 transition-all flex items-center gap-1.5 active:scale-95 shrink-0">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                    <span>+ Tambah Jenis Satuan</span>
-                </button>
-            </div>
-
-            <!-- Master Table -->
-            <div class="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-                <div class="flex-1 overflow-y-auto">
-                    <table class="w-full text-left border-collapse text-xs">
-                        <thead class="bg-slate-50 sticky top-0 border-b border-slate-200 text-slate-600 font-bold uppercase text-[10px] tracking-wider">
-                            <tr>
-                                <th class="py-3 px-4">Kode Jenis</th>
-                                <th class="py-3 px-4">Nama Kelompok / Jenis Satuan</th>
-                                <th class="py-3 px-6">Deskripsi & Peruntukan</th>
-                                <th class="py-3 px-4 text-center">Status</th>
-                                <th class="py-3 px-4 text-right">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100">
-                            <template x-for="j in jenisSatuanList" :key="j.id">
-                                <tr class="hover:bg-slate-50/80 transition-colors">
-                                    <td class="py-3 px-4 font-mono font-bold text-sky-700">
-                                        <span class="bg-sky-50 px-2 py-0.5 rounded border border-sky-200" x-text="j.kode"></span>
-                                    </td>
-                                    <td class="py-3 px-4 font-bold text-slate-900 text-sm" x-text="j.nama"></td>
-                                    <td class="py-3 px-6 text-slate-600 font-medium" x-text="j.deskripsi"></td>
-                                    <td class="py-3 px-4 text-center">
-                                        <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 font-semibold rounded-full text-[10px] border border-emerald-200">Aktif</span>
-                                    </td>
-                                    <td class="py-3 px-4 text-right">
-                                        <div class="flex items-center justify-end space-x-1">
-                                            <button @click="openEditJenisSatuan(j)" class="p-1.5 text-sky-600 hover:bg-sky-50 rounded-lg transition-colors" title="Edit">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                                            </button>
-                                            <button @click="deleteJenisSatuan(j.id)" class="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors" title="Hapus">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </template>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <!-- Sub-menu 5: Halaman Master Nama Satuan -->
-        <section x-show="currentPage === 'nama-satuan'" class="flex-1 flex flex-col h-full overflow-hidden p-3 sm:p-5 lg:p-6 w-full max-w-7xl mx-auto" x-cloak>
-            <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm mb-4 shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div>
-                    <h2 class="font-bold text-base sm:text-lg text-slate-800 flex items-center gap-2">
-                        <span>⚖️</span>
-                        <span>Master Data Nama Satuan</span>
-                    </h2>
-                    <p class="text-xs text-slate-500 mt-0.5">Daftar satuan barang (Pcs, Box, Lusin, Karton, Kg, Liter) beserta relasi jenis & konversi</p>
-                </div>
-                <button @click="openAddSatuan()" class="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-sky-500/20 transition-all flex items-center gap-1.5 active:scale-95 shrink-0">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                    <span>+ Tambah Nama Satuan</span>
-                </button>
-            </div>
-
-            <!-- Master Table -->
-            <div class="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-                <div class="flex-1 overflow-y-auto">
-                    <table class="w-full text-left border-collapse text-xs">
-                        <thead class="bg-slate-50 sticky top-0 border-b border-slate-200 text-slate-600 font-bold uppercase text-[10px] tracking-wider">
-                            <tr>
-                                <th class="py-3 px-4">Kode Satuan</th>
-                                <th class="py-3 px-4">Nama Satuan</th>
-                                <th class="py-3 px-4">Jenis Satuan</th>
-                                <th class="py-3 px-4">Konversi Nilai Dasar</th>
-                                <th class="py-3 px-3 text-center">Pengali</th>
-                                <th class="py-3 px-4 text-right">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100">
-                            <template x-for="s in satuanList" :key="s.id">
-                                <tr class="hover:bg-slate-50/80 transition-colors">
-                                    <td class="py-3 px-4 font-mono font-bold text-slate-700">
-                                        <span class="bg-slate-100 px-2 py-0.5 rounded border border-slate-200" x-text="s.kode"></span>
-                                    </td>
-                                    <td class="py-3 px-4 font-bold text-slate-900 text-sm" x-text="s.nama"></td>
-                                    <td class="py-3 px-4">
-                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-sky-50 text-sky-700 border border-sky-200" x-text="s.jenis"></span>
-                                    </td>
-                                    <td class="py-3 px-4 text-slate-600 font-medium" x-text="s.konversi"></td>
-                                    <td class="py-3 px-3 text-center font-mono font-bold text-slate-800" x-text="s.pengali + 'x'"></td>
-                                    <td class="py-3 px-4 text-right">
-                                        <div class="flex items-center justify-end space-x-1">
-                                            <button @click="openEditSatuan(s)" class="p-1.5 text-sky-600 hover:bg-sky-50 rounded-lg transition-colors" title="Edit">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                                            </button>
-                                            <button @click="deleteSatuan(s.id)" class="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors" title="Hapus">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </template>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-
         <!-- Sub-menu 6: Halaman Master Merek -->
         <section x-show="currentPage === 'merek'" class="flex-1 flex flex-col h-full overflow-hidden p-3 sm:p-5 lg:p-6 w-full max-w-7xl mx-auto" x-cloak>
             <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm mb-4 shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -1974,33 +1836,18 @@
                     }
                 ],
 
-                // Master Data: Jenis Satuan
-                jenisSatuanList: [
-                    { id: 'JNS-01', kode: 'DASAR', nama: 'Satuan Dasar', deskripsi: 'Satuan unit terkecil untuk penjualan langsung per butir atau porsi', totalItem: 2 },
-                    { id: 'JNS-02', kode: 'KEMASAN', nama: 'Satuan Kemasan', deskripsi: 'Satuan kemasan/isi banyak seperti box, pack, lusin, karton', totalItem: 4 },
-                    { id: 'JNS-03', kode: 'BERAT', nama: 'Satuan Berat', deskripsi: 'Satuan timbangan massa bahan seperti Kilogram, Gram', totalItem: 1 },
-                    { id: 'JNS-04', kode: 'VOLUME', nama: 'Satuan Volume', deskripsi: 'Satuan volume cairan minuman seperti Liter, Cup, Botol', totalItem: 3 }
-                ],
-                showJenisSatuanModal: false,
-                isEditJenisSatuan: false,
-                jenisSatuanForm: { id: '', kode: '', nama: '', deskripsi: '' },
-
-                // Master Data: Nama Satuan
+                // Pilihan Satuan Standar Produk
                 satuanList: [
-                    { id: 'STN-01', kode: 'PCS', nama: 'Pcs', jenis: 'Satuan Dasar', jenisKode: 'DASAR', konversi: '1 Unit / Pcs', pengali: 1 },
-                    { id: 'STN-02', kode: 'PRS', nama: 'Porsi', jenis: 'Satuan Dasar', jenisKode: 'DASAR', konversi: '1 Porsi Sajian', pengali: 1 },
-                    { id: 'STN-03', kode: 'CUP', nama: 'Cup', jenis: 'Satuan Volume', jenisKode: 'VOLUME', konversi: '1 Cup Saji', pengali: 1 },
-                    { id: 'STN-04', kode: 'BTL', nama: 'Botol', jenis: 'Satuan Volume', jenisKode: 'VOLUME', konversi: '1 Botol Kemasan', pengali: 1 },
-                    { id: 'STN-05', kode: 'BOX', nama: 'Box', jenis: 'Satuan Kemasan', jenisKode: 'KEMASAN', konversi: '1 Box = 12 Pcs', pengali: 12 },
-                    { id: 'STN-06', kode: 'LSN', nama: 'Lusin', jenis: 'Satuan Kemasan', jenisKode: 'KEMASAN', konversi: '1 Lusin = 12 Pcs', pengali: 12 },
-                    { id: 'STN-07', kode: 'KTN', nama: 'Karton', jenis: 'Satuan Kemasan', jenisKode: 'KEMASAN', konversi: '1 Karton = 24 Pcs', pengali: 24 },
-                    { id: 'STN-08', kode: 'PCK', nama: 'Pack', jenis: 'Satuan Kemasan', jenisKode: 'KEMASAN', konversi: '1 Pack = 10 Pcs', pengali: 10 },
-                    { id: 'STN-09', kode: 'KG', nama: 'Kg', jenis: 'Satuan Berat', jenisKode: 'BERAT', konversi: '1 Kg = 1000 Gram', pengali: 1000 },
-                    { id: 'STN-10', kode: 'LTR', nama: 'Liter', jenis: 'Satuan Volume', jenisKode: 'VOLUME', konversi: '1 Liter = 1000 ml', pengali: 1000 }
+                    { id: '1', nama: 'Pcs' },
+                    { id: '2', nama: 'Porsi' },
+                    { id: '3', nama: 'Cup' },
+                    { id: '4', nama: 'Botol' },
+                    { id: '5', nama: 'Box' },
+                    { id: '6', nama: 'Lusin' },
+                    { id: '7', nama: 'Pack' },
+                    { id: '8', nama: 'Kg' },
+                    { id: '9', nama: 'Liter' }
                 ],
-                showNamaSatuanModal: false,
-                isEditSatuan: false,
-                satuanForm: { id: '', kode: '', nama: '', jenis: 'Satuan Dasar', jenisKode: 'DASAR', konversi: '', pengali: 1 },
 
                 // Master Data: Merek
                 merekList: [
@@ -2409,10 +2256,6 @@ get filteredProducts() {
 
                     // Load persistent master data
                     try {
-                        const savedJns = localStorage.getItem('pos_jenis_satuan');
-                        if (savedJns) this.jenisSatuanList = JSON.parse(savedJns);
-                        const savedStn = localStorage.getItem('pos_nama_satuan');
-                        if (savedStn) this.satuanList = JSON.parse(savedStn);
                         const savedMrk = localStorage.getItem('pos_merek');
                         if (savedMrk) this.merekList = JSON.parse(savedMrk);
                         const savedCat = localStorage.getItem('pos_categories');
@@ -2670,8 +2513,6 @@ get filteredProducts() {
                         case 'produk': return 'Daftar Master Barang';
                         case 'cetak-barcode': return 'Cetak Label Barcode';
                         case 'kartu-stok': return 'Kartu Stok Barang';
-                        case 'jenis-satuan': return 'Master Jenis Satuan';
-                        case 'nama-satuan': return 'Master Nama Satuan';
                         case 'merek': return 'Master Merek / Brand';
                         case 'kategori': return 'Master Kategori Barang';
                         case 'karyawan': return 'Data Karyawan & Bagian';
@@ -2689,8 +2530,6 @@ get filteredProducts() {
                         case 'produk': return 'Kelola katalog master barang, harga jual, stok minimum, dan barcode';
                         case 'cetak-barcode': return 'Generate label stiker barcode siap print berdasarkan barang dan satuan';
                         case 'kartu-stok': return 'Pantau mutasi riwayat keluar-masuk stok barang secara detail & real-time';
-                        case 'jenis-satuan': return 'Master pengelompokan jenis satuan barang (Dasar, Kemasan, Berat, Volume)';
-                        case 'nama-satuan': return 'Daftar nama satuan barang lengkap dengan konversi dan relasi jenis';
                         case 'merek': return 'Kelola master merek/brand produk dan pemasok (supplier)';
                         case 'kategori': return 'Kelola kelompok kategori menu makanan, minuman, dan cemilan';
                         case 'karyawan': return 'Daftar nama karyawan lengkap dengan bagian yang ditetapkan';
@@ -2702,7 +2541,7 @@ get filteredProducts() {
                 },
 
                 get isBarangSubmenu() {
-                    return ['barang', 'produk', 'cetak-barcode', 'kartu-stok', 'jenis-satuan', 'nama-satuan', 'merek', 'kategori'].includes(this.currentPage);
+                    return ['barang', 'produk', 'cetak-barcode', 'kartu-stok', 'merek', 'kategori'].includes(this.currentPage);
                 },
 
                 get barcodeSelectedProduct() {
@@ -2890,109 +2729,6 @@ get filteredProducts() {
                         localStorage.setItem('pos_stock_history', JSON.stringify(this.stockHistory.slice(0, 500)));
                         localStorage.setItem('pos_products_cache', JSON.stringify(this.products));
                     } catch (e) {}
-                },
-
-                // Master Jenis Satuan Methods
-                openAddJenisSatuan() {
-                    this.isEditJenisSatuan = false;
-                    this.jenisSatuanForm = {
-                        id: 'JNS-' + String(this.jenisSatuanList.length + 1).padStart(2, '0'),
-                        kode: '',
-                        nama: '',
-                        deskripsi: ''
-                    };
-                    this.showJenisSatuanModal = true;
-                },
-
-                openEditJenisSatuan(item) {
-                    this.isEditJenisSatuan = true;
-                    this.jenisSatuanForm = { ...item };
-                    this.showJenisSatuanModal = true;
-                },
-
-                saveJenisSatuan() {
-                    const f = this.jenisSatuanForm;
-                    if (!f.nama || !f.kode) {
-                        alert('Kode dan Nama Jenis Satuan wajib diisi');
-                        return;
-                    }
-                    f.kode = f.kode.toUpperCase().trim();
-                    if (this.isEditJenisSatuan) {
-                        const idx = this.jenisSatuanList.findIndex(j => j.id === f.id);
-                        if (idx !== -1) {
-                            this.jenisSatuanList[idx] = { ...this.jenisSatuanList[idx], ...f };
-                        }
-                    } else {
-                        this.jenisSatuanList.push({
-                            id: f.id || ('JNS-' + Date.now()),
-                            kode: f.kode,
-                            nama: f.nama,
-                            deskripsi: f.deskripsi || '-',
-                            totalItem: 0
-                        });
-                    }
-                    try { localStorage.setItem('pos_jenis_satuan', JSON.stringify(this.jenisSatuanList)); } catch (e) {}
-                    this.showJenisSatuanModal = false;
-                },
-
-                deleteJenisSatuan(id) {
-                    if (!confirm('Yakin ingin menghapus jenis satuan ini?')) return;
-                    this.jenisSatuanList = this.jenisSatuanList.filter(j => j.id !== id);
-                    try { localStorage.setItem('pos_jenis_satuan', JSON.stringify(this.jenisSatuanList)); } catch (e) {}
-                },
-
-                // Master Nama Satuan Methods
-                openAddSatuan() {
-                    this.isEditSatuan = false;
-                    this.satuanForm = {
-                        id: 'STN-' + String(this.satuanList.length + 1).padStart(2, '0'),
-                        kode: '',
-                        nama: '',
-                        jenis: this.jenisSatuanList[0] ? this.jenisSatuanList[0].nama : 'Satuan Dasar',
-                        jenisKode: this.jenisSatuanList[0] ? this.jenisSatuanList[0].kode : 'DASAR',
-                        konversi: '',
-                        pengali: 1
-                    };
-                    this.showNamaSatuanModal = true;
-                },
-
-                openEditSatuan(item) {
-                    this.isEditSatuan = true;
-                    this.satuanForm = { ...item };
-                    this.showNamaSatuanModal = true;
-                },
-
-                saveSatuan() {
-                    const f = this.satuanForm;
-                    if (!f.nama || !f.kode) {
-                        alert('Kode dan Nama Satuan wajib diisi');
-                        return;
-                    }
-                    f.kode = f.kode.toUpperCase().trim();
-                    if (this.isEditSatuan) {
-                        const idx = this.satuanList.findIndex(s => s.id === f.id);
-                        if (idx !== -1) {
-                            this.satuanList[idx] = { ...this.satuanList[idx], ...f };
-                        }
-                    } else {
-                        this.satuanList.push({
-                            id: f.id || ('STN-' + Date.now()),
-                            kode: f.kode,
-                            nama: f.nama,
-                            jenis: f.jenis,
-                            jenisKode: f.jenisKode,
-                            konversi: f.konversi || ('1 ' + f.nama),
-                            pengali: Number(f.pengali) || 1
-                        });
-                    }
-                    try { localStorage.setItem('pos_nama_satuan', JSON.stringify(this.satuanList)); } catch (e) {}
-                    this.showNamaSatuanModal = false;
-                },
-
-                deleteSatuan(id) {
-                    if (!confirm('Yakin ingin menghapus nama satuan ini?')) return;
-                    this.satuanList = this.satuanList.filter(s => s.id !== id);
-                    try { localStorage.setItem('pos_nama_satuan', JSON.stringify(this.satuanList)); } catch (e) {}
                 },
 
                 // Master Merek Methods
@@ -4117,76 +3853,6 @@ get filteredProducts() {
             <div class="flex space-x-3 pt-2">
                 <button @click="showStockMutationModal = false" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold text-xs">Batal</button>
                 <button @click="saveStockMutation()" class="flex-1 py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-semibold text-xs shadow-md shadow-sky-500/20">Simpan Mutasi</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Tambah/Edit Jenis Satuan -->
-    <div x-show="showJenisSatuanModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4" x-cloak>
-        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl flex flex-col space-y-4">
-            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-                <h3 class="font-bold text-slate-900 text-base" x-text="isEditJenisSatuan ? 'Edit Jenis Satuan' : 'Tambah Jenis Satuan'"></h3>
-                <button @click="showJenisSatuanModal = false" class="text-slate-400 hover:text-slate-600 font-bold text-lg">&times;</button>
-            </div>
-            <div class="space-y-3">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Kode Jenis</label>
-                    <input type="text" x-model="jenisSatuanForm.kode" placeholder="Misal: DASAR, KEMASAN" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500 font-mono uppercase">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Jenis Satuan</label>
-                    <input type="text" x-model="jenisSatuanForm.nama" placeholder="Misal: Satuan Kemasan" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Deskripsi / Peruntukan</label>
-                    <textarea x-model="jenisSatuanForm.deskripsi" rows="2" placeholder="Keterangan jenis satuan..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500"></textarea>
-                </div>
-            </div>
-            <div class="flex space-x-3 pt-2">
-                <button @click="showJenisSatuanModal = false" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold text-xs">Batal</button>
-                <button @click="saveJenisSatuan()" class="flex-1 py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-semibold text-xs shadow-md shadow-sky-500/20">Simpan</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Tambah/Edit Nama Satuan -->
-    <div x-show="showNamaSatuanModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4" x-cloak>
-        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl flex flex-col space-y-4">
-            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-                <h3 class="font-bold text-slate-900 text-base" x-text="isEditSatuan ? 'Edit Nama Satuan' : 'Tambah Nama Satuan'"></h3>
-                <button @click="showNamaSatuanModal = false" class="text-slate-400 hover:text-slate-600 font-bold text-lg">&times;</button>
-            </div>
-            <div class="space-y-3">
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Kode Satuan</label>
-                        <input type="text" x-model="satuanForm.kode" placeholder="PCS / BOX" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500 font-mono uppercase">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Satuan</label>
-                        <input type="text" x-model="satuanForm.nama" placeholder="Pcs / Box" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Kelompok Jenis Satuan</label>
-                    <select x-model="satuanForm.jenis" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500">
-                        <template x-for="j in jenisSatuanList" :key="j.id">
-                            <option :value="j.nama" x-text="j.nama"></option>
-                        </template>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Keterangan Konversi</label>
-                    <input type="text" x-model="satuanForm.konversi" placeholder="Misal: 1 Box = 12 Pcs" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Nilai Pengali Konversi</label>
-                    <input type="number" x-model.number="satuanForm.pengali" min="1" placeholder="1" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500">
-                </div>
-            </div>
-            <div class="flex space-x-3 pt-2">
-                <button @click="showNamaSatuanModal = false" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold text-xs">Batal</button>
-                <button @click="saveSatuan()" class="flex-1 py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-semibold text-xs shadow-md shadow-sky-500/20">Simpan</button>
             </div>
         </div>
     </div>
