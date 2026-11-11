@@ -521,7 +521,7 @@
                                         @click="handleProductClick(item); searchQuery = ''"
                                         class="p-2.5 sm:p-3 hover:bg-sky-50 flex items-center justify-between cursor-pointer transition-colors group">
                                         <div class="flex items-center space-x-3">
-                                            <img :src="item.image || 'https://placehold.co/100x100?text=Produk'" :alt="item.name" class="w-10 h-10 rounded-xl object-cover border border-slate-200" @error="$event.target.src='https://placehold.co/100x100?text=Produk'">
+                                            <img :src="item.image" :alt="item.name" class="w-10 h-10 rounded-xl object-cover border border-slate-200">
                                             <div>
                                                 <p class="font-bold text-xs sm:text-sm text-slate-800 group-hover:text-sky-600" x-text="item.name"></p>
                                                 <p class="text-[10px] text-slate-400 font-mono" x-text="item.barcode ? 'Barcode: ' + item.barcode : (item.category || '')"></p>
@@ -566,11 +566,7 @@
                                         
                                         <!-- Image Container -->
                                         <div class="h-28 sm:h-32 w-full rounded-xl overflow-hidden bg-slate-100 relative mb-2">
-                                            <img 
-                                                :src="p.image || 'https://placehold.co/400x300?text=Produk'" 
-                                                :alt="p.name" 
-                                                @error="$event.target.src='https://placehold.co/400x300?text=Produk'"
-                                                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                            <img :src="p.image" :alt="p.name" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                                             
                                             <!-- Category Badge -->
                                             <span class="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white/90 backdrop-blur-xs text-slate-700 shadow-xs capitalize" x-text="p.category"></span>
@@ -670,7 +666,7 @@
                                     <div class="p-2 sm:p-2.5 bg-slate-50 hover:bg-slate-100/70 border border-slate-200/80 rounded-xl flex items-start justify-between gap-2 transition-colors">
                                         <!-- Info Item -->
                                         <div class="flex items-start space-x-2.5 flex-1 min-w-0">
-                                            <img :src="item.image || 'https://placehold.co/80x80?text=Produk'" :alt="item.name" class="w-10 h-10 rounded-lg object-cover shrink-0 border border-slate-200 mt-0.5" @error="$event.target.src='https://placehold.co/80x80?text=Produk'">
+                                            <img :src="item.image" :alt="item.name" class="w-10 h-10 rounded-lg object-cover shrink-0 border border-slate-200 mt-0.5">
                                             <div class="min-w-0 flex-1">
                                                 <p class="font-bold text-xs sm:text-sm text-slate-800 truncate" x-text="item.name"></p>
                                                 <p class="text-[11px] text-slate-500 font-medium" x-text="formatRupiah(item.price)"></p>
@@ -1821,11 +1817,7 @@
             <!-- Header Modal -->
             <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between shrink-0 bg-slate-50/80">
                 <div class="flex items-center space-x-3 min-w-0">
-                    <img 
-                        :src="selectedModifierProduct?.image || 'https://placehold.co/100x100?text=Produk'" 
-                        :alt="selectedModifierProduct?.name" 
-                        class="w-14 h-14 rounded-2xl object-cover border border-slate-200 shrink-0"
-                        @error="$event.target.src='https://placehold.co/100x100?text=Produk'">
+                    <img :src="selectedModifierProduct?.image" :alt="selectedModifierProduct?.name" class="w-14 h-14 rounded-2xl object-cover border border-slate-200 shrink-0">
                     <div class="min-w-0">
                         <div class="flex items-center gap-1.5 flex-wrap">
                             <span 
@@ -3391,38 +3383,20 @@
                 },
 
                 defaultProducts: [
-                    // 1. SPICY & MAINS
-                    { id: 101, name: 'Ayam Geprek Sambal Bawang', category: 'makanan', categoryName: 'Makanan', price: 22000, barcode: '899100100001', stock: 45, image: 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=500&q=80' },
-                    { id: 102, name: 'Dakbal Ceker Tanpa Tulang', category: 'makanan', categoryName: 'Makanan', price: 26000, barcode: '899100100002', stock: 40, image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=500&q=80' },
-                    { id: 103, name: 'Taichan Satay (10 Tusuk)', category: 'makanan', categoryName: 'Makanan', price: 24000, barcode: '899100100003', stock: 50, image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=500&q=80' },
-                    
-                    // 2. NASI, CURRY & NOODLE
-                    { id: 201, name: 'Nasi Goreng Seafood', category: 'makanan', categoryName: 'Makanan', price: 28000, barcode: '899200200001', stock: 40, image: 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=500&q=80' },
-                    { id: 202, name: 'Rice Bowl Katsu Curry', category: 'makanan', categoryName: 'Makanan', price: 32000, barcode: '899200200002', stock: 35, image: 'https://images.unsplash.com/photo-1569058242253-92a9c755a0ec?auto=format&fit=crop&w=500&q=80' },
-                    { id: 203, name: 'Ramen Noodle\'s Special', category: 'makanan', categoryName: 'Makanan', price: 30000, barcode: '899200200003', stock: 45, image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=500&q=80' },
-                    { id: 204, name: 'Spagetti Bolognese', category: 'makanan', categoryName: 'Makanan', price: 28000, barcode: '899200200004', stock: 30, image: 'https://images.unsplash.com/photo-1621996346565-e3d5d6281691?auto=format&fit=crop&w=500&q=80' },
-                    { id: 205, name: 'Nasi Daun Jeruk Komplit', category: 'makanan', categoryName: 'Makanan', price: 25000, barcode: '899200200005', stock: 40, image: 'https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&w=500&q=80' },
-
-                    // 3. SAVORY SNACKS & FRIED BITES
-                    { id: 301, name: 'Dimsum Mentai (4 pcs)', category: 'cemilan', categoryName: 'Cemilan', price: 22000, barcode: '899300300001', stock: 50, image: 'https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?auto=format&fit=crop&w=500&q=80' },
-                    { id: 302, name: 'Tahu Crispy Gurih', category: 'cemilan', categoryName: 'Cemilan', price: 12000, barcode: '899300300002', stock: 60, image: 'https://images.unsplash.com/photo-1541529086526-db283c563270?auto=format&fit=crop&w=500&q=80' },
-                    { id: 303, name: 'Mix Platters Coffee Shop', category: 'cemilan', categoryName: 'Cemilan', price: 35000, barcode: '899300300003', stock: 30, image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=500&q=80' },
-                    { id: 304, name: 'Crispy Onion Ring', category: 'cemilan', categoryName: 'Cemilan', price: 15000, barcode: '899300300004', stock: 45, image: 'https://images.unsplash.com/photo-1639024471285-0afc3835697c?auto=format&fit=crop&w=500&q=80' },
-                    { id: 305, name: 'Shrimp Tempura Crispy', category: 'cemilan', categoryName: 'Cemilan', price: 25000, barcode: '899300300005', stock: 35, image: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?auto=format&fit=crop&w=500&q=80' },
-                    { id: 306, name: 'Rujak Cireng Crispy', category: 'cemilan', categoryName: 'Cemilan', price: 15000, barcode: '899300300006', stock: 50, image: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=500&q=80' },
-
-                    // 4. SWEET DESSERTS & TOAST
-                    { id: 401, name: 'Matcha Toast Melt', category: 'cemilan', categoryName: 'Cemilan', price: 20000, barcode: '899400400001', stock: 40, image: 'https://images.unsplash.com/photo-1484723091739-30a097e8f929?auto=format&fit=crop&w=500&q=80' },
-                    { id: 402, name: 'Croissant Caffucino', category: 'cemilan', categoryName: 'Cemilan', price: 22000, barcode: '899400400002', stock: 35, image: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=500&q=80' },
-                    { id: 403, name: 'Crispy Churros + Dip', category: 'cemilan', categoryName: 'Cemilan', price: 18000, barcode: '899400400003', stock: 45, image: 'https://images.unsplash.com/photo-1624300629298-e9de39c13be5?auto=format&fit=crop&w=500&q=80' },
-                    { id: 404, name: 'Fudgy Brownies Warm', category: 'cemilan', categoryName: 'Cemilan', price: 20000, barcode: '899400400004', stock: 40, image: 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&w=500&q=80' },
-                    { id: 405, name: 'Banana Cheese Crispy', category: 'cemilan', categoryName: 'Cemilan', price: 16000, barcode: '899400400005', stock: 45, image: 'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&w=500&q=80' },
-                    { id: 406, name: 'Black Forest Ice Cream', category: 'cemilan', categoryName: 'Cemilan', price: 24000, barcode: '899400400006', stock: 30, image: 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=500&q=80' },
-
-                    // 5. DRINKS & COFFEE
-                    { id: 501, name: 'Es Kopi Susu Aren', category: 'minuman', categoryName: 'Minuman', price: 18000, barcode: '899500500001', stock: 75, image: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=500&q=80' },
-                    { id: 502, name: 'Es Teh Manis Melati', category: 'minuman', categoryName: 'Minuman', price: 6000, barcode: '899500500002', stock: 100, image: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=500&q=80' },
-                    { id: 503, name: 'Jus Alpukat Kocok', category: 'minuman', categoryName: 'Minuman', price: 16000, barcode: '899500500003', stock: 40, image: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=500&q=80' }
+                    { id: 1, name: 'Nasi Goreng Spesial', category: 'makanan', categoryName: 'Makanan', price: 25000, barcode: '8992750000107', image: 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=500&q=80' },
+                    { id: 2, name: 'Mie Ayam Bakso', category: 'makanan', categoryName: 'Makanan', price: 20000, barcode: '7451010345620', image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=500&q=80' },
+                    { id: 3, name: 'Ayam Geprek Sambal Matah', category: 'makanan', categoryName: 'Makanan', price: 22000, barcode: '6921835640275', image: 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=500&q=80' },
+                    { id: 4, name: 'Es Teh Manis', category: 'minuman', categoryName: 'Minuman', price: 5000, barcode: '8901384029651', image: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=500&q=80' },
+                    { id: 5, name: 'Es Jeruk Peras', category: 'minuman', categoryName: 'Minuman', price: 8000, barcode: '9345128305707', image: 'https://images.unsplash.com/photo-1613478223719-2ab802602423?auto=format&fit=crop&w=500&q=80' },
+                    { id: 6, name: 'Jus Alpukat', category: 'minuman', categoryName: 'Minuman', price: 15000, barcode: '8716240853192', image: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=500&q=80' },
+                    { id: 7, name: 'Pisang Goreng Keju', category: 'cemilan', categoryName: 'Cemilan', price: 12000, barcode: '8990901234579', image: 'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&w=500&q=80' },
+                    { id: 8, name: 'Tahu Crispy', category: 'cemilan', categoryName: 'Cemilan', price: 10000, barcode: '6182539704810', image: 'https://images.unsplash.com/photo-1541529086526-db283c563270?auto=format&fit=crop&w=500&q=80' },
+                    { id: 9, name: 'Teh Botol Sosro Original 450ml', category: 'minuman', categoryName: 'Minuman', price: 6000, barcode: '8993988052517', image: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=500&q=80' },
+                    { id: 10, name: 'Snack Keripik Impor Spesial', category: 'cemilan', categoryName: 'Cemilan', price: 15000, barcode: '6951913580810', image: 'https://images.unsplash.com/photo-1541529086526-db283c563270?auto=format&fit=crop&w=500&q=80' },
+                    { id: 11, name: 'Susu UHT Cokelat 250ml', category: 'minuman', categoryName: 'Minuman', price: 8000, barcode: '3690014570247', image: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=500&q=80' },
+                    { id: 12, name: 'Merchandise VSC Special Item', category: 'makanan', categoryName: 'Makanan', price: 50000, barcode: '8992000345125', image: 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=500&q=80' },
+                    { id: 13, name: 'Kopi Susu Botol 350ml', category: 'minuman', categoryName: 'Minuman', price: 10000, barcode: '8998838360361', image: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=500&q=80' },
+                    { id: 14, name: 'VSC Exclusive Member Item', category: 'makanan', categoryName: 'Makanan', price: 75000, barcode: '9555520104338', image: 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=500&q=80' }
                 ],
 
                 async seedProducts() {
@@ -4028,12 +4002,6 @@
                             const fresh = await db.collection('products').orderBy('id').get();
                             this.products = fresh.docs.map(doc => doc.data());
                         }
-                        // Merge default products not yet in this.products
-                        this.defaultProducts.forEach(dp => {
-                            if (!this.products.some(p => p.id === dp.id || (p.name && p.name.toLowerCase() === dp.name.toLowerCase()))) {
-                                this.products.push({ ...dp });
-                            }
-                        });
                         this.databaseError = '';
                     } catch (err) {
                         console.warn('Firestore offline/fallback:', err);
