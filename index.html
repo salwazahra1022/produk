@@ -17,54 +17,72 @@
                         'xs': '475px',
                     },
                     colors: {
+                        // Army Green Primary (#4B5320) & Botanical Tones
+                        primary: {
+                            50: '#F4F5F0',   // App Background
+                            100: '#EAF0E8',  // Badge Stock / Status background
+                            200: '#D0D5C9',  // Border Soft
+                            300: '#A7B39E',
+                            400: '#6B756B',  // Text Muted
+                            500: '#4B5320',  // Primary Army Green
+                            600: '#3A4018',  // Primary Hover
+                            700: '#2D331A',  // Deep Army Green Header
+                            800: '#1B221B',  // Text Primary (Deep Olive Charcoal)
+                            900: '#121712',
+                        },
+                        // Backward-compatible mapping for sky utility classes
                         sky: {
-                            50: '#f4f6f1',
-                            100: '#e5eee1',
-                            200: '#cbdcc4',
-                            300: '#a7c39d',
-                            400: '#7fa474',
-                            500: '#4e6d42',
-                            600: '#3d5634',
-                            700: '#2f4228',
-                            800: '#23311e',
-                            900: '#172114',
+                            50: '#F4F5F0',
+                            100: '#EAF0E8',
+                            200: '#D0D5C9',
+                            300: '#A7B39E',
+                            400: '#6B756B',
+                            500: '#4B5320',
+                            600: '#3A4018',
+                            700: '#2D331A',
+                            800: '#1B221B',
+                            900: '#121712',
                         },
                         army: {
-                            50: '#f4f6f1',
-                            100: '#e5eee1',
-                            200: '#cbdcc4',
-                            300: '#a7c39d',
-                            400: '#7fa474',
-                            500: '#4e6d42',
-                            600: '#3d5634',
-                            700: '#2f4228',
-                            800: '#23311e',
-                            900: '#172114',
+                            50: '#F4F5F0',
+                            100: '#EAF0E8',
+                            200: '#D0D5C9',
+                            300: '#A7B39E',
+                            400: '#6B756B',
+                            500: '#4B5320',
+                            600: '#3A4018',
+                            700: '#2D331A',
+                            800: '#1B221B',
+                            900: '#121712',
+                        },
+                        // Secondary / Accent: Warm Caramel / Latte Gold (#D4A373)
+                        caramel: {
+                            50: '#FAF6F0',
+                            100: '#F4ECE1',
+                            200: '#E5D2BE',
+                            300: '#D4A373',  // Secondary / Accent
+                            400: '#BC8453',
+                            500: '#A26B38',  // Price & Accent Text
+                            600: '#825227',
+                            700: '#633B17',
+                        },
+                        // Industrial Botanical Color System
+                        botanical: {
+                            bg: '#F4F5F0',
+                            card: '#FFFFFF',
+                            border: '#E2E5DC',
+                            borderSoft: '#D0D5C9',
+                            text: '#1B221B',
+                            muted: '#6B756B',
+                            stockBg: '#EAF0E8',
+                            stockText: '#385E38',
+                            header: '#2D331A',
+                            terracotta: '#B84A4A',
+                            terracottaBg: '#FDF2F2'
                         }
                     }
                 }
             }
-        }
-    </script>
-    <!-- Alpine.js CDN -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <!-- bwip-js CDN for scannable barcode rendering -->
-    <script src="https://cdn.jsdelivr.net/npm/bwip-js@4/dist/bwip-js.js"></script>
-    <!-- jsPDF & autoTable CDN for PDF Export -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyCfeI-1saBRxZ8W83xhskKq0138-I6UcpE",
-            authDomain: "kasir-zasa.firebaseapp.com",
-            projectId: "kasir-zasa",
-            storageBucket: "kasir-zasa.firebasestorage.app",
-            messagingSenderId: "819408330563",
-            appId: "1:819408330563:web:ec9d288fc55d9bad8199f6"
         };
         const fbApp = firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
@@ -73,14 +91,35 @@
     <!-- Google Fonts Inter & Fira Code for Receipt -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        :root {
+            --primary: #4B5320;
+            --primary-hover: #3A4018;
+            --secondary: #D4A373;
+            --accent: #A26B38;
+            --app-bg: #F4F5F0;
+            --card-bg: #FFFFFF;
+            --card-border: #E2E5DC;
+            --card-border-soft: #D0D5C9;
+            --text-primary: #1B221B;
+            --text-muted: #6B756B;
+            --badge-stock-bg: #EAF0E8;
+            --badge-stock-text: #385E38;
+            --modal-header-bg: #2D331A;
+            --terracotta: #B84A4A;
+            --terracotta-bg: #FDF2F2;
+        }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #F4F5F0 !important;
+            color: #1B221B;
+        }
         .receipt-font { font-family: 'Fira Code', 'Courier New', monospace; }
         [x-cloak] { display: none !important; }
         /* Custom scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #f2f5f0; }
-        ::-webkit-scrollbar-thumb { background: #cbdcc4; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #9bb792; }
+        ::-webkit-scrollbar-track { background: #F4F5F0; }
+        ::-webkit-scrollbar-thumb { background: #D0D5C9; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #4B5320; }
         
         @media print {
             @page {
@@ -144,7 +183,7 @@
         }
     </style>
 </head>
-<body class="bg-[#f4f6f1] text-slate-800 h-screen overflow-hidden flex flex-col" x-data="posApp()">
+<body class="bg-[#F4F5F0] text-[#1B221B] h-screen overflow-hidden flex flex-col antialiased" x-data="posApp()">
 
     <!-- Login Screen -->
     <div x-show="!user && user !== undefined" class="h-screen flex items-center justify-center bg-gradient-to-br from-sky-50 via-white to-sky-50">
@@ -235,7 +274,7 @@
     </div>
 
     <!-- POS App with Sidebar Navigation -->
-    <div x-show="user" x-cloak class="h-screen overflow-hidden flex flex-row bg-[#f4f6f1]">
+    <div x-show="user" x-cloak class="h-screen overflow-hidden flex flex-row bg-[#F4F5F0]">
 
         <!-- Mobile Sidebar Backdrop -->
         <div x-show="sidebarOpen" @click="sidebarOpen = false" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 lg:hidden" x-cloak></div>
@@ -476,7 +515,7 @@
             <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 overflow-hidden h-full">
                 
                 <!-- SISI KIRI: Katalog Produk Langsung & Pencarian (7-8 Kolom) -->
-                <div class="lg:col-span-7 xl:col-span-8 flex flex-col h-full overflow-hidden bg-slate-50/50 rounded-2xl border border-slate-200 p-3 sm:p-4">
+                <div class="lg:col-span-7 xl:col-span-8 flex flex-col h-full overflow-hidden bg-[#F8FAF7] rounded-2xl border border-[#E2E5DC] p-3 sm:p-4">
                     
                     <!-- Search Bar & Barcode Scanner + Category Filter -->
                     <div class="shrink-0 space-y-3 mb-3">
@@ -541,7 +580,7 @@
                             <template x-for="cat in categories" :key="cat.id">
                                 <button 
                                     @click="selectedCategory = cat.id"
-                                    :class="selectedCategory === cat.id ? 'bg-sky-500 text-white font-bold shadow-md shadow-sky-500/20' : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 font-medium'"
+                                    :class="selectedCategory === cat.id ? 'bg-[#4B5320] text-white font-bold shadow-md shadow-[#4B5320]/20' : 'bg-white hover:bg-[#EAF0E8] text-[#1B221B] border border-[#E2E5DC] font-medium'"
                                     class="px-3 py-1.5 rounded-xl text-xs whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 active:scale-95">
                                     <span x-text="cat.icon"></span>
                                     <span x-text="cat.name"></span>
@@ -562,42 +601,48 @@
                                 <template x-for="p in filteredProducts" :key="p.id">
                                     <div 
                                         @click="handleProductClick(p)"
-                                        class="bg-white rounded-2xl border border-slate-200 hover:border-sky-400 p-2.5 sm:p-3 flex flex-col justify-between cursor-pointer hover:shadow-md transition-all group active:scale-[0.98] relative">
+                                        class="bg-white rounded-2xl border border-[#E2E5DC] hover:border-[#4B5320] p-2.5 sm:p-3 flex flex-col justify-between cursor-pointer shadow-xs hover:shadow-md transition-all group active:scale-[0.98] relative">
                                         
                                         <!-- Image Container -->
-                                        <div class="h-28 sm:h-32 w-full rounded-xl overflow-hidden bg-slate-100 relative mb-2">
+                                        <div class="h-28 sm:h-32 w-full rounded-xl overflow-hidden bg-[#F8FAF7] relative mb-2 border border-[#E2E5DC]/50">
                                             <img :src="p.image" :alt="p.name" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                                             
-                                            <!-- Category Badge -->
-                                            <span class="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white/90 backdrop-blur-xs text-slate-700 shadow-xs capitalize" x-text="p.category"></span>
+                                            <!-- Badge Kategori: Pill rounded-full dengan background Army Green muda (#EAF0E8) dan teks #4B5320 tebal -->
+                                            <span class="absolute top-2 left-2 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#EAF0E8] text-[#4B5320] border border-[#D0D5C9]/60 shadow-xs capitalize" x-text="p.category"></span>
                                             
                                             <!-- Active Cart Count Badge -->
                                             <span 
                                                 x-show="getCartItemQty(p.id) > 0" 
-                                                class="absolute top-1.5 right-1.5 px-2 py-0.5 rounded-lg text-xs font-black bg-sky-500 text-white shadow-md flex items-center gap-1"
+                                                class="absolute top-2 right-2 px-2 py-0.5 rounded-full text-xs font-black bg-[#4B5320] text-white shadow-md flex items-center gap-1"
                                                 x-text="getCartItemQty(p.id) + 'x'">
                                             </span>
                                         </div>
 
                                         <!-- Product Info -->
                                         <div>
-                                            <h4 class="font-bold text-slate-800 text-xs sm:text-sm line-clamp-2 leading-snug group-hover:text-sky-600 transition-colors" x-text="p.name"></h4>
-                                            <p x-show="p.barcode" class="text-[10px] font-mono text-slate-400 mt-0.5 line-clamp-1" x-text="'#' + p.barcode"></p>
+                                            <h4 class="font-bold text-[#1B221B] text-xs sm:text-sm line-clamp-2 leading-snug group-hover:text-[#4B5320] transition-colors" x-text="p.name"></h4>
+                                            
+                                            <!-- Barcode Area: Background abu-kehijauan sangat tipis (#F8FAF7) dengan border tipis rapi -->
+                                            <div x-show="p.barcode" class="mt-1">
+                                                <span class="bg-[#F8FAF7] border border-[#E2E5DC] rounded px-1.5 py-0.5 text-[9.5px] font-mono text-[#6B756B] inline-block truncate max-w-full" x-text="'#' + p.barcode"></span>
+                                            </div>
                                         </div>
 
                                         <!-- Price & Stock & Action Button -->
-                                        <div class="mt-2 pt-2 border-t border-slate-100">
+                                        <div class="mt-2 pt-2 border-t border-[#E2E5DC]">
                                             <div class="flex items-center justify-between mb-2">
-                                                <span class="font-black text-xs sm:text-sm text-sky-600" x-text="formatRupiah(p.price)"></span>
+                                                <!-- Angka Harga (Rp): Font tebal bernuansa #1B221B dengan sentuhan aksen #A26B38 -->
+                                                <span class="font-black text-xs sm:text-sm text-[#A26B38]" x-text="formatRupiah(p.price)"></span>
+                                                
+                                                <!-- Badge Stok: Pill hijau zaitun lembut di pojok kanan bawah info produk -->
                                                 <span 
-                                                    class="text-[10px] px-1.5 py-0.5 rounded-md font-semibold"
-                                                    :class="(p.stock || 0) > 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-600'"
+                                                    class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-[#EAF0E8] text-[#385E38] border border-[#D0D5C9]/60"
                                                     x-text="'Stok: ' + (p.stock ?? 0)">
                                                 </span>
                                             </div>
                                             <button 
                                                 @click.stop="handleProductClick(p)"
-                                                class="w-full py-1.5 bg-sky-50 hover:bg-sky-500 text-sky-700 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-xs group-hover:bg-sky-500 group-hover:text-white">
+                                                class="w-full py-1.5 bg-[#4B5320] hover:bg-[#3A4018] text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-xs active:scale-95">
                                                 <template x-if="isCustomizableProduct(p)">
                                                     <span class="flex items-center gap-1">
                                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
@@ -635,7 +680,7 @@
                 </div>
 
                 <!-- SISI KANAN: Transaksi Kasir & Pembayaran (4-5 Kolom) -->
-                <div class="lg:col-span-5 xl:col-span-4 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col h-full overflow-hidden">
+                <div class="lg:col-span-5 xl:col-span-4 bg-white rounded-2xl border border-[#E2E5DC] shadow-sm flex flex-col h-full overflow-hidden">
                     
                     <!-- Header Transaksi Kasir -->
                     <div class="p-3 sm:p-4 border-b border-slate-100 flex items-center justify-between shrink-0 bg-slate-50/70">
@@ -749,13 +794,13 @@
                             <div class="grid grid-cols-2 gap-1.5">
                                 <button 
                                     @click="paymentMethod = 'cash'"
-                                    :class="paymentMethod === 'cash' ? 'bg-sky-500 text-white border-sky-500 shadow-sm' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'"
+                                    :class="paymentMethod === 'cash' ? 'bg-[#4B5320] text-white border-[#4B5320] shadow-sm' : 'bg-white text-[#1B221B] border-[#E2E5DC] hover:bg-[#F4F5F0]'"
                                     class="py-1.5 px-2 rounded-xl text-xs font-bold border transition-all flex items-center justify-center space-x-1">
                                     <span>💵</span><span>Tunai</span>
                                 </button>
                                 <button 
                                     @click="paymentMethod = 'qris'"
-                                    :class="paymentMethod === 'qris' ? 'bg-sky-500 text-white border-sky-500 shadow-sm' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'"
+                                    :class="paymentMethod === 'qris' ? 'bg-[#4B5320] text-white border-[#4B5320] shadow-sm' : 'bg-white text-[#1B221B] border-[#E2E5DC] hover:bg-[#F4F5F0]'"
                                     class="py-1.5 px-2 rounded-xl text-xs font-bold border transition-all flex items-center justify-center space-x-1">
                                     <span>📱</span><span>QRIS</span>
                                 </button>
@@ -776,10 +821,10 @@
                             
                             <!-- Quick amount chips -->
                             <div class="flex flex-wrap gap-1 pt-0.5">
-                                <button @click="setCash('pas')" class="px-2 py-0.5 bg-slate-100 hover:bg-sky-50 hover:text-sky-700 border border-slate-200 text-slate-700 rounded-md text-[10px] font-semibold">Uang Pas</button>
-                                <button @click="setCash(20000)" class="px-2 py-0.5 bg-slate-100 hover:bg-sky-50 hover:text-sky-700 border border-slate-200 text-slate-700 rounded-md text-[10px] font-semibold">20.000</button>
-                                <button @click="setCash(50000)" class="px-2 py-0.5 bg-slate-100 hover:bg-sky-50 hover:text-sky-700 border border-slate-200 text-slate-700 rounded-md text-[10px] font-semibold">50.000</button>
-                                <button @click="setCash(100000)" class="px-2 py-0.5 bg-slate-100 hover:bg-sky-50 hover:text-sky-700 border border-slate-200 text-slate-700 rounded-md text-[10px] font-semibold">100.000</button>
+                                <button @click="setCash('pas')" class="px-2 py-0.5 bg-white hover:bg-[#EAF0E8] hover:text-[#4B5320] border border-[#E2E5DC] text-[#1B221B] rounded-md text-[10px] font-semibold">Uang Pas</button>
+                                <button @click="setCash(20000)" class="px-2 py-0.5 bg-white hover:bg-[#EAF0E8] hover:text-[#4B5320] border border-[#E2E5DC] text-[#1B221B] rounded-md text-[10px] font-semibold">20.000</button>
+                                <button @click="setCash(50000)" class="px-2 py-0.5 bg-white hover:bg-[#EAF0E8] hover:text-[#4B5320] border border-[#E2E5DC] text-[#1B221B] rounded-md text-[10px] font-semibold">50.000</button>
+                                <button @click="setCash(100000)" class="px-2 py-0.5 bg-white hover:bg-[#EAF0E8] hover:text-[#4B5320] border border-[#E2E5DC] text-[#1B221B] rounded-md text-[10px] font-semibold">100.000</button>
                             </div>
                         </div>
 
@@ -787,7 +832,7 @@
                         <button 
                             @click="checkout()"
                             :disabled="cart.length === 0"
-                            :class="cart.length === 0 ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-sky-500 hover:bg-sky-600 text-white shadow-lg shadow-sky-500/25 active:scale-[0.99]'"
+                            :class="cart.length === 0 ? 'bg-[#E2E5DC] text-[#6B756B] cursor-not-allowed' : 'bg-[#4B5320] hover:bg-[#3A4018] text-white shadow-lg shadow-[#4B5320]/25 active:scale-[0.99]'"
                             class="w-full py-2.5 sm:py-3 rounded-xl font-bold transition-all flex items-center justify-center space-x-1.5 text-xs sm:text-sm">
                             <span x-text="paymentMethod === 'qris' ? 'Buat QRIS & Cetak Struk' : 'Selesaikan Transaksi & Struk'"></span>
                         </button>
@@ -848,57 +893,61 @@
             <div class="flex-1 overflow-y-auto pr-1 pb-10">
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
                     <template x-for="product in filteredManageProducts" :key="product.id">
-                        <div class="bg-white rounded-2xl p-3 border border-slate-200 shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
+                        <div class="bg-white rounded-2xl p-3 border border-[#E2E5DC] shadow-xs hover:shadow-md transition-all flex flex-col justify-between group">
                             <div>
                                 <!-- Image & Category Badge -->
-                                <div class="relative h-36 w-full rounded-xl overflow-hidden mb-3 bg-slate-100">
+                                <div class="relative h-36 w-full rounded-xl overflow-hidden mb-3 bg-[#F8FAF7] border border-[#E2E5DC]/50">
                                     <img :src="product.image" :alt="product.name" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                                    <span class="absolute top-2 right-2 bg-white/90 backdrop-blur-sm text-slate-700 text-[10px] font-semibold px-2 py-0.5 rounded-full shadow-xs" x-text="product.categoryName"></span>
+                                    
+                                    <!-- Badge Kategori: Pill rounded-full dengan background Army Green muda (#EAF0E8) dan teks #4B5320 tebal -->
+                                    <span class="absolute top-2 right-2 bg-[#EAF0E8] border border-[#D0D5C9]/60 text-[#4B5320] text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-xs capitalize" x-text="product.categoryName || product.category"></span>
                                 </div>
 
-                                <!-- Name & Price -->
-                                <h3 class="font-bold text-slate-800 text-sm line-clamp-1 group-hover:text-sky-600 transition-colors" x-text="product.name"></h3>
-                                <p class="text-sky-600 font-bold text-sm mt-0.5" x-text="formatRupiah(product.price)"></p>
+                                <!-- Name & Price (Aksen #A26B38) -->
+                                <h3 class="font-bold text-[#1B221B] text-sm line-clamp-1 group-hover:text-[#4B5320] transition-colors" x-text="product.name"></h3>
+                                <p class="text-[#A26B38] font-black text-sm mt-0.5" x-text="formatRupiah(product.price)"></p>
 
                                 <!-- Unit, Brand & Stock Info Badges -->
                                 <div class="flex flex-wrap items-center gap-1 mt-2 text-[10px]">
-                                    <span class="bg-slate-100 text-slate-700 font-medium px-2 py-0.5 rounded border border-slate-200" x-text="product.satuan || 'Pcs'"></span>
-                                    <span class="bg-amber-50 text-amber-700 font-medium px-2 py-0.5 rounded border border-amber-200 truncate max-w-[110px]" x-text="product.merek || 'Inti Rasa'"></span>
-                                    <span class="font-bold px-2 py-0.5 rounded ml-auto" 
-                                        :class="(product.stock !== undefined ? product.stock : 45) > 10 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : ((product.stock !== undefined ? product.stock : 45) > 0 ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-rose-50 text-rose-700 border border-rose-200')" 
+                                    <span class="bg-[#F8FAF7] text-[#1B221B] font-medium px-2 py-0.5 rounded border border-[#E2E5DC]" x-text="product.satuan || 'Pcs'"></span>
+                                    <span class="bg-[#FAF6F0] text-[#A26B38] font-medium px-2 py-0.5 rounded border border-[#E5D2BE] truncate max-w-[110px]" x-text="product.merek || 'Inti Rasa'"></span>
+                                    
+                                    <!-- Badge Stok: Pill hijau zaitun lembut (#EAF0E8 & #385E38) di pojok kanan bawah info produk -->
+                                    <span class="font-bold px-2.5 py-0.5 rounded-full ml-auto bg-[#EAF0E8] text-[#385E38] border border-[#D0D5C9]/60" 
                                         x-text="'Stok: ' + (product.stock !== undefined ? product.stock : 45)"></span>
                                 </div>
 
-                                <!-- Barcode Preview -->
+                                <!-- Barcode Area: Background abu-kehijauan sangat tipis (#F8FAF7) dengan border rapi -->
                                 <div class="mt-2.5">
                                     <template x-if="product.barcode">
-                                        <div class="bg-slate-50 border border-slate-200 rounded-xl px-2 py-1 text-center shadow-inner">
+                                        <div class="bg-[#F8FAF7] border border-[#E2E5DC] rounded-xl px-2 py-1.5 text-center shadow-2xs">
                                             <div class="flex justify-center max-w-full overflow-hidden" x-init="renderBarcode($el, product.barcode)"></div>
-                                            <p class="text-[9px] text-slate-500 font-mono mt-0.5 text-center tracking-wider truncate" x-text="product.barcode"></p>
+                                            <p class="text-[9px] text-[#6B756B] font-mono mt-0.5 text-center tracking-wider truncate" x-text="product.barcode"></p>
                                         </div>
                                     </template>
                                     <template x-if="!product.barcode">
-                                        <div class="border border-dashed border-slate-200 rounded-xl py-2 px-1 text-center text-[10px] text-slate-400 font-medium">
+                                        <div class="border border-dashed border-[#D0D5C9] bg-[#F8FAF7]/60 rounded-xl py-2 px-1 text-center text-[10px] text-[#6B756B] font-medium">
                                             Belum ada barcode
                                         </div>
                                     </template>
                                 </div>
                             </div>
 
-                            <!-- Actions: Edit & Hapus -->
-                            <div class="mt-3 pt-3 border-t border-slate-100 flex items-center space-x-2">
+                            <!-- Tombol Aksi: Edit & Hapus -->
+                            <div class="mt-3 pt-3 border-t border-[#E2E5DC] flex items-center space-x-2">
+                                <!-- Tombol Edit: Border halus #D0D5C9, teks #4B5320, hover background #EDF1E9 -->
                                 <button 
                                     @click="openEditProduct(product)"
-                                    class="flex-1 py-2 px-2 bg-sky-50 hover:bg-sky-500 text-sky-600 hover:text-white rounded-xl font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 shadow-xs">
+                                    class="flex-1 py-2 px-2 bg-white hover:bg-[#EDF1E9] text-[#4B5320] border border-[#D0D5C9] rounded-xl font-bold text-xs transition-colors flex items-center justify-center gap-1.5 shadow-2xs">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                                     <span>Edit</span>
                                 </button>
+                                <!-- Tombol Hapus: Aksen muted red/terracotta (#B84A4A) lembut -->
                                 <button 
                                     @click="if(confirm('Hapus produk \'' + product.name + '\'?')) deleteProduct(product.id)"
-                                    class="py-2 px-2.5 bg-rose-50 hover:bg-rose-500 text-rose-600 hover:text-white rounded-xl font-semibold text-xs transition-colors flex items-center justify-center gap-1 shadow-xs"
+                                    class="py-2 px-2.5 bg-[#FDF2F2] hover:bg-[#B84A4A] text-[#B84A4A] hover:text-white border border-[#F5C2C2] rounded-xl font-bold text-xs transition-colors flex items-center justify-center gap-1 shadow-2xs"
                                     title="Hapus Produk">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                    <span>Hapus</span>
                                 </button>
                             </div>
                         </div>
@@ -1821,23 +1870,23 @@
             @click.away="showModifierModal = false"
             class="bg-white rounded-3xl max-w-xl w-full shadow-2xl flex flex-col max-h-[92vh] overflow-hidden border border-slate-100">
             
-            <!-- Header Modal -->
-            <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between shrink-0 bg-slate-50/80">
+            <!-- Header Modal: Nuansa Army Green pekat (#2D331A) dengan teks putih/krem -->
+            <div class="p-4 sm:p-5 border-b border-[#3A4018] flex items-center justify-between shrink-0 bg-[#2D331A] text-white">
                 <div class="flex items-center space-x-3 min-w-0">
-                    <img :src="selectedModifierProduct?.image" :alt="selectedModifierProduct?.name" class="w-14 h-14 rounded-2xl object-cover border border-slate-200 shrink-0">
+                    <img :src="selectedModifierProduct?.image" :alt="selectedModifierProduct?.name" class="w-14 h-14 rounded-2xl object-cover border-2 border-[#D4A373]/60 shrink-0 shadow-sm">
                     <div class="min-w-0">
                         <div class="flex items-center gap-1.5 flex-wrap">
                             <span 
-                                class="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider bg-sky-100 text-sky-800"
+                                class="text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider bg-[#D4A373] text-[#1B221B]"
                                 x-text="getModifierGroupBadge(selectedModifierProduct)">
                             </span>
-                            <span class="text-xs font-semibold text-slate-400 capitalize" x-text="selectedModifierProduct?.category"></span>
+                            <span class="text-xs font-semibold text-[#D0D5C9] capitalize" x-text="selectedModifierProduct?.category"></span>
                         </div>
-                        <h3 class="font-black text-slate-900 text-base sm:text-lg leading-snug truncate" x-text="selectedModifierProduct?.name"></h3>
-                        <p class="text-xs font-bold text-sky-600" x-text="'Harga Dasar: ' + formatRupiah(selectedModifierProduct?.price || 0)"></p>
+                        <h3 class="font-black text-white text-base sm:text-lg leading-snug truncate" x-text="selectedModifierProduct?.name"></h3>
+                        <p class="text-xs font-bold text-[#D4A373]" x-text="'Harga Dasar: ' + formatRupiah(selectedModifierProduct?.price || 0)"></p>
                     </div>
                 </div>
-                <button @click="showModifierModal = false" class="w-8 h-8 rounded-full bg-white hover:bg-slate-200 text-slate-400 hover:text-slate-600 flex items-center justify-center font-bold text-lg border border-slate-200 transition-colors shrink-0">
+                <button @click="showModifierModal = false" class="w-8 h-8 rounded-full bg-[#3A4018] hover:bg-[#4B5320] text-white/90 hover:text-white flex items-center justify-center font-bold text-lg border border-[#4B5320] transition-colors shrink-0">
                     &times;
                 </button>
             </div>
@@ -1862,11 +1911,11 @@
                                 <template x-for="opt in spicyLevelOptions" :key="opt.label">
                                     <div 
                                         @click="spicyLevel = opt.label"
-                                        :class="spicyLevel === opt.label ? 'border-sky-500 bg-sky-50/70 text-sky-900 ring-2 ring-sky-500/20' : 'border-slate-200 hover:bg-slate-50 text-slate-700'"
+                                        :class="spicyLevel === opt.label ? 'border-[#4B5320] bg-[#4B5320] text-white shadow-xs ring-2 ring-[#4B5320]/25 font-bold' : 'border-[#D0D5C9] bg-white text-[#1B221B] hover:bg-[#F4F5F0] font-medium'"
                                         class="p-2.5 rounded-xl border cursor-pointer transition-all flex items-center justify-between text-xs">
                                         <div class="flex items-center space-x-2">
-                                            <span class="w-4 h-4 rounded-full border flex items-center justify-center shrink-0" :class="spicyLevel === opt.label ? 'border-sky-500 bg-sky-500' : 'border-slate-300'">
-                                                <span x-show="spicyLevel === opt.label" class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                                            <span class="w-4 h-4 rounded-full border flex items-center justify-center shrink-0" :class="spicyLevel === opt.label ? 'border-white bg-white' : 'border-[#D0D5C9] bg-white'">
+                                                <span x-show="spicyLevel === opt.label" class="w-1.5 h-1.5 rounded-full bg-[#4B5320]"></span>
                                             </span>
                                             <span class="font-medium" x-text="opt.label"></span>
                                         </div>
@@ -1889,11 +1938,11 @@
                                 <template x-for="opt in sambalOptions" :key="opt.label">
                                     <div 
                                         @click="sambalVarian = opt.label"
-                                        :class="sambalVarian === opt.label ? 'border-sky-500 bg-sky-50/70 text-sky-900 ring-2 ring-sky-500/20' : 'border-slate-200 hover:bg-slate-50 text-slate-700'"
+                                        :class="sambalVarian === opt.label ? 'border-[#4B5320] bg-[#4B5320] text-white shadow-xs ring-2 ring-[#4B5320]/25 font-bold' : 'border-[#D0D5C9] bg-white text-[#1B221B] hover:bg-[#F4F5F0] font-medium'"
                                         class="p-2.5 rounded-xl border cursor-pointer transition-all flex flex-col justify-between text-xs min-h-[56px]">
                                         <div class="flex items-center space-x-1.5 mb-1">
-                                            <span class="w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0" :class="sambalVarian === opt.label ? 'border-sky-500 bg-sky-500' : 'border-slate-300'">
-                                                <span x-show="sambalVarian === opt.label" class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                                            <span class="w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0" :class="sambalVarian === opt.label ? 'border-white bg-white' : 'border-[#D0D5C9] bg-white'">
+                                                <span x-show="sambalVarian === opt.label" class="w-1.5 h-1.5 rounded-full bg-[#4B5320]"></span>
                                             </span>
                                             <span class="font-medium leading-tight" x-text="opt.name"></span>
                                         </div>
@@ -1916,10 +1965,10 @@
                                 <template x-for="opt in spicyAddonOptions" :key="opt.label">
                                     <div 
                                         @click="toggleModifierAddon('spicyAddons', opt.label)"
-                                        :class="spicyAddons.includes(opt.label) ? 'border-sky-500 bg-sky-50/70 text-sky-900 ring-2 ring-sky-500/20' : 'border-slate-200 hover:bg-slate-50 text-slate-700'"
+                                        :class="spicyAddons.includes(opt.label) ? 'border-[#4B5320] bg-[#4B5320] text-white shadow-xs ring-2 ring-[#4B5320]/25 font-bold' : 'border-[#D0D5C9] bg-white text-[#1B221B] hover:bg-[#F4F5F0] font-medium'"
                                         class="p-2.5 rounded-xl border cursor-pointer transition-all flex items-center justify-between text-xs">
                                         <div class="flex items-center space-x-2">
-                                            <span class="w-4 h-4 rounded-md border flex items-center justify-center shrink-0" :class="spicyAddons.includes(opt.label) ? 'border-sky-500 bg-sky-500 text-white' : 'border-slate-300'">
+                                            <span class="w-4 h-4 rounded-md border flex items-center justify-center shrink-0" :class="spicyAddons.includes(opt.label) ? 'border-white bg-white text-[#4B5320]' : 'border-[#D0D5C9] bg-white'">
                                                 <svg x-show="spicyAddons.includes(opt.label)" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
                                             </span>
                                             <span class="font-medium" x-text="opt.name"></span>
@@ -1947,7 +1996,7 @@
                                 <template x-for="opt in nasiSpicyOptions" :key="opt.label">
                                     <div 
                                         @click="nasiSpicyLevel = opt.label"
-                                        :class="nasiSpicyLevel === opt.label ? 'border-sky-500 bg-sky-50/70 text-sky-900 ring-2 ring-sky-500/20' : 'border-slate-200 hover:bg-slate-50 text-slate-700'"
+                                        :class="nasiSpicyLevel === opt.label ? 'border-[#4B5320] bg-[#4B5320] text-white shadow-xs ring-2 ring-[#4B5320]/25 font-bold' : 'border-[#D0D5C9] bg-white text-[#1B221B] hover:bg-[#F4F5F0] font-medium'"
                                         class="p-2.5 rounded-xl border cursor-pointer transition-all flex flex-col justify-between text-xs text-center min-h-[58px]">
                                         <span class="font-medium" x-text="opt.name"></span>
                                         <span class="text-[10px] font-bold mt-1" :class="opt.extra > 0 ? 'text-sky-600' : 'text-slate-400'" x-text="opt.extra > 0 ? '+' + formatRupiah(opt.extra) : 'Gratis'"></span>
@@ -1968,10 +2017,10 @@
                                 <template x-for="opt in telurOptions" :key="opt">
                                     <div 
                                         @click="telurKematangan = opt"
-                                        :class="telurKematangan === opt ? 'border-sky-500 bg-sky-50/70 text-sky-900 ring-2 ring-sky-500/20' : 'border-slate-200 hover:bg-slate-50 text-slate-700'"
+                                        :class="telurKematangan === opt ? 'border-[#4B5320] bg-[#4B5320] text-white shadow-xs ring-2 ring-[#4B5320]/25 font-bold' : 'border-[#D0D5C9] bg-white text-[#1B221B] hover:bg-[#F4F5F0] font-medium'"
                                         class="p-2.5 rounded-xl border cursor-pointer transition-all flex items-center space-x-2 text-xs">
-                                        <span class="w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0" :class="telurKematangan === opt ? 'border-sky-500 bg-sky-500' : 'border-slate-300'">
-                                            <span x-show="telurKematangan === opt" class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                                        <span class="w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0" :class="telurKematangan === opt ? 'border-white bg-white' : 'border-[#D0D5C9] bg-white'">
+                                            <span x-show="telurKematangan === opt" class="w-1.5 h-1.5 rounded-full bg-[#4B5320]"></span>
                                         </span>
                                         <span class="font-medium leading-tight" x-text="opt"></span>
                                     </div>
@@ -1992,10 +2041,10 @@
                                 <template x-for="opt in teksturMiOptions" :key="opt">
                                     <div 
                                         @click="teksturMi = opt"
-                                        :class="teksturMi === opt ? 'border-sky-500 bg-sky-50/70 text-sky-900 ring-2 ring-sky-500/20' : 'border-slate-200 hover:bg-slate-50 text-slate-700'"
+                                        :class="teksturMi === opt ? 'border-[#4B5320] bg-[#4B5320] text-white shadow-xs ring-2 ring-[#4B5320]/25 font-bold' : 'border-[#D0D5C9] bg-white text-[#1B221B] hover:bg-[#F4F5F0] font-medium'"
                                         class="p-2.5 rounded-xl border cursor-pointer transition-all flex items-center space-x-2 text-xs">
-                                        <span class="w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0" :class="teksturMi === opt ? 'border-sky-500 bg-sky-500' : 'border-slate-300'">
-                                            <span x-show="teksturMi === opt" class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                                        <span class="w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0" :class="teksturMi === opt ? 'border-white bg-white' : 'border-[#D0D5C9] bg-white'">
+                                            <span x-show="teksturMi === opt" class="w-1.5 h-1.5 rounded-full bg-[#4B5320]"></span>
                                         </span>
                                         <span class="font-medium" x-text="opt"></span>
                                     </div>
@@ -2016,10 +2065,10 @@
                                 <template x-for="opt in noodleAddonOptions" :key="opt.label">
                                     <div 
                                         @click="toggleModifierAddon('noodleAddons', opt.label)"
-                                        :class="noodleAddons.includes(opt.label) ? 'border-sky-500 bg-sky-50/70 text-sky-900 ring-2 ring-sky-500/20' : 'border-slate-200 hover:bg-slate-50 text-slate-700'"
+                                        :class="noodleAddons.includes(opt.label) ? 'border-[#4B5320] bg-[#4B5320] text-white shadow-xs ring-2 ring-[#4B5320]/25 font-bold' : 'border-[#D0D5C9] bg-white text-[#1B221B] hover:bg-[#F4F5F0] font-medium'"
                                         class="p-2.5 rounded-xl border cursor-pointer transition-all flex items-center justify-between text-xs">
                                         <div class="flex items-center space-x-2">
-                                            <span class="w-4 h-4 rounded-md border flex items-center justify-center shrink-0" :class="noodleAddons.includes(opt.label) ? 'border-sky-500 bg-sky-500 text-white' : 'border-slate-300'">
+                                            <span class="w-4 h-4 rounded-md border flex items-center justify-center shrink-0" :class="noodleAddons.includes(opt.label) ? 'border-white bg-white text-[#4B5320]' : 'border-[#D0D5C9] bg-white'">
                                                 <svg x-show="noodleAddons.includes(opt.label)" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
                                             </span>
                                             <span class="font-medium" x-text="opt.name"></span>
@@ -2047,10 +2096,10 @@
                                 <template x-for="opt in snackCrispyOptions" :key="opt">
                                     <div 
                                         @click="snackCrispyLevel = opt"
-                                        :class="snackCrispyLevel === opt ? 'border-sky-500 bg-sky-50/70 text-sky-900 ring-2 ring-sky-500/20' : 'border-slate-200 hover:bg-slate-50 text-slate-700'"
+                                        :class="snackCrispyLevel === opt ? 'border-[#4B5320] bg-[#4B5320] text-white shadow-xs ring-2 ring-[#4B5320]/25 font-bold' : 'border-[#D0D5C9] bg-white text-[#1B221B] hover:bg-[#F4F5F0] font-medium'"
                                         class="p-2.5 rounded-xl border cursor-pointer transition-all flex items-center space-x-2 text-xs">
-                                        <span class="w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0" :class="snackCrispyLevel === opt ? 'border-sky-500 bg-sky-500' : 'border-slate-300'">
-                                            <span x-show="snackCrispyLevel === opt" class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                                        <span class="w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0" :class="snackCrispyLevel === opt ? 'border-white bg-white' : 'border-[#D0D5C9] bg-white'">
+                                            <span x-show="snackCrispyLevel === opt" class="w-1.5 h-1.5 rounded-full bg-[#4B5320]"></span>
                                         </span>
                                         <span class="font-medium" x-text="opt"></span>
                                     </div>
@@ -2071,10 +2120,10 @@
                                 <template x-for="opt in torchOptions" :key="opt">
                                     <div 
                                         @click="torchLevel = opt"
-                                        :class="torchLevel === opt ? 'border-sky-500 bg-sky-50/70 text-sky-900 ring-2 ring-sky-500/20' : 'border-slate-200 hover:bg-slate-50 text-slate-700'"
+                                        :class="torchLevel === opt ? 'border-[#4B5320] bg-[#4B5320] text-white shadow-xs ring-2 ring-[#4B5320]/25 font-bold' : 'border-[#D0D5C9] bg-white text-[#1B221B] hover:bg-[#F4F5F0] font-medium'"
                                         class="p-2.5 rounded-xl border cursor-pointer transition-all flex items-center space-x-2 text-xs">
-                                        <span class="w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0" :class="torchLevel === opt ? 'border-sky-500 bg-sky-500' : 'border-slate-300'">
-                                            <span x-show="torchLevel === opt" class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                                        <span class="w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0" :class="torchLevel === opt ? 'border-white bg-white' : 'border-[#D0D5C9] bg-white'">
+                                            <span x-show="torchLevel === opt" class="w-1.5 h-1.5 rounded-full bg-[#4B5320]"></span>
                                         </span>
                                         <span class="font-medium" x-text="opt"></span>
                                     </div>
@@ -2095,7 +2144,7 @@
                                 <template x-for="opt in bumbuTaburOptions" :key="opt">
                                     <div 
                                         @click="bumbuTabur = opt"
-                                        :class="bumbuTabur === opt ? 'border-sky-500 bg-sky-50/70 text-sky-900 ring-2 ring-sky-500/20' : 'border-slate-200 hover:bg-slate-50 text-slate-700'"
+                                        :class="bumbuTabur === opt ? 'border-[#4B5320] bg-[#4B5320] text-white shadow-xs ring-2 ring-[#4B5320]/25 font-bold' : 'border-[#D0D5C9] bg-white text-[#1B221B] hover:bg-[#F4F5F0] font-medium'"
                                         class="p-2 rounded-xl border cursor-pointer transition-all text-center text-xs">
                                         <span class="font-medium block leading-tight" x-text="opt"></span>
                                     </div>
@@ -2116,10 +2165,10 @@
                                 <template x-for="opt in sauceOptions" :key="opt.label">
                                     <div 
                                         @click="toggleModifierAddon('sauceChoices', opt.label)"
-                                        :class="sauceChoices.includes(opt.label) ? 'border-sky-500 bg-sky-50/70 text-sky-900 ring-2 ring-sky-500/20' : 'border-slate-200 hover:bg-slate-50 text-slate-700'"
+                                        :class="sauceChoices.includes(opt.label) ? 'border-[#4B5320] bg-[#4B5320] text-white shadow-xs ring-2 ring-[#4B5320]/25 font-bold' : 'border-[#D0D5C9] bg-white text-[#1B221B] hover:bg-[#F4F5F0] font-medium'"
                                         class="p-2.5 rounded-xl border cursor-pointer transition-all flex items-center justify-between text-xs">
                                         <div class="flex items-center space-x-2">
-                                            <span class="w-4 h-4 rounded-md border flex items-center justify-center shrink-0" :class="sauceChoices.includes(opt.label) ? 'border-sky-500 bg-sky-500 text-white' : 'border-slate-300'">
+                                            <span class="w-4 h-4 rounded-md border flex items-center justify-center shrink-0" :class="sauceChoices.includes(opt.label) ? 'border-white bg-white text-[#4B5320]' : 'border-[#D0D5C9] bg-white'">
                                                 <svg x-show="sauceChoices.includes(opt.label)" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
                                             </span>
                                             <span class="font-medium" x-text="opt.name"></span>
@@ -2147,10 +2196,10 @@
                                 <template x-for="opt in servingTempOptions" :key="opt">
                                     <div 
                                         @click="servingTemp = opt"
-                                        :class="servingTemp === opt ? 'border-sky-500 bg-sky-50/70 text-sky-900 ring-2 ring-sky-500/20' : 'border-slate-200 hover:bg-slate-50 text-slate-700'"
+                                        :class="servingTemp === opt ? 'border-[#4B5320] bg-[#4B5320] text-white shadow-xs ring-2 ring-[#4B5320]/25 font-bold' : 'border-[#D0D5C9] bg-white text-[#1B221B] hover:bg-[#F4F5F0] font-medium'"
                                         class="p-2.5 rounded-xl border cursor-pointer transition-all flex items-center space-x-2 text-xs">
-                                        <span class="w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0" :class="servingTemp === opt ? 'border-sky-500 bg-sky-500' : 'border-slate-300'">
-                                            <span x-show="servingTemp === opt" class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                                        <span class="w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0" :class="servingTemp === opt ? 'border-white bg-white' : 'border-[#D0D5C9] bg-white'">
+                                            <span x-show="servingTemp === opt" class="w-1.5 h-1.5 rounded-full bg-[#4B5320]"></span>
                                         </span>
                                         <span class="font-medium" x-text="opt"></span>
                                     </div>
@@ -2170,10 +2219,10 @@
                                 <template x-for="opt in sweetnessOptions" :key="opt">
                                     <div 
                                         @click="sweetnessLevel = opt"
-                                        :class="sweetnessLevel === opt ? 'border-sky-500 bg-sky-50/70 text-sky-900 ring-2 ring-sky-500/20' : 'border-slate-200 hover:bg-slate-50 text-slate-700'"
+                                        :class="sweetnessLevel === opt ? 'border-[#4B5320] bg-[#4B5320] text-white shadow-xs ring-2 ring-[#4B5320]/25 font-bold' : 'border-[#D0D5C9] bg-white text-[#1B221B] hover:bg-[#F4F5F0] font-medium'"
                                         class="p-2.5 rounded-xl border cursor-pointer transition-all flex items-center space-x-2 text-xs">
-                                        <span class="w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0" :class="sweetnessLevel === opt ? 'border-sky-500 bg-sky-500' : 'border-slate-300'">
-                                            <span x-show="sweetnessLevel === opt" class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                                        <span class="w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0" :class="sweetnessLevel === opt ? 'border-white bg-white' : 'border-[#D0D5C9] bg-white'">
+                                            <span x-show="sweetnessLevel === opt" class="w-1.5 h-1.5 rounded-full bg-[#4B5320]"></span>
                                         </span>
                                         <span class="font-medium" x-text="opt"></span>
                                     </div>
@@ -2194,7 +2243,7 @@
                                 <template x-for="opt in dippingOptions" :key="opt">
                                     <div 
                                         @click="dippingSauce = opt"
-                                        :class="dippingSauce === opt ? 'border-sky-500 bg-sky-50/70 text-sky-900 ring-2 ring-sky-500/20' : 'border-slate-200 hover:bg-slate-50 text-slate-700'"
+                                        :class="dippingSauce === opt ? 'border-[#4B5320] bg-[#4B5320] text-white shadow-xs ring-2 ring-[#4B5320]/25 font-bold' : 'border-[#D0D5C9] bg-white text-[#1B221B] hover:bg-[#F4F5F0] font-medium'"
                                         class="p-2.5 rounded-xl border cursor-pointer transition-all flex flex-col items-center justify-center text-center text-xs min-h-[52px]">
                                         <span class="font-medium leading-tight" x-text="opt"></span>
                                     </div>
@@ -2215,10 +2264,10 @@
                                 <template x-for="opt in sweetAddonOptions" :key="opt.label">
                                     <div 
                                         @click="toggleModifierAddon('sweetAddons', opt.label)"
-                                        :class="sweetAddons.includes(opt.label) ? 'border-sky-500 bg-sky-50/70 text-sky-900 ring-2 ring-sky-500/20' : 'border-slate-200 hover:bg-slate-50 text-slate-700'"
+                                        :class="sweetAddons.includes(opt.label) ? 'border-[#4B5320] bg-[#4B5320] text-white shadow-xs ring-2 ring-[#4B5320]/25 font-bold' : 'border-[#D0D5C9] bg-white text-[#1B221B] hover:bg-[#F4F5F0] font-medium'"
                                         class="p-2.5 rounded-xl border cursor-pointer transition-all flex flex-col justify-between text-xs min-h-[58px]">
                                         <div class="flex items-center space-x-1.5 mb-1">
-                                            <span class="w-3.5 h-3.5 rounded-md border flex items-center justify-center shrink-0" :class="sweetAddons.includes(opt.label) ? 'border-sky-500 bg-sky-500 text-white' : 'border-slate-300'">
+                                            <span class="w-3.5 h-3.5 rounded-md border flex items-center justify-center shrink-0" :class="sweetAddons.includes(opt.label) ? 'border-white bg-white text-[#4B5320]' : 'border-[#D0D5C9] bg-white'">
                                                 <svg x-show="sweetAddons.includes(opt.label)" class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
                                             </span>
                                             <span class="font-medium leading-tight" x-text="opt.name"></span>
@@ -2273,7 +2322,7 @@
                     </button>
                     <button 
                         @click="confirmAddModifiers()" 
-                        class="flex-1 sm:flex-initial px-5 py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-bold text-xs sm:text-sm shadow-md shadow-sky-500/25 transition-all flex items-center justify-center gap-2 active:scale-95">
+                        class="flex-1 sm:flex-initial px-5 py-2.5 bg-[#4B5320] hover:bg-[#3A4018] text-white rounded-xl font-bold text-xs sm:text-sm shadow-md shadow-[#4B5320]/25 transition-all flex items-center justify-center gap-2 active:scale-95">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
                         <span>Masukkan ke Pesanan • <strong x-text="formatRupiah(currentModalTotalPrice)"></strong></span>
                     </button>
