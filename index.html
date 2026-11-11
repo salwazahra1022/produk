@@ -1262,24 +1262,24 @@
                     <!-- 4 Stat Summary Cards -->
                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4 shrink-0">
                         <div class="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-xs">
-                            <p class="text-[11px] font-semibold text-slate-500">Total Karyawan</p>
-                            <p class="text-2xl font-black text-slate-900 mt-1" x-text="karyawanList.length + ' Orang'"></p>
-                            <p class="text-[10px] text-emerald-600 font-medium mt-0.5">● Semua staf aktif</p>
+                            <p class="text-[11px] font-semibold text-slate-500">Total Kasir</p>
+                            <p class="text-2xl font-black text-slate-900 mt-1" x-text="karyawanList.length + ' Kasir'"></p>
+                            <p class="text-[10px] text-emerald-600 font-medium mt-0.5">● Tim Kasir Aktif</p>
                         </div>
                         <div class="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-xs">
-                            <p class="text-[11px] font-semibold text-slate-500">Bagian Kasir</p>
-                            <p class="text-2xl font-black text-sky-700 mt-1" x-text="karyawanList.filter(k => k.bagian.toLowerCase().includes('kasir')).length + ' Kasir'"></p>
-                            <p class="text-[10px] text-slate-400 mt-0.5">Frontliner Penjualan</p>
+                            <p class="text-[11px] font-semibold text-slate-500">Kasir Shift Pagi</p>
+                            <p class="text-2xl font-black text-sky-700 mt-1" x-text="karyawanList.filter(k => k.shift === 'Pagi').length + ' Kasir'"></p>
+                            <p class="text-[10px] text-slate-400 mt-0.5">Shift Operasional Pagi</p>
                         </div>
                         <div class="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-xs">
-                            <p class="text-[11px] font-semibold text-slate-500">Bagian Dapur & Bar</p>
-                            <p class="text-2xl font-black text-amber-600 mt-1" x-text="karyawanList.filter(k => k.bagian.toLowerCase().includes('barista') || k.bagian.toLowerCase().includes('koki')).length + ' Staf'"></p>
-                            <p class="text-[10px] text-slate-400 mt-0.5">Barista & Koki Dapur</p>
+                            <p class="text-[11px] font-semibold text-slate-500">Kasir Shift Siang</p>
+                            <p class="text-2xl font-black text-amber-600 mt-1" x-text="karyawanList.filter(k => k.shift === 'Siang').length + ' Kasir'"></p>
+                            <p class="text-[10px] text-slate-400 mt-0.5">Shift Operasional Siang</p>
                         </div>
                         <div class="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-xs">
-                            <p class="text-[11px] font-semibold text-slate-500">Pelayanan & Staf Lain</p>
-                            <p class="text-2xl font-black text-purple-600 mt-1" x-text="karyawanList.filter(k => !k.bagian.toLowerCase().includes('kasir') && !k.bagian.toLowerCase().includes('barista') && !k.bagian.toLowerCase().includes('koki')).length + ' Staf'"></p>
-                            <p class="text-[10px] text-slate-400 mt-0.5">Waiter & Supervisor</p>
+                            <p class="text-[11px] font-semibold text-slate-500">Status Keaktifan</p>
+                            <p class="text-2xl font-black text-emerald-600 mt-1" x-text="karyawanList.filter(k => k.status === 'Aktif').length + ' Aktif'"></p>
+                            <p class="text-[10px] text-slate-400 mt-0.5">Siap Bertugas</p>
                         </div>
                     </div>
 
@@ -1791,14 +1791,12 @@
                 // Role Akses: 'admin' atau 'kasir'
                 userRole: 'admin',
                 
-                // 1. Data Karyawan
+                // 1. Data Karyawan (Kasir)
                 karyawanList: [
-                    { id: 'KRY-001', nama: 'Jeff', bagian: 'Kasir Utama', noHp: '0812-3456-7801', shift: 'Pagi', status: 'Aktif' },
-                    { id: 'KRY-002', nama: 'Ica Marpuah', bagian: 'Kasir', noHp: '0812-3456-7802', shift: 'Siang', status: 'Aktif' },
-                    { id: 'KRY-003', nama: 'Rian Hidayat', bagian: 'Barista', noHp: '0812-3456-7803', shift: 'Full Time', status: 'Aktif' },
-                    { id: 'KRY-004', nama: 'Siti Aisyah', bagian: 'Koki / Dapur', noHp: '0812-3456-7804', shift: 'Pagi', status: 'Aktif' },
-                    { id: 'KRY-005', nama: 'Budi Santoso', bagian: 'Pramusaji / Waiter', noHp: '0812-3456-7805', shift: 'Siang', status: 'Aktif' },
-                    { id: 'KRY-006', nama: 'Dewi Lestari', bagian: 'Supervisor', noHp: '0812-3456-7806', shift: 'Full Time', status: 'Aktif' }
+                    { id: 'KRY-001', nama: 'Icaa', bagian: 'Kasir', noHp: '0812-3456-7801', shift: 'Pagi', status: 'Aktif' },
+                    { id: 'KRY-002', nama: 'Jeff', bagian: 'Kasir', noHp: '0812-3456-7802', shift: 'Pagi', status: 'Aktif' },
+                    { id: 'KRY-003', nama: 'Anaya', bagian: 'Kasir', noHp: '0812-3456-7803', shift: 'Siang', status: 'Aktif' },
+                    { id: 'KRY-004', nama: 'Andrea', bagian: 'Kasir', noHp: '0812-3456-7804', shift: 'Siang', status: 'Aktif' }
                 ],
                 karyawanSearch: '',
                 karyawanFilterBagian: 'all',
@@ -1823,7 +1821,7 @@
                         id: 'LAP-001',
                         tanggal: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }),
                         jam: '11:45',
-                        kasir: 'Ica Marpuah',
+                        kasir: 'Icaa',
                         totalTrx: 14,
                         totalOmset: 245000,
                         totalCash: 165000,
@@ -2268,7 +2266,7 @@ get filteredProducts() {
                         }
 
                         // Load data Karyawan, Log Kegiatan Kasir, dan Laporan Kasir
-                        const savedKry = localStorage.getItem('pos_karyawan_list');
+                        const savedKry = localStorage.getItem('pos_karyawan_list_v2');
                         if (savedKry) this.karyawanList = JSON.parse(savedKry);
                         const savedLogs = localStorage.getItem('pos_activity_logs');
                         if (savedLogs) {
@@ -2923,7 +2921,7 @@ get filteredProducts() {
                         });
                         this.logActivity('admin', 'Tambah Karyawan Baru', 'Menambahkan karyawan baru ' + f.nama + ' (Bagian: ' + f.bagian + ')', this.cashierName);
                     }
-                    try { localStorage.setItem('pos_karyawan_list', JSON.stringify(this.karyawanList)); } catch (e) {}
+                    try { localStorage.setItem('pos_karyawan_list_v2', JSON.stringify(this.karyawanList)); } catch (e) {}
                     this.showKaryawanModal = false;
                 },
 
@@ -2931,7 +2929,7 @@ get filteredProducts() {
                     const item = this.karyawanList.find(k => k.id === id);
                     if (!confirm('Yakin ingin menghapus karyawan ' + (item ? item.nama : '') + '?')) return;
                     this.karyawanList = this.karyawanList.filter(k => k.id !== id);
-                    try { localStorage.setItem('pos_karyawan_list', JSON.stringify(this.karyawanList)); } catch (e) {}
+                    try { localStorage.setItem('pos_karyawan_list_v2', JSON.stringify(this.karyawanList)); } catch (e) {}
                     if (item) {
                         this.logActivity('admin', 'Hapus Data Karyawan', 'Menghapus karyawan ' + item.nama + ' (Bagian: ' + item.bagian + ')', this.cashierName);
                     }
@@ -2991,7 +2989,7 @@ get filteredProducts() {
                         { id: 'LOG-001', time: timeStr(12), date: dateStr, timestamp: Date.now() - 720000, actor: 'Jeff (Kasir)', role: 'kasir', type: 'transaksi', action: 'Transaksi Penjualan #TRX-202611-0082', detail: 'Total Rp 45.000 (2 item via QRIS)', badgeColor: 'emerald' },
                         { id: 'LOG-002', time: timeStr(35), date: dateStr, timestamp: Date.now() - 2100000, actor: 'Jeff (Kasir)', role: 'kasir', type: 'produk', action: 'Perbarui Data Produk', detail: 'Mengubah harga produk "Es Teh Manis" menjadi Rp 5.000', badgeColor: 'amber' },
                         { id: 'LOG-003', time: timeStr(55), date: dateStr, timestamp: Date.now() - 3300000, actor: 'Jeff (Kasir)', role: 'kasir', type: 'stok', action: 'Mutasi Stok Masuk', detail: 'Restock bahan 50 Cup Es Teh Manis (PO-002)', badgeColor: 'indigo' },
-                        { id: 'LOG-004', time: timeStr(90), date: dateStr, timestamp: Date.now() - 5400000, actor: 'Ica Marpuah (Kasir)', role: 'kasir', type: 'transaksi', action: 'Transaksi Penjualan #TRX-202611-0081', detail: 'Total Rp 62.000 (Ayam Geprek + Kopi via TUNAI)', badgeColor: 'emerald' },
+                        { id: 'LOG-004', time: timeStr(90), date: dateStr, timestamp: Date.now() - 5400000, actor: 'Icaa (Kasir)', role: 'kasir', type: 'transaksi', action: 'Transaksi Penjualan #TRX-202611-0081', detail: 'Total Rp 62.000 (Ayam Geprek + Kopi via TUNAI)', badgeColor: 'emerald' },
                         { id: 'LOG-005', time: timeStr(140), date: dateStr, timestamp: Date.now() - 8400000, actor: 'Jeff (Kasir)', role: 'kasir', type: 'laporan', action: 'Kirim Laporan Shift Pagi', detail: 'Laporan shift pagi dikirim ke Admin (Omset Rp 385.000)', badgeColor: 'purple' }
                     ];
                 },
@@ -3763,7 +3761,7 @@ get filteredProducts() {
                     <div class="grid grid-cols-2 gap-2 text-[11px]">
                         <div class="bg-slate-50 rounded-lg p-2">
                             <div class="text-slate-400">Kasir</div>
-                            <div class="font-semibold text-slate-700" x-text="(selectedTransaction.kasir && selectedTransaction.kasir !== 'Ica Marpuah') ? selectedTransaction.kasir : 'Jeff'"></div>
+                            <div class="font-semibold text-slate-700" x-text="selectedTransaction.kasir || 'Jeff'"></div>
                         </div>
                         <div class="bg-slate-50 rounded-lg p-2">
                             <div class="text-slate-400">Waktu</div>
@@ -3901,7 +3899,7 @@ get filteredProducts() {
             <div class="space-y-3">
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Lengkap Karyawan</label>
-                    <input type="text" x-model="karyawanForm.nama" placeholder="Misal: Jeff, Siti, Budi" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500">
+                    <input type="text" x-model="karyawanForm.nama" placeholder="Misal: Icaa, Jeff, Anaya, Andrea" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-500">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Bagian yang Ditetapkan</label>
