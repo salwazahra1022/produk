@@ -518,7 +518,7 @@
                                 x-cloak>
                                 <template x-for="item in searchMatches" :key="item.id">
                                     <div 
-                                        @click="addToCart(item); searchQuery = ''"
+                                        @click="handleProductClick(item); searchQuery = ''"
                                         class="p-2.5 sm:p-3 hover:bg-sky-50 flex items-center justify-between cursor-pointer transition-colors group">
                                         <div class="flex items-center space-x-3">
                                             <img :src="item.image || 'https://placehold.co/100x100?text=Produk'" :alt="item.name" class="w-10 h-10 rounded-xl object-cover border border-slate-200" @error="$event.target.src='https://placehold.co/100x100?text=Produk'">
@@ -561,7 +561,7 @@
                             <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-3 pb-2">
                                 <template x-for="p in filteredProducts" :key="p.id">
                                     <div 
-                                        @click="addToCart(p)"
+                                        @click="handleProductClick(p)"
                                         class="bg-white rounded-2xl border border-slate-200 hover:border-sky-400 p-2.5 sm:p-3 flex flex-col justify-between cursor-pointer hover:shadow-md transition-all group active:scale-[0.98] relative">
                                         
                                         <!-- Image Container -->
@@ -600,10 +600,20 @@
                                                 </span>
                                             </div>
                                             <button 
-                                                @click.stop="addToCart(p)"
-                                                class="w-full py-1.5 bg-sky-50 hover:bg-sky-500 text-sky-700 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1 shadow-xs group-hover:bg-sky-500 group-hover:text-white">
-                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                                                <span>Tambah</span>
+                                                @click.stop="handleProductClick(p)"
+                                                class="w-full py-1.5 bg-sky-50 hover:bg-sky-500 text-sky-700 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-xs group-hover:bg-sky-500 group-hover:text-white">
+                                                <template x-if="isCustomizableProduct(p)">
+                                                    <span class="flex items-center gap-1">
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+                                                        <span>Custom / Pesan</span>
+                                                    </span>
+                                                </template>
+                                                <template x-if="!isCustomizableProduct(p)">
+                                                    <span class="flex items-center gap-1">
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                                        <span>+ Tambah</span>
+                                                    </span>
+                                                </template>
                                             </button>
                                         </div>
                                     </div>
@@ -656,30 +666,40 @@
                     <div class="flex-1 overflow-y-auto p-2 sm:p-3 space-y-2">
                         <template x-if="cart.length > 0">
                             <div class="space-y-2">
-                                <template x-for="(item, index) in cart" :key="item.id">
-                                    <div class="p-2 sm:p-2.5 bg-slate-50 hover:bg-slate-100/70 border border-slate-200/80 rounded-xl flex items-center justify-between gap-2 transition-colors">
+                                <template x-for="(item, index) in cart" :key="item.cartItemId || (item.id + '_' + index)">
+                                    <div class="p-2 sm:p-2.5 bg-slate-50 hover:bg-slate-100/70 border border-slate-200/80 rounded-xl flex items-start justify-between gap-2 transition-colors">
                                         <!-- Info Item -->
-                                        <div class="flex items-center space-x-2.5 flex-1 min-w-0">
-                                            <img :src="item.image || 'https://placehold.co/80x80?text=Produk'" :alt="item.name" class="w-10 h-10 rounded-lg object-cover shrink-0 border border-slate-200" @error="$event.target.src='https://placehold.co/80x80?text=Produk'">
+                                        <div class="flex items-start space-x-2.5 flex-1 min-w-0">
+                                            <img :src="item.image || 'https://placehold.co/80x80?text=Produk'" :alt="item.name" class="w-10 h-10 rounded-lg object-cover shrink-0 border border-slate-200 mt-0.5" @error="$event.target.src='https://placehold.co/80x80?text=Produk'">
                                             <div class="min-w-0 flex-1">
                                                 <p class="font-bold text-xs sm:text-sm text-slate-800 truncate" x-text="item.name"></p>
-                                                <p class="text-[11px] text-slate-500" x-text="formatRupiah(item.price)"></p>
+                                                <p class="text-[11px] text-slate-500 font-medium" x-text="formatRupiah(item.price)"></p>
+                                                
+                                                <!-- Modifiers Summary -->
+                                                <div x-show="item.modifiersSummary" class="text-[10px] text-sky-800 bg-sky-50 border border-sky-100 rounded px-1.5 py-0.5 mt-1 block leading-snug">
+                                                    <span class="font-semibold" x-text="item.modifiersSummary"></span>
+                                                </div>
+                                                
+                                                <!-- Kitchen Notes -->
+                                                <div x-show="item.notes" class="text-[10px] text-amber-800 bg-amber-50 border border-amber-200/80 rounded px-1.5 py-0.5 mt-0.5 block leading-snug">
+                                                    <span>📝 <strong class="font-semibold">Catatan:</strong> <span x-text="item.notes"></span></span>
+                                                </div>
                                             </div>
                                         </div>
 
                                         <!-- Quantity Controls & Subtotal -->
-                                        <div class="flex items-center space-x-2 shrink-0">
-                                            <div class="flex items-center bg-white border border-slate-200 rounded-lg overflow-hidden shadow-2xs">
-                                                <button @click="decrementQty(index)" class="w-6 h-6 hover:bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-xs transition-colors">-</button>
-                                                <span class="w-7 text-center font-bold text-slate-800 text-xs" x-text="item.qty"></span>
-                                                <button @click="incrementQty(index)" class="w-6 h-6 hover:bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-xs transition-colors">+</button>
+                                        <div class="flex flex-col items-end space-y-1.5 shrink-0">
+                                            <div class="flex items-center space-x-1.5">
+                                                <div class="flex items-center bg-white border border-slate-200 rounded-lg overflow-hidden shadow-2xs">
+                                                    <button @click="decrementQty(index)" class="w-6 h-6 hover:bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-xs transition-colors">-</button>
+                                                    <span class="w-7 text-center font-bold text-slate-800 text-xs" x-text="item.qty"></span>
+                                                    <button @click="incrementQty(index)" class="w-6 h-6 hover:bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-xs transition-colors">+</button>
+                                                </div>
+                                                <button @click="cart.splice(index, 1)" class="p-1 text-slate-400 hover:text-rose-500 transition-colors" title="Hapus">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                                </button>
                                             </div>
-
-                                            <span class="font-bold text-xs text-sky-600 min-w-[65px] text-right" x-text="formatRupiah(item.price * item.qty)"></span>
-
-                                            <button @click="cart.splice(index, 1)" class="p-1 text-slate-400 hover:text-rose-500 transition-colors" title="Hapus">
-                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                                            </button>
+                                            <span class="font-bold text-xs text-sky-600 text-right" x-text="formatRupiah(item.price * item.qty)"></span>
                                         </div>
                                     </div>
                                 </template>
@@ -1735,13 +1755,15 @@
 
                     <!-- Items -->
                     <div class="font-semibold border-b border-dashed border-amber-300 space-y-0.5" style="padding: 1px 0;">
-                        <template x-for="item in receiptData.items" :key="item.id">
-                            <div>
-                                <div class="flex justify-between font-bold text-slate-900 text-[9px] leading-none">
+                        <template x-for="item in receiptData.items" :key="item.cartItemId || item.id">
+                            <div class="py-0.5 border-b border-dashed border-slate-200 last:border-none">
+                                <div class="flex justify-between font-bold text-slate-900 text-[9px] leading-tight">
                                     <span x-text="item.name" class="truncate pr-1"></span>
                                     <span x-text="formatRupiah(item.price * item.qty)" class="shrink-0"></span>
                                 </div>
-                                <div class="text-[8px] text-slate-700 leading-tight font-semibold" x-text="item.qty + ' x ' + formatRupiah(item.price)"></div>
+                                <div class="text-[8px] text-slate-600 leading-tight font-semibold" x-text="item.qty + ' x ' + formatRupiah(item.price)"></div>
+                                <div x-show="item.modifiersSummary" class="text-[7.5px] text-sky-800 italic leading-tight" x-text="item.modifiersSummary"></div>
+                                <div x-show="item.notes" class="text-[7.5px] text-amber-800 italic leading-tight" x-text="'Catatan: ' + item.notes"></div>
                             </div>
                         </template>
                     </div>
@@ -1782,6 +1804,481 @@
                 <button @click="newTransaction()" class="flex-1 py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-semibold text-xs transition-colors shadow-md shadow-sky-500/20">
                     Transaksi Baru
                 </button>
+            </div>
+
+        </div>
+    </div>
+
+    
+    <!-- ========================================================================= -->
+    <!-- MODAL ITEM MODIFIERS & CUSTOMIZATION (MAKANAN & CEMILAN)                  -->
+    <!-- ========================================================================= -->
+    <div x-show="showModifierModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-3 sm:p-4" x-cloak>
+        <div 
+            @click.away="showModifierModal = false"
+            class="bg-white rounded-3xl max-w-xl w-full shadow-2xl flex flex-col max-h-[92vh] overflow-hidden border border-slate-100">
+            
+            <!-- Header Modal -->
+            <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between shrink-0 bg-slate-50/80">
+                <div class="flex items-center space-x-3 min-w-0">
+                    <img 
+                        :src="selectedModifierProduct?.image || 'https://placehold.co/100x100?text=Produk'" 
+                        :alt="selectedModifierProduct?.name" 
+                        class="w-14 h-14 rounded-2xl object-cover border border-slate-200 shrink-0"
+                        @error="$event.target.src='https://placehold.co/100x100?text=Produk'">
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <span 
+                                class="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider bg-sky-100 text-sky-800"
+                                x-text="getModifierGroupBadge(selectedModifierProduct)">
+                            </span>
+                            <span class="text-xs font-semibold text-slate-400 capitalize" x-text="selectedModifierProduct?.category"></span>
+                        </div>
+                        <h3 class="font-black text-slate-900 text-base sm:text-lg leading-snug truncate" x-text="selectedModifierProduct?.name"></h3>
+                        <p class="text-xs font-bold text-sky-600" x-text="'Harga Dasar: ' + formatRupiah(selectedModifierProduct?.price || 0)"></p>
+                    </div>
+                </div>
+                <button @click="showModifierModal = false" class="w-8 h-8 rounded-full bg-white hover:bg-slate-200 text-slate-400 hover:text-slate-600 flex items-center justify-center font-bold text-lg border border-slate-200 transition-colors shrink-0">
+                    &times;
+                </button>
+            </div>
+
+            <!-- Body Options (Scrollable) -->
+            <div class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-5 divide-y divide-slate-100">
+                
+                <!-- 1. SPICY & MAINS OPTIONS -->
+                <template x-if="getModifierGroup(selectedModifierProduct) === 'spicy_mains'">
+                    <div class="space-y-4">
+                        <!-- Level Pedas (Wajib) -->
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                    <span>🌶️</span>
+                                    <span>Level Pedas</span>
+                                    <span class="text-[10px] bg-rose-100 text-rose-700 px-1.5 py-0.2 rounded font-black">WAJIB</span>
+                                </label>
+                                <span class="text-[11px] text-slate-400">Pilih salah satu</span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <template x-for="opt in spicyLevelOptions" :key="opt.label">
+                                    <div 
+                                        @click="spicyLevel = opt.label"
+                                        :class="spicyLevel === opt.label ? 'border-sky-500 bg-sky-50/70 text-sky-900 ring-2 ring-sky-500/20' : 'border-slate-200 hover:bg-slate-50 text-slate-700'"
+                                        class="p-2.5 rounded-xl border cursor-pointer transition-all flex items-center justify-between text-xs">
+                                        <div class="flex items-center space-x-2">
+                                            <span class="w-4 h-4 rounded-full border flex items-center justify-center shrink-0" :class="spicyLevel === opt.label ? 'border-sky-500 bg-sky-500' : 'border-slate-300'">
+                                                <span x-show="spicyLevel === opt.label" class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                                            </span>
+                                            <span class="font-medium" x-text="opt.label"></span>
+                                        </div>
+                                        <span x-show="opt.extra > 0" class="text-[10px] font-bold text-sky-600 bg-white px-1.5 py-0.5 rounded border border-sky-100" x-text="'+' + formatRupiah(opt.extra)"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Varian Sambal / Bumbu -->
+                        <div x-show="showSambalOption" class="pt-3">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                    <span>🥣</span>
+                                    <span>Varian Sambal / Bumbu</span>
+                                    <span class="text-[10px] text-slate-400 font-normal">(Khusus Taichan & Geprek)</span>
+                                </label>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                <template x-for="opt in sambalOptions" :key="opt.label">
+                                    <div 
+                                        @click="sambalVarian = opt.label"
+                                        :class="sambalVarian === opt.label ? 'border-sky-500 bg-sky-50/70 text-sky-900 ring-2 ring-sky-500/20' : 'border-slate-200 hover:bg-slate-50 text-slate-700'"
+                                        class="p-2.5 rounded-xl border cursor-pointer transition-all flex flex-col justify-between text-xs min-h-[56px]">
+                                        <div class="flex items-center space-x-1.5 mb-1">
+                                            <span class="w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0" :class="sambalVarian === opt.label ? 'border-sky-500 bg-sky-500' : 'border-slate-300'">
+                                                <span x-show="sambalVarian === opt.label" class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                                            </span>
+                                            <span class="font-medium leading-tight" x-text="opt.name"></span>
+                                        </div>
+                                        <span class="text-[10px] font-bold self-end" :class="opt.extra > 0 ? 'text-sky-600' : 'text-slate-400'" x-text="opt.extra > 0 ? '+' + formatRupiah(opt.extra) : 'Standar'"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Add-on Lauk / Karbo (Opsional Multi Select) -->
+                        <div class="pt-3">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                    <span>🍚</span>
+                                    <span>Add-on Lauk / Karbo</span>
+                                    <span class="text-[10px] text-slate-400 font-normal">(Bisa pilih lebih dari 1)</span>
+                                </label>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <template x-for="opt in spicyAddonOptions" :key="opt.label">
+                                    <div 
+                                        @click="toggleModifierAddon('spicyAddons', opt.label)"
+                                        :class="spicyAddons.includes(opt.label) ? 'border-sky-500 bg-sky-50/70 text-sky-900 ring-2 ring-sky-500/20' : 'border-slate-200 hover:bg-slate-50 text-slate-700'"
+                                        class="p-2.5 rounded-xl border cursor-pointer transition-all flex items-center justify-between text-xs">
+                                        <div class="flex items-center space-x-2">
+                                            <span class="w-4 h-4 rounded-md border flex items-center justify-center shrink-0" :class="spicyAddons.includes(opt.label) ? 'border-sky-500 bg-sky-500 text-white' : 'border-slate-300'">
+                                                <svg x-show="spicyAddons.includes(opt.label)" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                            </span>
+                                            <span class="font-medium" x-text="opt.name"></span>
+                                        </div>
+                                        <span class="text-[10px] font-bold text-sky-600 bg-white px-1.5 py-0.5 rounded border border-sky-100" x-text="'+' + formatRupiah(opt.extra)"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- 2. NASI, CURRY & NOODLE OPTIONS -->
+                <template x-if="getModifierGroup(selectedModifierProduct) === 'nasi_curry_noodle'">
+                    <div class="space-y-4">
+                        <!-- Level Pedas -->
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                    <span>🌶️</span>
+                                    <span>Level Pedas</span>
+                                </label>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2">
+                                <template x-for="opt in nasiSpicyOptions" :key="opt.label">
+                                    <div 
+                                        @click="nasiSpicyLevel = opt.label"
+                                        :class="nasiSpicyLevel === opt.label ? 'border-sky-500 bg-sky-50/70 text-sky-900 ring-2 ring-sky-500/20' : 'border-slate-200 hover:bg-slate-50 text-slate-700'"
+                                        class="p-2.5 rounded-xl border cursor-pointer transition-all flex flex-col justify-between text-xs text-center min-h-[58px]">
+                                        <span class="font-medium" x-text="opt.name"></span>
+                                        <span class="text-[10px] font-bold mt-1" :class="opt.extra > 0 ? 'text-sky-600' : 'text-slate-400'" x-text="opt.extra > 0 ? '+' + formatRupiah(opt.extra) : 'Gratis'"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Tingkat Kematangan Telur -->
+                        <div class="pt-3">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                    <span>🍳</span>
+                                    <span>Tingkat Kematangan Telur</span>
+                                </label>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                <template x-for="opt in telurOptions" :key="opt">
+                                    <div 
+                                        @click="telurKematangan = opt"
+                                        :class="telurKematangan === opt ? 'border-sky-500 bg-sky-50/70 text-sky-900 ring-2 ring-sky-500/20' : 'border-slate-200 hover:bg-slate-50 text-slate-700'"
+                                        class="p-2.5 rounded-xl border cursor-pointer transition-all flex items-center space-x-2 text-xs">
+                                        <span class="w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0" :class="telurKematangan === opt ? 'border-sky-500 bg-sky-500' : 'border-slate-300'">
+                                            <span x-show="telurKematangan === opt" class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                                        </span>
+                                        <span class="font-medium leading-tight" x-text="opt"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Tekstur Mi / Pasta (Khusus Ramen & Spaghetti) -->
+                        <div x-show="showTeksturMi" class="pt-3">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                    <span>🍜</span>
+                                    <span>Tekstur Mi / Pasta</span>
+                                    <span class="text-[10px] text-slate-400 font-normal">(Khusus Ramen & Spaghetti)</span>
+                                </label>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <template x-for="opt in teksturMiOptions" :key="opt">
+                                    <div 
+                                        @click="teksturMi = opt"
+                                        :class="teksturMi === opt ? 'border-sky-500 bg-sky-50/70 text-sky-900 ring-2 ring-sky-500/20' : 'border-slate-200 hover:bg-slate-50 text-slate-700'"
+                                        class="p-2.5 rounded-xl border cursor-pointer transition-all flex items-center space-x-2 text-xs">
+                                        <span class="w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0" :class="teksturMi === opt ? 'border-sky-500 bg-sky-500' : 'border-slate-300'">
+                                            <span x-show="teksturMi === opt" class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                                        </span>
+                                        <span class="font-medium" x-text="opt"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Add-on Topping -->
+                        <div class="pt-3">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                    <span>🍤</span>
+                                    <span>Add-on Topping</span>
+                                    <span class="text-[10px] text-slate-400 font-normal">(Bisa pilih lebih dari 1)</span>
+                                </label>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <template x-for="opt in noodleAddonOptions" :key="opt.label">
+                                    <div 
+                                        @click="toggleModifierAddon('noodleAddons', opt.label)"
+                                        :class="noodleAddons.includes(opt.label) ? 'border-sky-500 bg-sky-50/70 text-sky-900 ring-2 ring-sky-500/20' : 'border-slate-200 hover:bg-slate-50 text-slate-700'"
+                                        class="p-2.5 rounded-xl border cursor-pointer transition-all flex items-center justify-between text-xs">
+                                        <div class="flex items-center space-x-2">
+                                            <span class="w-4 h-4 rounded-md border flex items-center justify-center shrink-0" :class="noodleAddons.includes(opt.label) ? 'border-sky-500 bg-sky-500 text-white' : 'border-slate-300'">
+                                                <svg x-show="noodleAddons.includes(opt.label)" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                            </span>
+                                            <span class="font-medium" x-text="opt.name"></span>
+                                        </div>
+                                        <span class="text-[10px] font-bold text-sky-600 bg-white px-1.5 py-0.5 rounded border border-sky-100" x-text="'+' + formatRupiah(opt.extra)"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- 3. SAVORY SNACKS & FRIED BITES OPTIONS -->
+                <template x-if="getModifierGroup(selectedModifierProduct) === 'savory_snacks'">
+                    <div class="space-y-4">
+                        <!-- Tingkat Kematangan / Tekstur -->
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                    <span>🍟</span>
+                                    <span>Tingkat Kematangan / Tekstur</span>
+                                </label>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <template x-for="opt in snackCrispyOptions" :key="opt">
+                                    <div 
+                                        @click="snackCrispyLevel = opt"
+                                        :class="snackCrispyLevel === opt ? 'border-sky-500 bg-sky-50/70 text-sky-900 ring-2 ring-sky-500/20' : 'border-slate-200 hover:bg-slate-50 text-slate-700'"
+                                        class="p-2.5 rounded-xl border cursor-pointer transition-all flex items-center space-x-2 text-xs">
+                                        <span class="w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0" :class="snackCrispyLevel === opt ? 'border-sky-500 bg-sky-500' : 'border-slate-300'">
+                                            <span x-show="snackCrispyLevel === opt" class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                                        </span>
+                                        <span class="font-medium" x-text="opt"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Tingkat Torching / Bakar (Khusus Dimsum Mentai) -->
+                        <div x-show="showTorching" class="pt-3">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                    <span>🔥</span>
+                                    <span>Tingkat Torching / Bakar</span>
+                                    <span class="text-[10px] text-slate-400 font-normal">(Khusus Dimsum Mentai)</span>
+                                </label>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <template x-for="opt in torchOptions" :key="opt">
+                                    <div 
+                                        @click="torchLevel = opt"
+                                        :class="torchLevel === opt ? 'border-sky-500 bg-sky-50/70 text-sky-900 ring-2 ring-sky-500/20' : 'border-slate-200 hover:bg-slate-50 text-slate-700'"
+                                        class="p-2.5 rounded-xl border cursor-pointer transition-all flex items-center space-x-2 text-xs">
+                                        <span class="w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0" :class="torchLevel === opt ? 'border-sky-500 bg-sky-500' : 'border-slate-300'">
+                                            <span x-show="torchLevel === opt" class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                                        </span>
+                                        <span class="font-medium" x-text="opt"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Pilihan Bumbu Tabur (Khusus Tahu Crispy & Platters) -->
+                        <div x-show="showBumbuTabur" class="pt-3">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                    <span>🧂</span>
+                                    <span>Pilihan Bumbu Tabur</span>
+                                    <span class="text-[10px] text-slate-400 font-normal">(Khusus Tahu Crispy & Platters)</span>
+                                </label>
+                            </div>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                <template x-for="opt in bumbuTaburOptions" :key="opt">
+                                    <div 
+                                        @click="bumbuTabur = opt"
+                                        :class="bumbuTabur === opt ? 'border-sky-500 bg-sky-50/70 text-sky-900 ring-2 ring-sky-500/20' : 'border-slate-200 hover:bg-slate-50 text-slate-700'"
+                                        class="p-2 rounded-xl border cursor-pointer transition-all text-center text-xs">
+                                        <span class="font-medium block leading-tight" x-text="opt"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Pilihan Saus & Cocolan -->
+                        <div class="pt-3">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                    <span>🥫</span>
+                                    <span>Pilihan Saus & Cocolan</span>
+                                    <span class="text-[10px] text-slate-400 font-normal">(Bisa pilih lebih dari 1)</span>
+                                </label>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <template x-for="opt in sauceOptions" :key="opt.label">
+                                    <div 
+                                        @click="toggleModifierAddon('sauceChoices', opt.label)"
+                                        :class="sauceChoices.includes(opt.label) ? 'border-sky-500 bg-sky-50/70 text-sky-900 ring-2 ring-sky-500/20' : 'border-slate-200 hover:bg-slate-50 text-slate-700'"
+                                        class="p-2.5 rounded-xl border cursor-pointer transition-all flex items-center justify-between text-xs">
+                                        <div class="flex items-center space-x-2">
+                                            <span class="w-4 h-4 rounded-md border flex items-center justify-center shrink-0" :class="sauceChoices.includes(opt.label) ? 'border-sky-500 bg-sky-500 text-white' : 'border-slate-300'">
+                                                <svg x-show="sauceChoices.includes(opt.label)" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                            </span>
+                                            <span class="font-medium" x-text="opt.name"></span>
+                                        </div>
+                                        <span class="text-[10px] font-bold" :class="opt.extra > 0 ? 'text-sky-600 bg-white px-1.5 py-0.5 rounded border border-sky-100' : 'text-slate-400'" x-text="opt.extra > 0 ? '+' + formatRupiah(opt.extra) : 'Gratis'"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- 4. SWEET DESSERTS & TOAST OPTIONS -->
+                <template x-if="getModifierGroup(selectedModifierProduct) === 'sweet_desserts'">
+                    <div class="space-y-4">
+                        <!-- Metode Pemanasan / Serving -->
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                    <span>♨️</span>
+                                    <span>Metode Pemanasan / Serving</span>
+                                </label>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <template x-for="opt in servingTempOptions" :key="opt">
+                                    <div 
+                                        @click="servingTemp = opt"
+                                        :class="servingTemp === opt ? 'border-sky-500 bg-sky-50/70 text-sky-900 ring-2 ring-sky-500/20' : 'border-slate-200 hover:bg-slate-50 text-slate-700'"
+                                        class="p-2.5 rounded-xl border cursor-pointer transition-all flex items-center space-x-2 text-xs">
+                                        <span class="w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0" :class="servingTemp === opt ? 'border-sky-500 bg-sky-500' : 'border-slate-300'">
+                                            <span x-show="servingTemp === opt" class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                                        </span>
+                                        <span class="font-medium" x-text="opt"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Tingkat Manis / Glaze -->
+                        <div class="pt-3">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                    <span>🍯</span>
+                                    <span>Tingkat Manis / Glaze</span>
+                                </label>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <template x-for="opt in sweetnessOptions" :key="opt">
+                                    <div 
+                                        @click="sweetnessLevel = opt"
+                                        :class="sweetnessLevel === opt ? 'border-sky-500 bg-sky-50/70 text-sky-900 ring-2 ring-sky-500/20' : 'border-slate-200 hover:bg-slate-50 text-slate-700'"
+                                        class="p-2.5 rounded-xl border cursor-pointer transition-all flex items-center space-x-2 text-xs">
+                                        <span class="w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0" :class="sweetnessLevel === opt ? 'border-sky-500 bg-sky-500' : 'border-slate-300'">
+                                            <span x-show="sweetnessLevel === opt" class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                                        </span>
+                                        <span class="font-medium" x-text="opt"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Saus Cocolan / Dipping (Khusus Churros & Brownies) -->
+                        <div x-show="showDippingSauce" class="pt-3">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                    <span>🍫</span>
+                                    <span>Saus Cocolan / Dipping</span>
+                                    <span class="text-[10px] text-slate-400 font-normal">(Khusus Churros & Brownies)</span>
+                                </label>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2">
+                                <template x-for="opt in dippingOptions" :key="opt">
+                                    <div 
+                                        @click="dippingSauce = opt"
+                                        :class="dippingSauce === opt ? 'border-sky-500 bg-sky-50/70 text-sky-900 ring-2 ring-sky-500/20' : 'border-slate-200 hover:bg-slate-50 text-slate-700'"
+                                        class="p-2.5 rounded-xl border cursor-pointer transition-all flex flex-col items-center justify-center text-center text-xs min-h-[52px]">
+                                        <span class="font-medium leading-tight" x-text="opt"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Add-on Topping Manis -->
+                        <div class="pt-3">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                    <span>🍨</span>
+                                    <span>Add-on Topping Manis</span>
+                                    <span class="text-[10px] text-slate-400 font-normal">(Bisa pilih lebih dari 1)</span>
+                                </label>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                <template x-for="opt in sweetAddonOptions" :key="opt.label">
+                                    <div 
+                                        @click="toggleModifierAddon('sweetAddons', opt.label)"
+                                        :class="sweetAddons.includes(opt.label) ? 'border-sky-500 bg-sky-50/70 text-sky-900 ring-2 ring-sky-500/20' : 'border-slate-200 hover:bg-slate-50 text-slate-700'"
+                                        class="p-2.5 rounded-xl border cursor-pointer transition-all flex flex-col justify-between text-xs min-h-[58px]">
+                                        <div class="flex items-center space-x-1.5 mb-1">
+                                            <span class="w-3.5 h-3.5 rounded-md border flex items-center justify-center shrink-0" :class="sweetAddons.includes(opt.label) ? 'border-sky-500 bg-sky-500 text-white' : 'border-slate-300'">
+                                                <svg x-show="sweetAddons.includes(opt.label)" class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                            </span>
+                                            <span class="font-medium leading-tight" x-text="opt.name"></span>
+                                        </div>
+                                        <span class="text-[10px] font-bold text-sky-600 self-end" x-text="'+' + formatRupiah(opt.extra)"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- 5. CATATAN KHUSUS DAPUR (KITCHEN NOTES) -->
+                <div class="pt-4">
+                    <label class="block text-xs font-bold text-slate-800 mb-1.5 flex items-center gap-1.5">
+                        <span>📝</span>
+                        <span>Catatan Khusus Dapur (Kitchen Notes)</span>
+                    </label>
+                    <textarea 
+                        x-model="modifierNotes" 
+                        rows="2" 
+                        placeholder="Catatan: (cth: jangan pakai daun seledri / saus dipisah / tidak pakai micin)" 
+                        class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:border-sky-500 transition-colors shadow-2xs"></textarea>
+                </div>
+
+            </div>
+
+            <!-- Footer: Quantity Stepper & Add to Order Button -->
+            <div class="p-4 sm:p-5 border-t border-slate-200 bg-slate-50/90 shrink-0 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div class="flex items-center space-x-3 w-full sm:w-auto justify-between sm:justify-start">
+                    <span class="text-xs font-bold text-slate-600">Jumlah:</span>
+                    <div class="flex items-center bg-white border border-slate-300 rounded-xl overflow-hidden shadow-xs">
+                        <button 
+                            @click="if (modifierQty > 1) modifierQty--" 
+                            class="w-8 h-8 hover:bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-sm transition-colors">-</button>
+                        <span class="w-10 text-center font-black text-slate-800 text-sm" x-text="modifierQty"></span>
+                        <button 
+                            @click="modifierQty++" 
+                            class="w-8 h-8 hover:bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-sm transition-colors">+</button>
+                    </div>
+                    <div class="text-right sm:text-left sm:pl-2">
+                        <span class="text-[10px] text-slate-400 block leading-none">Total Item</span>
+                        <span class="text-sm font-black text-sky-600" x-text="formatRupiah(currentModalTotalPrice)"></span>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-2 w-full sm:w-auto">
+                    <button 
+                        @click="showModifierModal = false" 
+                        class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs transition-colors">
+                        Batal
+                    </button>
+                    <button 
+                        @click="confirmAddModifiers()" 
+                        class="flex-1 sm:flex-initial px-5 py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-bold text-xs sm:text-sm shadow-md shadow-sky-500/25 transition-all flex items-center justify-center gap-2 active:scale-95">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                        <span>Masukkan ke Pesanan • <strong x-text="formatRupiah(currentModalTotalPrice)"></strong></span>
+                    </button>
+                </div>
             </div>
 
         </div>
@@ -1980,6 +2477,115 @@
                 menuPickerCategory: 'all',
                 menuPickerSearch: '',
 
+                // Item Modifiers & Customization Modal State
+                showModifierModal: false,
+                selectedModifierProduct: null,
+                modifierQty: 1,
+
+                // Group 1: Spicy & Mains
+                spicyLevel: 'Level 0: Original / Gurih Tanpa Cabe',
+                sambalVarian: 'Sambal Bawang (Standar)',
+                spicyAddons: [],
+
+                // Group 2: Nasi, Curry & Noodle
+                nasiSpicyLevel: 'Tidak Pedas',
+                telurKematangan: 'Setengah Matang (Soft / Molten yolk)',
+                teksturMi: 'Al Dente (Kenyal / Firm)',
+                noodleAddons: [],
+
+                // Group 3: Savory Snacks & Fried Bites
+                snackCrispyLevel: 'Normal Crispy',
+                torchLevel: 'Light Torch',
+                bumbuTabur: 'Original Bawang Gurih',
+                sauceChoices: [],
+
+                // Group 4: Sweet Desserts & Toast
+                servingTemp: 'Hangat / Reheated Oven (Fresh from oven)',
+                sweetnessLevel: 'Normal Sweet',
+                dippingSauce: 'Dark Chocolate Dip',
+                sweetAddons: [],
+
+                // Kitchen Notes
+                modifierNotes: '',
+
+                // Modifier Configuration Options
+                spicyLevelOptions: [
+                    { label: 'Level 0: Original / Gurih Tanpa Cabe', extra: 0 },
+                    { label: 'Level 1: Sedang (Cabe 3-5)', extra: 0 },
+                    { label: 'Level 2: Pedas Nampol (Cabe 10)', extra: 0 },
+                    { label: 'Level 3: Extra Pedas / Mati Rasa (Cabe 15+) (+Rp2.000)', extra: 2000 }
+                ],
+                sambalOptions: [
+                    { name: 'Sambal Bawang (Standar)', label: 'Sambal Bawang (Standar)', extra: 0 },
+                    { name: 'Sambal Matah (+Rp3.000)', label: 'Sambal Matah (+Rp3.000)', extra: 3000 },
+                    { name: 'Saus Keju Lumer (+Rp4.000)', label: 'Saus Keju Lumer (+Rp4.000)', extra: 4000 }
+                ],
+                spicyAddonOptions: [
+                    { name: 'Extra Nasi Putih', label: 'Extra Nasi Putih (+Rp5.000)', extra: 5000 },
+                    { name: 'Extra Nasi Daun Jeruk', label: 'Extra Nasi Daun Jeruk (+Rp7.000)', extra: 7000 },
+                    { name: 'Extra Lontong (Khusus Taichan)', label: 'Extra Lontong (+Rp4.000)', extra: 4000 },
+                    { name: 'Telur Dadar / Ceplok', label: 'Telur Dadar / Ceplok (+Rp5.000)', extra: 5000 }
+                ],
+                nasiSpicyOptions: [
+                    { name: 'Tidak Pedas', label: 'Tidak Pedas', extra: 0 },
+                    { name: 'Pedas Sedang', label: 'Pedas Sedang', extra: 0 },
+                    { name: 'Sangat Pedas (+Rp2.000)', label: 'Sangat Pedas (+Rp2.000)', extra: 2000 }
+                ],
+                telurOptions: [
+                    'Setengah Matang (Soft / Molten yolk)',
+                    'Matang Sempurna (Well-done)',
+                    'Telur Dadar Crispy'
+                ],
+                teksturMiOptions: [
+                    'Al Dente (Kenyal / Firm)',
+                    'Soft (Empuk)'
+                ],
+                noodleAddonOptions: [
+                    { name: 'Extra Ajitsuke Tamago / Telur Ramen', label: 'Extra Ajitsuke Tamago (+Rp6.000)', extra: 6000 },
+                    { name: 'Extra Chicken Chashu / Katsu', label: 'Extra Chicken Chashu / Katsu (+Rp12.000)', extra: 12000 },
+                    { name: 'Extra Udang Seafood', label: 'Extra Udang Seafood (+Rp10.000)', extra: 10000 },
+                    { name: 'Extra Keju Parmesan / Mozzarella', label: 'Extra Keju Parmesan (+Rp5.000)', extra: 5000 },
+                    { name: 'Nori Lembaran', label: 'Nori Lembaran (+Rp3.000)', extra: 3000 }
+                ],
+                snackCrispyOptions: [
+                    'Normal Crispy',
+                    'Extra Crispy / Kering'
+                ],
+                torchOptions: [
+                    'Light Torch',
+                    'Well-Charred (Smoky aromatik)'
+                ],
+                bumbuTaburOptions: [
+                    'Original Bawang Gurih',
+                    'Balado Pedas Manis',
+                    'Keju Asin',
+                    'Barbeque (BBQ)'
+                ],
+                sauceOptions: [
+                    { name: 'Bumbu Rujak Pedas Manis (Default Cireng)', label: 'Bumbu Rujak Pedas Manis (Default Cireng)', extra: 0 },
+                    { name: 'Saus Sambal + Mayones', label: 'Saus Sambal + Mayones', extra: 0 },
+                    { name: 'Tartar Sauce (Cocok Shrimp/Onion Ring)', label: 'Tartar Sauce (+Rp3.000)', extra: 3000 },
+                    { name: 'Extra Saus Mentai', label: 'Extra Saus Mentai (+Rp5.000)', extra: 5000 }
+                ],
+                servingTempOptions: [
+                    'Hangat / Reheated Oven (Fresh from oven)',
+                    'Suhu Ruang / Normal'
+                ],
+                sweetnessOptions: [
+                    'Normal Sweet',
+                    'Less Sweet'
+                ],
+                dippingOptions: [
+                    'Dark Chocolate Dip',
+                    'Salted Caramel Dip',
+                    'Matcha Dip'
+                ],
+                sweetAddonOptions: [
+                    { name: 'Scoop Vanilla / Cokelat Ice Cream', label: 'Scoop Ice Cream (+Rp8.000)', extra: 8000 },
+                    { name: 'Extra Parutan Keju', label: 'Extra Parutan Keju (+Rp4.000)', extra: 4000 },
+                    { name: 'Extra Susu Kental Manis / Cokelat', label: 'Extra SKM / Cokelat (+Rp2.000)', extra: 2000 }
+                ],
+
                 showModal: false,
                 showMobileCart: false,
                 showAddProductModal: false,
@@ -2119,29 +2725,276 @@
                     if (!query) return;
                     const found = this.products.find(p => p.barcode && p.barcode.toLowerCase() === query);
                     if (found) {
-                        this.addToCart(found);
+                        this.handleProductClick(found);
                         this.searchQuery = '';
                         return;
                     }
                     const matches = this.searchMatches;
                     if (matches.length > 0) {
-                        this.addToCart(matches[0]);
+                        this.handleProductClick(matches[0]);
                         this.searchQuery = '';
                     }
                 },
 
+                isCustomizableProduct(product) {
+                    if (!product) return false;
+                    const cat = (product.category || '').toLowerCase();
+                    return cat === 'makanan' || cat === 'cemilan';
+                },
+
+                handleProductClick(product) {
+                    if (this.isCustomizableProduct(product)) {
+                        this.openModifierModal(product);
+                    } else {
+                        this.addToCart(product);
+                    }
+                },
+
+                getModifierGroup(product) {
+                    if (!product) return 'spicy_mains';
+                    const name = (product.name || '').toLowerCase();
+                    const cat = (product.category || '').toLowerCase();
+
+                    // 1. Spicy & Mains
+                    if (name.includes('geprek') || name.includes('dakbal') || name.includes('ceker') || 
+                        name.includes('taichan') || name.includes('satay') || name.includes('sate')) {
+                        return 'spicy_mains';
+                    }
+
+                    // 2. Nasi, Curry & Noodle
+                    if (name.includes('nasi goreng') || name.includes('curry') || name.includes('katsu') || 
+                        name.includes('ramen') || name.includes('spagetti') || name.includes('spaghetti') || 
+                        name.includes('noodle') || name.includes('mie') || name.includes('pasta') || 
+                        name.includes('rice bowl') || name.includes('nasi daun jeruk') || name.includes('bolognese')) {
+                        return 'nasi_curry_noodle';
+                    }
+
+                    // 4. Sweet Desserts & Toast
+                    if (name.includes('toast') || name.includes('croissant') || name.includes('churros') || 
+                        name.includes('brownies') || name.includes('banana') || name.includes('pisang') || 
+                        name.includes('ice cream') || name.includes('black forest') || name.includes('caffucino') || 
+                        name.includes('waffle') || name.includes('pancake') || name.includes('cake') || name.includes('dessert')) {
+                        return 'sweet_desserts';
+                    }
+
+                    // 3. Savory Snacks & Fried Bites
+                    if (name.includes('dimsum') || name.includes('mentai') || name.includes('tahu') || 
+                        name.includes('crispy') || name.includes('platter') || name.includes('platters') || 
+                        name.includes('onion ring') || name.includes('tempura') || name.includes('shrimp') || 
+                        name.includes('cireng') || name.includes('keripik') || name.includes('snack') || 
+                        name.includes('kentang') || name.includes('fries') || cat === 'cemilan') {
+                        return 'savory_snacks';
+                    }
+
+                    if (cat === 'makanan') return 'nasi_curry_noodle';
+                    return 'savory_snacks';
+                },
+
+                getModifierGroupBadge(product) {
+                    const group = this.getModifierGroup(product);
+                    switch (group) {
+                        case 'spicy_mains': return '🔥 Spicy & Mains';
+                        case 'nasi_curry_noodle': return '🍛 Nasi, Curry & Noodle';
+                        case 'savory_snacks': return '🥟 Savory Bites & Fried';
+                        case 'sweet_desserts': return '🥐 Sweet Desserts & Toast';
+                        default: return 'Custom Modifier';
+                    }
+                },
+
+                get showSambalOption() {
+                    if (!this.selectedModifierProduct) return false;
+                    const name = (this.selectedModifierProduct.name || '').toLowerCase();
+                    return name.includes('taichan') || name.includes('geprek') || name.includes('satay') || name.includes('sate') || name.includes('ayam');
+                },
+
+                get showTeksturMi() {
+                    if (!this.selectedModifierProduct) return false;
+                    const name = (this.selectedModifierProduct.name || '').toLowerCase();
+                    return name.includes('ramen') || name.includes('spagetti') || name.includes('spaghetti') || name.includes('pasta') || name.includes('noodle') || name.includes('mie');
+                },
+
+                get showTorching() {
+                    if (!this.selectedModifierProduct) return false;
+                    const name = (this.selectedModifierProduct.name || '').toLowerCase();
+                    return name.includes('mentai') || name.includes('dimsum');
+                },
+
+                get showBumbuTabur() {
+                    if (!this.selectedModifierProduct) return false;
+                    const name = (this.selectedModifierProduct.name || '').toLowerCase();
+                    return name.includes('tahu') || name.includes('crispy') || name.includes('platter') || name.includes('platters') || name.includes('fries') || name.includes('keripik') || name.includes('snack') || name.includes('kentang');
+                },
+
+                get showDippingSauce() {
+                    if (!this.selectedModifierProduct) return false;
+                    const name = (this.selectedModifierProduct.name || '').toLowerCase();
+                    return name.includes('churros') || name.includes('brownies') || name.includes('toast') || name.includes('croissant') || name.includes('banana') || name.includes('pisang');
+                },
+
+                toggleModifierAddon(arrayName, item) {
+                    const arr = this[arrayName];
+                    if (!Array.isArray(arr)) return;
+                    const idx = arr.indexOf(item);
+                    if (idx > -1) {
+                        arr.splice(idx, 1);
+                    } else {
+                        arr.push(item);
+                    }
+                },
+
+                openModifierModal(product) {
+                    this.selectedModifierProduct = product;
+                    this.modifierQty = 1;
+                    this.modifierNotes = '';
+                    const name = (product.name || '').toLowerCase();
+                    const group = this.getModifierGroup(product);
+
+                    if (group === 'spicy_mains') {
+                        this.spicyLevel = 'Level 0: Original / Gurih Tanpa Cabe';
+                        this.sambalVarian = name.includes('matah') ? 'Sambal Matah (+Rp3.000)' : 'Sambal Bawang (Standar)';
+                        this.spicyAddons = [];
+                    } else if (group === 'nasi_curry_noodle') {
+                        this.nasiSpicyLevel = 'Tidak Pedas';
+                        this.telurKematangan = 'Setengah Matang (Soft / Molten yolk)';
+                        this.teksturMi = 'Al Dente (Kenyal / Firm)';
+                        this.noodleAddons = [];
+                    } else if (group === 'savory_snacks') {
+                        this.snackCrispyLevel = 'Normal Crispy';
+                        this.torchLevel = 'Light Torch';
+                        this.bumbuTabur = 'Original Bawang Gurih';
+                        this.sauceChoices = name.includes('cireng') ? ['Bumbu Rujak Pedas Manis (Default Cireng)'] : ['Saus Sambal + Mayones'];
+                    } else if (group === 'sweet_desserts') {
+                        this.servingTemp = 'Hangat / Reheated Oven (Fresh from oven)';
+                        this.sweetnessLevel = 'Normal Sweet';
+                        this.dippingSauce = 'Dark Chocolate Dip';
+                        this.sweetAddons = [];
+                    }
+
+                    this.showModifierModal = true;
+                },
+
+                get currentModalUnitPrice() {
+                    if (!this.selectedModifierProduct) return 0;
+                    let base = Number(this.selectedModifierProduct.price || 0);
+                    let extra = 0;
+                    const group = this.getModifierGroup(this.selectedModifierProduct);
+
+                    if (group === 'spicy_mains') {
+                        if (this.spicyLevel.includes('+Rp2.000') || this.spicyLevel.includes('Level 3')) extra += 2000;
+                        if (this.showSambalOption) {
+                            if (this.sambalVarian.includes('+Rp3.000') || this.sambalVarian.includes('Matah')) extra += 3000;
+                            if (this.sambalVarian.includes('+Rp4.000') || this.sambalVarian.includes('Keju Lumer')) extra += 4000;
+                        }
+                        this.spicyAddons.forEach(item => {
+                            if (item.includes('5.000') || item.includes('Nasi Putih') || item.includes('Telur')) extra += 5000;
+                            else if (item.includes('7.000') || item.includes('Nasi Daun Jeruk')) extra += 7000;
+                            else if (item.includes('4.000') || item.includes('Lontong')) extra += 4000;
+                        });
+                    } else if (group === 'nasi_curry_noodle') {
+                        if (this.nasiSpicyLevel.includes('+Rp2.000') || this.nasiSpicyLevel.includes('Sangat Pedas')) extra += 2000;
+                        this.noodleAddons.forEach(item => {
+                            if (item.includes('6.000') || item.includes('Tamago')) extra += 6000;
+                            else if (item.includes('12.000') || item.includes('Chashu')) extra += 12000;
+                            else if (item.includes('10.000') || item.includes('Udang')) extra += 10000;
+                            else if (item.includes('5.000') || item.includes('Keju')) extra += 5000;
+                            else if (item.includes('3.000') || item.includes('Nori')) extra += 3000;
+                        });
+                    } else if (group === 'savory_snacks') {
+                        this.sauceChoices.forEach(item => {
+                            if (item.includes('3.000') || item.includes('Tartar')) extra += 3000;
+                            else if (item.includes('5.000') || item.includes('Mentai')) extra += 5000;
+                        });
+                    } else if (group === 'sweet_desserts') {
+                        this.sweetAddons.forEach(item => {
+                            if (item.includes('8.000') || item.includes('Ice Cream')) extra += 8000;
+                            else if (item.includes('4.000') || item.includes('Keju')) extra += 4000;
+                            else if (item.includes('2.000') || item.includes('SKM') || item.includes('Susu')) extra += 2000;
+                        });
+                    }
+
+                    return base + extra;
+                },
+
+                get currentModalTotalPrice() {
+                    return this.currentModalUnitPrice * (this.modifierQty || 1);
+                },
+
+                confirmAddModifiers() {
+                    if (!this.selectedModifierProduct) return;
+                    const p = this.selectedModifierProduct;
+                    const group = this.getModifierGroup(p);
+                    const unitPrice = this.currentModalUnitPrice;
+                    const qty = Math.max(1, Number(this.modifierQty) || 1);
+                    
+                    let modDetails = [];
+                    if (group === 'spicy_mains') {
+                        modDetails.push(this.spicyLevel);
+                        if (this.showSambalOption) modDetails.push(this.sambalVarian);
+                        if (this.spicyAddons.length > 0) modDetails.push(...this.spicyAddons);
+                    } else if (group === 'nasi_curry_noodle') {
+                        modDetails.push('Pedas: ' + this.nasiSpicyLevel);
+                        modDetails.push('Telur: ' + this.telurKematangan);
+                        if (this.showTeksturMi) modDetails.push('Tekstur: ' + this.teksturMi);
+                        if (this.noodleAddons.length > 0) modDetails.push(...this.noodleAddons);
+                    } else if (group === 'savory_snacks') {
+                        modDetails.push('Tekstur: ' + this.snackCrispyLevel);
+                        if (this.showTorching) modDetails.push('Torch: ' + this.torchLevel);
+                        if (this.showBumbuTabur) modDetails.push('Bumbu: ' + this.bumbuTabur);
+                        if (this.sauceChoices.length > 0) modDetails.push(...this.sauceChoices);
+                    } else if (group === 'sweet_desserts') {
+                        modDetails.push('Serving: ' + this.servingTemp);
+                        modDetails.push('Manis: ' + this.sweetnessLevel);
+                        if (this.showDippingSauce) modDetails.push('Dip: ' + this.dippingSauce);
+                        if (this.sweetAddons.length > 0) modDetails.push(...this.sweetAddons);
+                    }
+
+                    const modifiersSummary = modDetails.filter(Boolean).join(' • ');
+                    const notes = (this.modifierNotes || '').trim();
+
+                    const existing = this.cart.find(item => 
+                        item.id === p.id && 
+                        item.modifiersSummary === modifiersSummary && 
+                        item.notes === notes
+                    );
+
+                    if (existing) {
+                        existing.qty += qty;
+                    } else {
+                        this.cart.push({
+                            ...p,
+                            cartItemId: p.id + '_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+                            price: unitPrice,
+                            basePrice: p.price,
+                            qty: qty,
+                            modifiersSummary: modifiersSummary,
+                            modifiersList: modDetails,
+                            notes: notes
+                        });
+                    }
+
+                    this.showModifierModal = false;
+                    this.selectedModifierProduct = null;
+                },
+
                 addToCart(product) {
-                    const existing = this.cart.find(item => item.id === product.id);
+                    const existing = this.cart.find(item => item.id === product.id && !item.modifiersSummary && !item.notes);
                     if (existing) {
                         existing.qty++;
                     } else {
-                        this.cart.push({ ...product, qty: 1 });
+                        this.cart.push({
+                            ...product,
+                            cartItemId: product.id + '_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+                            basePrice: product.price,
+                            modifiersSummary: '',
+                            modifiersList: [],
+                            notes: '',
+                            qty: 1
+                        });
                     }
                 },
 
                 getCartItemQty(productId) {
-                    const item = this.cart.find(item => item.id === productId);
-                    return item ? item.qty : 0;
+                    return this.cart.filter(item => item.id === productId).reduce((sum, item) => sum + item.qty, 0);
                 },
                 
                 incrementQty(index) {
@@ -2538,20 +3391,38 @@
                 },
 
                 defaultProducts: [
-                    { id: 1, name: 'Nasi Goreng Spesial', category: 'makanan', categoryName: 'Makanan', price: 25000, barcode: '8992750000107', image: 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=500&q=80' },
-                    { id: 2, name: 'Mie Ayam Bakso', category: 'makanan', categoryName: 'Makanan', price: 20000, barcode: '7451010345620', image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=500&q=80' },
-                    { id: 3, name: 'Ayam Geprek Sambal Matah', category: 'makanan', categoryName: 'Makanan', price: 22000, barcode: '6921835640275', image: 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=500&q=80' },
-                    { id: 4, name: 'Es Teh Manis', category: 'minuman', categoryName: 'Minuman', price: 5000, barcode: '8901384029651', image: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=500&q=80' },
-                    { id: 5, name: 'Es Jeruk Peras', category: 'minuman', categoryName: 'Minuman', price: 8000, barcode: '9345128305707', image: 'https://images.unsplash.com/photo-1613478223719-2ab802602423?auto=format&fit=crop&w=500&q=80' },
-                    { id: 6, name: 'Jus Alpukat', category: 'minuman', categoryName: 'Minuman', price: 15000, barcode: '8716240853192', image: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=500&q=80' },
-                    { id: 7, name: 'Pisang Goreng Keju', category: 'cemilan', categoryName: 'Cemilan', price: 12000, barcode: '8990901234579', image: 'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&w=500&q=80' },
-                    { id: 8, name: 'Tahu Crispy', category: 'cemilan', categoryName: 'Cemilan', price: 10000, barcode: '6182539704810', image: 'https://images.unsplash.com/photo-1541529086526-db283c563270?auto=format&fit=crop&w=500&q=80' },
-                    { id: 9, name: 'Teh Botol Sosro Original 450ml', category: 'minuman', categoryName: 'Minuman', price: 6000, barcode: '8993988052517', image: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=500&q=80' },
-                    { id: 10, name: 'Snack Keripik Impor Spesial', category: 'cemilan', categoryName: 'Cemilan', price: 15000, barcode: '6951913580810', image: 'https://images.unsplash.com/photo-1541529086526-db283c563270?auto=format&fit=crop&w=500&q=80' },
-                    { id: 11, name: 'Susu UHT Cokelat 250ml', category: 'minuman', categoryName: 'Minuman', price: 8000, barcode: '3690014570247', image: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=500&q=80' },
-                    { id: 12, name: 'Merchandise VSC Special Item', category: 'makanan', categoryName: 'Makanan', price: 50000, barcode: '8992000345125', image: 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=500&q=80' },
-                    { id: 13, name: 'Kopi Susu Botol 350ml', category: 'minuman', categoryName: 'Minuman', price: 10000, barcode: '8998838360361', image: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=500&q=80' },
-                    { id: 14, name: 'VSC Exclusive Member Item', category: 'makanan', categoryName: 'Makanan', price: 75000, barcode: '9555520104338', image: 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=500&q=80' }
+                    // 1. SPICY & MAINS
+                    { id: 101, name: 'Ayam Geprek Sambal Bawang', category: 'makanan', categoryName: 'Makanan', price: 22000, barcode: '899100100001', stock: 45, image: 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=500&q=80' },
+                    { id: 102, name: 'Dakbal Ceker Tanpa Tulang', category: 'makanan', categoryName: 'Makanan', price: 26000, barcode: '899100100002', stock: 40, image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=500&q=80' },
+                    { id: 103, name: 'Taichan Satay (10 Tusuk)', category: 'makanan', categoryName: 'Makanan', price: 24000, barcode: '899100100003', stock: 50, image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=500&q=80' },
+                    
+                    // 2. NASI, CURRY & NOODLE
+                    { id: 201, name: 'Nasi Goreng Seafood', category: 'makanan', categoryName: 'Makanan', price: 28000, barcode: '899200200001', stock: 40, image: 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=500&q=80' },
+                    { id: 202, name: 'Rice Bowl Katsu Curry', category: 'makanan', categoryName: 'Makanan', price: 32000, barcode: '899200200002', stock: 35, image: 'https://images.unsplash.com/photo-1569058242253-92a9c755a0ec?auto=format&fit=crop&w=500&q=80' },
+                    { id: 203, name: 'Ramen Noodle\'s Special', category: 'makanan', categoryName: 'Makanan', price: 30000, barcode: '899200200003', stock: 45, image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=500&q=80' },
+                    { id: 204, name: 'Spagetti Bolognese', category: 'makanan', categoryName: 'Makanan', price: 28000, barcode: '899200200004', stock: 30, image: 'https://images.unsplash.com/photo-1621996346565-e3d5d6281691?auto=format&fit=crop&w=500&q=80' },
+                    { id: 205, name: 'Nasi Daun Jeruk Komplit', category: 'makanan', categoryName: 'Makanan', price: 25000, barcode: '899200200005', stock: 40, image: 'https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&w=500&q=80' },
+
+                    // 3. SAVORY SNACKS & FRIED BITES
+                    { id: 301, name: 'Dimsum Mentai (4 pcs)', category: 'cemilan', categoryName: 'Cemilan', price: 22000, barcode: '899300300001', stock: 50, image: 'https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?auto=format&fit=crop&w=500&q=80' },
+                    { id: 302, name: 'Tahu Crispy Gurih', category: 'cemilan', categoryName: 'Cemilan', price: 12000, barcode: '899300300002', stock: 60, image: 'https://images.unsplash.com/photo-1541529086526-db283c563270?auto=format&fit=crop&w=500&q=80' },
+                    { id: 303, name: 'Mix Platters Coffee Shop', category: 'cemilan', categoryName: 'Cemilan', price: 35000, barcode: '899300300003', stock: 30, image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=500&q=80' },
+                    { id: 304, name: 'Crispy Onion Ring', category: 'cemilan', categoryName: 'Cemilan', price: 15000, barcode: '899300300004', stock: 45, image: 'https://images.unsplash.com/photo-1639024471285-0afc3835697c?auto=format&fit=crop&w=500&q=80' },
+                    { id: 305, name: 'Shrimp Tempura Crispy', category: 'cemilan', categoryName: 'Cemilan', price: 25000, barcode: '899300300005', stock: 35, image: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?auto=format&fit=crop&w=500&q=80' },
+                    { id: 306, name: 'Rujak Cireng Crispy', category: 'cemilan', categoryName: 'Cemilan', price: 15000, barcode: '899300300006', stock: 50, image: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=500&q=80' },
+
+                    // 4. SWEET DESSERTS & TOAST
+                    { id: 401, name: 'Matcha Toast Melt', category: 'cemilan', categoryName: 'Cemilan', price: 20000, barcode: '899400400001', stock: 40, image: 'https://images.unsplash.com/photo-1484723091739-30a097e8f929?auto=format&fit=crop&w=500&q=80' },
+                    { id: 402, name: 'Croissant Caffucino', category: 'cemilan', categoryName: 'Cemilan', price: 22000, barcode: '899400400002', stock: 35, image: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=500&q=80' },
+                    { id: 403, name: 'Crispy Churros + Dip', category: 'cemilan', categoryName: 'Cemilan', price: 18000, barcode: '899400400003', stock: 45, image: 'https://images.unsplash.com/photo-1624300629298-e9de39c13be5?auto=format&fit=crop&w=500&q=80' },
+                    { id: 404, name: 'Fudgy Brownies Warm', category: 'cemilan', categoryName: 'Cemilan', price: 20000, barcode: '899400400004', stock: 40, image: 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&w=500&q=80' },
+                    { id: 405, name: 'Banana Cheese Crispy', category: 'cemilan', categoryName: 'Cemilan', price: 16000, barcode: '899400400005', stock: 45, image: 'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&w=500&q=80' },
+                    { id: 406, name: 'Black Forest Ice Cream', category: 'cemilan', categoryName: 'Cemilan', price: 24000, barcode: '899400400006', stock: 30, image: 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=500&q=80' },
+
+                    // 5. DRINKS & COFFEE
+                    { id: 501, name: 'Es Kopi Susu Aren', category: 'minuman', categoryName: 'Minuman', price: 18000, barcode: '899500500001', stock: 75, image: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=500&q=80' },
+                    { id: 502, name: 'Es Teh Manis Melati', category: 'minuman', categoryName: 'Minuman', price: 6000, barcode: '899500500002', stock: 100, image: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=500&q=80' },
+                    { id: 503, name: 'Jus Alpukat Kocok', category: 'minuman', categoryName: 'Minuman', price: 16000, barcode: '899500500003', stock: 40, image: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=500&q=80' }
                 ],
 
                 async seedProducts() {
@@ -3157,6 +4028,12 @@
                             const fresh = await db.collection('products').orderBy('id').get();
                             this.products = fresh.docs.map(doc => doc.data());
                         }
+                        // Merge default products not yet in this.products
+                        this.defaultProducts.forEach(dp => {
+                            if (!this.products.some(p => p.id === dp.id || (p.name && p.name.toLowerCase() === dp.name.toLowerCase()))) {
+                                this.products.push({ ...dp });
+                            }
+                        });
                         this.databaseError = '';
                     } catch (err) {
                         console.warn('Firestore offline/fallback:', err);
