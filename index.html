@@ -1909,6 +1909,143 @@
             <!-- Body Options (Scrollable) -->
             <div class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-5 divide-y divide-slate-100">
                 
+                <!-- 0. COFFEE & ESPRESSO (AMERICANO & CRAFT COFFEE) -->
+                <template x-if="getModifierGroup(selectedModifierProduct) === 'coffee_espresso'">
+                    <div class="space-y-4">
+                        
+                        <!-- Pilihan Penyajian: Hot (8 oz) & Iced (12 oz / 16 oz) -->
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-xs font-bold text-[#1B221B] flex items-center gap-1.5">
+                                    <span>☕</span>
+                                    <span>Pilihan Penyajian</span>
+                                    <span class="text-[10px] bg-[#EAF0E8] text-[#385E38] px-1.5 py-0.2 rounded font-black">WAJIB</span>
+                                </label>
+                                <span class="text-[11px] text-[#6B756B]">Pilih suhu & ukuran</span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                <template x-for="opt in coffeeServingOptions" :key="opt.label">
+                                    <div 
+                                        @click="coffeeServing = opt.label"
+                                        :class="coffeeServing === opt.label ? 'border-[#4B5320] bg-[#4B5320] text-white shadow-xs ring-2 ring-[#4B5320]/25 font-bold' : 'border-[#D0D5C9] bg-white text-[#1B221B] hover:bg-[#F4F5F0] font-medium'"
+                                        class="p-2.5 rounded-xl border cursor-pointer transition-all flex items-center justify-between text-xs min-h-[52px]">
+                                        <div class="flex items-center space-x-2">
+                                            <span class="text-base" x-text="opt.icon"></span>
+                                            <span x-text="opt.label"></span>
+                                        </div>
+                                        <span x-show="opt.extra > 0" class="text-[10px] font-bold text-[#A26B38] bg-white px-1.5 py-0.5 rounded border border-[#E2E5DC]" x-text="'+' + formatRupiah(opt.extra)"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Takaran Espresso (Shot) -->
+                        <div class="pt-3">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-xs font-bold text-[#1B221B] flex items-center gap-1.5">
+                                    <span>⚡</span>
+                                    <span>Takaran Espresso (Shot)</span>
+                                </label>
+                                <span class="text-[11px] text-[#6B756B]">Kekuatan rasa kopi</span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <template x-for="opt in espressoShotOptions" :key="opt.label">
+                                    <div 
+                                        @click="espressoShot = opt.label"
+                                        :class="espressoShot === opt.label ? 'border-[#4B5320] bg-[#4B5320] text-white shadow-xs ring-2 ring-[#4B5320]/25 font-bold' : 'border-[#D0D5C9] bg-white text-[#1B221B] hover:bg-[#F4F5F0] font-medium'"
+                                        class="p-2.5 rounded-xl border cursor-pointer transition-all flex items-center justify-between text-xs min-h-[50px]">
+                                        <div class="flex items-center space-x-2">
+                                            <span class="w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0" :class="espressoShot === opt.label ? 'border-white bg-white' : 'border-[#D0D5C9] bg-white'">
+                                                <span x-show="espressoShot === opt.label" class="w-1.5 h-1.5 rounded-full bg-[#4B5320]"></span>
+                                            </span>
+                                            <span x-text="opt.label"></span>
+                                        </div>
+                                        <span x-show="opt.extra > 0" class="text-[10px] font-bold text-[#A26B38] bg-white px-1.5 py-0.5 rounded border border-[#E2E5DC]" x-text="'+' + formatRupiah(opt.extra)"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Pilihan Biji Kopi (Beans) -->
+                        <div class="pt-3">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-xs font-bold text-[#1B221B] flex items-center gap-1.5">
+                                    <span>🫘</span>
+                                    <span>Pilihan Biji Kopi (Beans)</span>
+                                </label>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <template x-for="opt in coffeeBeansOptions" :key="opt.label">
+                                    <div 
+                                        @click="coffeeBeans = opt.label"
+                                        :class="coffeeBeans === opt.label ? 'border-[#4B5320] bg-[#4B5320] text-white shadow-xs ring-2 ring-[#4B5320]/25 font-bold' : 'border-[#D0D5C9] bg-white text-[#1B221B] hover:bg-[#F4F5F0] font-medium'"
+                                        class="p-2.5 rounded-xl border cursor-pointer transition-all flex flex-col justify-between text-xs min-h-[64px]">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <div class="flex items-center space-x-2">
+                                                <span class="w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0" :class="coffeeBeans === opt.label ? 'border-white bg-white' : 'border-[#D0D5C9] bg-white'">
+                                                    <span x-show="coffeeBeans === opt.label" class="w-1.5 h-1.5 rounded-full bg-[#4B5320]"></span>
+                                                </span>
+                                                <span class="font-bold" x-text="opt.label"></span>
+                                            </div>
+                                            <span x-show="opt.extra > 0" class="text-[10px] font-bold text-[#A26B38] bg-white px-1.5 py-0.5 rounded border border-[#E2E5DC]" x-text="'+' + formatRupiah(opt.extra)"></span>
+                                        </div>
+                                        <p class="text-[10px] pl-5.5" :class="coffeeBeans === opt.label ? 'text-white/80' : 'text-[#6B756B]'" x-text="opt.desc"></p>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Tingkat Kemanisan (Sugar Level) -->
+                        <div class="pt-3">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-xs font-bold text-[#1B221B] flex items-center gap-1.5">
+                                    <span>🍯</span>
+                                    <span>Tingkat Kemanisan (Sugar Level)</span>
+                                </label>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <template x-for="opt in sugarLevelOptions" :key="opt.label">
+                                    <div 
+                                        @click="sugarLevel = opt.label"
+                                        :class="sugarLevel === opt.label ? 'border-[#4B5320] bg-[#4B5320] text-white shadow-xs ring-2 ring-[#4B5320]/25 font-bold' : 'border-[#D0D5C9] bg-white text-[#1B221B] hover:bg-[#F4F5F0] font-medium'"
+                                        class="p-2.5 rounded-xl border cursor-pointer transition-all flex flex-col justify-between text-xs min-h-[56px]">
+                                        <div class="flex items-center space-x-2">
+                                            <span class="w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0" :class="sugarLevel === opt.label ? 'border-white bg-white' : 'border-[#D0D5C9] bg-white'">
+                                                <span x-show="sugarLevel === opt.label" class="w-1.5 h-1.5 rounded-full bg-[#4B5320]"></span>
+                                            </span>
+                                            <span class="font-bold" x-text="opt.label"></span>
+                                        </div>
+                                        <p class="text-[10px] pl-5.5 mt-0.5" :class="sugarLevel === opt.label ? 'text-white/80' : 'text-[#6B756B]'" x-text="opt.desc"></p>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Tingkat Es (Ice Level - khusus Iced) -->
+                        <div x-show="coffeeServing.includes('Iced')" class="pt-3" x-cloak>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-xs font-bold text-[#1B221B] flex items-center gap-1.5">
+                                    <span>🧊</span>
+                                    <span>Tingkat Es (Ice Level - Khusus Iced)</span>
+                                    <span class="text-[10px] bg-[#EAF0E8] text-[#385E38] px-1.5 py-0.2 rounded font-black">ICED ONLY</span>
+                                </label>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2">
+                                <template x-for="opt in iceLevelOptions" :key="opt.label">
+                                    <div 
+                                        @click="iceLevel = opt.label"
+                                        :class="iceLevel === opt.label ? 'border-[#4B5320] bg-[#4B5320] text-white shadow-xs ring-2 ring-[#4B5320]/25 font-bold' : 'border-[#D0D5C9] bg-white text-[#1B221B] hover:bg-[#F4F5F0] font-medium'"
+                                        class="p-2.5 rounded-xl border cursor-pointer transition-all flex flex-col items-center justify-center text-center text-xs min-h-[52px]">
+                                        <span class="text-sm mb-0.5" x-text="opt.icon"></span>
+                                        <span class="font-bold leading-tight" x-text="opt.label"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                    </div>
+                </template>
+
                 <!-- 1. SPICY & MAINS OPTIONS -->
                 <template x-if="getModifierGroup(selectedModifierProduct) === 'spicy_mains'">
                     <div class="space-y-4">
@@ -2545,6 +2682,40 @@
                 selectedModifierProduct: null,
                 modifierQty: 1,
 
+                // Group 0: Coffee & Espresso (Americano & Craft Coffee)
+                coffeeServing: 'Iced (16 oz)',
+                espressoShot: 'Double Shot / Default (36-40 ml)',
+                coffeeBeans: 'House Blend (70% Arabika : 30% Robusta)',
+                sugarLevel: 'No Sugar (Default)',
+                iceLevel: 'Normal Ice',
+
+                coffeeServingOptions: [
+                    { label: 'Hot (8 oz)', extra: 0, icon: '☕' },
+                    { label: 'Iced (12 oz)', extra: 0, icon: '🧊' },
+                    { label: 'Iced (16 oz)', extra: 2000, icon: '🥤' }
+                ],
+                espressoShotOptions: [
+                    { label: 'Single Shot (18-20 ml)', extra: 0 },
+                    { label: 'Double Shot / Default (36-40 ml)', extra: 0 },
+                    { label: 'Extra Shot (+1 Shot)', extra: 4000 },
+                    { label: 'Extra Shot (+2 Shot)', extra: 8000 }
+                ],
+                coffeeBeansOptions: [
+                    { label: 'House Blend (70% Arabika : 30% Robusta)', extra: 0, desc: 'Karakter bold, body tebal, aroma cokelat & kacang' },
+                    { label: '100% Full Arabika', extra: 3000, desc: 'Aroma floral & fruity, acidity segar, aftertaste lembut' }
+                ],
+                sugarLevelOptions: [
+                    { label: 'No Sugar (Default)', desc: 'Tanpa gula / pahit murni' },
+                    { label: 'Less Sugar', desc: 'Manis tipis (50%)' },
+                    { label: 'Normal Sugar (Simple Syrup)', desc: 'Gula cair standar (100%)' },
+                    { label: 'Gula Aren Cair (Terpisah)', desc: 'Gula aren organik disajikan terpisah' }
+                ],
+                iceLevelOptions: [
+                    { label: 'Less Ice', icon: '🧊' },
+                    { label: 'Normal Ice', icon: '🧊🧊' },
+                    { label: 'Extra Ice', icon: '🧊🧊🧊' }
+                ],
+
                 // Group 1: Spicy & Mains
                 spicyLevel: 'Level 0: Original / Gurih Tanpa Cabe',
                 sambalVarian: 'Sambal Bawang (Standar)',
@@ -2801,7 +2972,14 @@
 
                 isCustomizableProduct(product) {
                     if (!product) return false;
+                    const name = (product.name || '').toLowerCase();
                     const cat = (product.category || '').toLowerCase();
+                    // Americano, Kopi, Espresso, Latte, Cappucino
+                    if (name.includes('americano') || name.includes('espresso') || name.includes('ekspresso') ||
+                        name.includes('kopi') || name.includes('cappucino') || name.includes('cappuccino') || 
+                        name.includes('latte') || cat === 'kopi') {
+                        return true;
+                    }
                     return cat === 'makanan' || cat === 'cemilan';
                 },
 
@@ -2814,9 +2992,16 @@
                 },
 
                 getModifierGroup(product) {
-                    if (!product) return 'spicy_mains';
+                    if (!product) return 'coffee_espresso';
                     const name = (product.name || '').toLowerCase();
                     const cat = (product.category || '').toLowerCase();
+
+                    // 0. Coffee & Espresso (Americano & Craft Coffee)
+                    if (name.includes('americano') || name.includes('espresso') || name.includes('ekspresso') ||
+                        name.includes('kopi') || name.includes('cappucino') || name.includes('cappuccino') || 
+                        name.includes('latte') || cat === 'kopi') {
+                        return 'coffee_espresso';
+                    }
 
                     // 1. Spicy & Mains
                     if (name.includes('geprek') || name.includes('dakbal') || name.includes('ceker') || 
@@ -2856,6 +3041,7 @@
                 getModifierGroupBadge(product) {
                     const group = this.getModifierGroup(product);
                     switch (group) {
+                        case 'coffee_espresso': return '☕ Coffee & Espresso Craft';
                         case 'spicy_mains': return '🔥 Spicy & Mains';
                         case 'nasi_curry_noodle': return '🍛 Nasi, Curry & Noodle';
                         case 'savory_snacks': return '🥟 Savory Bites & Fried';
@@ -2912,7 +3098,14 @@
                     const name = (product.name || '').toLowerCase();
                     const group = this.getModifierGroup(product);
 
-                    if (group === 'spicy_mains') {
+                    if (group === 'coffee_espresso') {
+                        const isHot = name.includes('hot') || name.includes('panas') || name.includes('hangat');
+                        this.coffeeServing = isHot ? 'Hot (8 oz)' : 'Iced (16 oz)';
+                        this.espressoShot = 'Double Shot / Default (36-40 ml)';
+                        this.coffeeBeans = 'House Blend (70% Arabika : 30% Robusta)';
+                        this.sugarLevel = 'No Sugar (Default)';
+                        this.iceLevel = 'Normal Ice';
+                    } else if (group === 'spicy_mains') {
                         this.spicyLevel = 'Level 0: Original / Gurih Tanpa Cabe';
                         this.sambalVarian = name.includes('matah') ? 'Sambal Matah (+Rp3.000)' : 'Sambal Bawang (Standar)';
                         this.spicyAddons = [];
@@ -2942,7 +3135,16 @@
                     let extra = 0;
                     const group = this.getModifierGroup(this.selectedModifierProduct);
 
-                    if (group === 'spicy_mains') {
+                    if (group === 'coffee_espresso') {
+                        const srv = this.coffeeServingOptions.find(o => o.label === this.coffeeServing);
+                        if (srv && srv.extra) extra += srv.extra;
+
+                        const shot = this.espressoShotOptions.find(o => o.label === this.espressoShot);
+                        if (shot && shot.extra) extra += shot.extra;
+
+                        const bean = this.coffeeBeansOptions.find(o => o.label === this.coffeeBeans);
+                        if (bean && bean.extra) extra += bean.extra;
+                    } else if (group === 'spicy_mains') {
                         if (this.spicyLevel.includes('+Rp2.000') || this.spicyLevel.includes('Level 3')) extra += 2000;
                         if (this.showSambalOption) {
                             if (this.sambalVarian.includes('+Rp3.000') || this.sambalVarian.includes('Matah')) extra += 3000;
@@ -2990,7 +3192,15 @@
                     const qty = Math.max(1, Number(this.modifierQty) || 1);
                     
                     let modDetails = [];
-                    if (group === 'spicy_mains') {
+                    if (group === 'coffee_espresso') {
+                        modDetails.push(this.coffeeServing);
+                        modDetails.push(this.espressoShot.split(' (')[0]);
+                        modDetails.push(this.coffeeBeans.split(' (')[0]);
+                        modDetails.push('Gula: ' + this.sugarLevel.split(' (')[0]);
+                        if (this.coffeeServing.includes('Iced')) {
+                            modDetails.push('Es: ' + this.iceLevel);
+                        }
+                    } else if (group === 'spicy_mains') {
                         modDetails.push(this.spicyLevel);
                         if (this.showSambalOption) modDetails.push(this.sambalVarian);
                         if (this.spicyAddons.length > 0) modDetails.push(...this.spicyAddons);
