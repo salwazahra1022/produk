@@ -3470,13 +3470,26 @@
                     { id: 14, name: 'VSC Exclusive Member Item', category: 'makanan', categoryName: 'Makanan', price: 75000, barcode: '9555520104338', image: 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=500&q=80' }
                 ],
 
+                getProductDocId(name) {
+                    if (!name || typeof name !== 'string') return 'produk_' + Date.now();
+                    return name.trim().replace(/\//g, '-');
+                },
+
+                sortProducts() {
+                    this.products.sort((a, b) => {
+                        return (a.name || '').localeCompare(b.name || '');
+                    });
+                },
+
                 async seedProducts() {
                     const batch = db.batch();
                     this.defaultProducts.forEach(p => {
-                        batch.set(db.collection('products').doc(String(p.id)), p);
+                        const docId = this.getProductDocId(p.name);
+                        batch.set(db.collection('products').doc(docId), { ...p, docId: docId });
                     });
                     await batch.commit();
-                    this.products = this.defaultProducts.map(p => ({ ...p }));
+                    this.products = this.defaultProducts.map(p => ({ ...p, docId: this.getProductDocId(p.name) }));
+                    this.sortProducts();
                 },
 
                 async backfillBarcodes() {
@@ -4057,27 +4070,27 @@
                 },
                 async loadProducts() {
                     try {
-                        const snapshot = await db.collection('products').orderBy('id').get();
+                        let snapshot = await db.collection('products').get();
                         if (snapshot.empty) {
                             await this.seedProducts();
-                        } else {
-                            this.products = snapshot.docs.map(doc => doc.data());
+                            snapshot = await db.collection('products').get();
                         }
+                        this.products = snapshot.docs.map(doc => {
+                            const d = doc.data();
+                            return { ...d, docId: doc.id, id: d.id !== undefined ? d.id : doc.id };
+                        });
+                        this.sortProducts();
                         try {
                             await this.backfillBarcodes();
                         } catch (bfErr) {
                             console.error('Gagal backfill barcode:', bfErr);
                         }
-                        // Muat ulang setelah backfill agar tampilan memakai barcode terbaru
-                        if (!snapshot.empty) {
-                            const fresh = await db.collection('products').orderBy('id').get();
-                            this.products = fresh.docs.map(doc => doc.data());
-                        }
                         this.databaseError = '';
                     } catch (err) {
                         console.warn('Firestore offline/fallback:', err);
                         this.databaseError = '';
-                        this.products = this.defaultProducts.map(p => ({ ...p }));
+                        this.products = this.defaultProducts.map(p => ({ ...p, docId: this.getProductDocId(p.name) }));
+                        this.sortProducts();
                     }
                 },
 
@@ -4432,12 +4445,15 @@
                         merek: this.newProduct.merek || 'Inti Rasa Kitchen',
                         stock: Number(this.newProduct.stock) || 50
                     };
+                    const docId = this.getProductDocId(this.newProduct.name);
+                    product.docId = docId;
                     this.products.push(product);
+                    this.sortProducts();
                     this.logActivity('produk', 'Tambah Produk Baru', 'Menambahkan produk baru "' + product.name + '" (Harga: ' + this.formatRupiah(product.price) + ', Satuan: ' + product.satuan + ')', this.cashierName);
                     this.newProduct = { name: '', category: 'makanan', price: '', barcode: '', image: '', satuan: 'Pcs', merek: 'Inti Rasa Kitchen', stock: 50 };
                     this.showAddProductModal = false;
                     try {
-                        await db.collection('products').doc(String(newId)).set(product);
+                        await db.collection('products').doc(docId).set(product);
                         this.databaseError = '';
                     } catch (err) {
                         console.error('Gagal simpan ke cloud:', err);
@@ -4448,6 +4464,8 @@
                 openEditProduct(product) {
                     this.editProductData = {
                         id: product.id,
+                        docId: product.docId || this.getProductDocId(product.name),
+                        originalName: product.name,
                         name: product.name,
                         category: product.category,
                         price: product.price,
@@ -4461,11 +4479,15 @@
                 },
 
                 async updateProduct() {
-                    const idx = this.products.findIndex(p => p.id === this.editProductData.id);
+                    const idx = this.products.findIndex(p => p.id === this.editProductData.id || p.docId === this.editProductData.docId);
                     if (idx !== -1) {
                         const catName = this.editProductData.category === 'makanan' ? 'Makanan' : (this.editProductData.category === 'minuman' ? 'Minuman' : 'Cemilan');
+                        const oldDocId = this.editProductData.docId || this.getProductDocId(this.editProductData.originalName || this.products[idx].name);
+                        const newDocId = this.getProductDocId(this.editProductData.name);
+
                         const updates = {
-                            name: this.editProductData.name,
+                            name: this.editProductData.name.trim(),
+                            docId: newDocId,
                             category: this.editProductData.category,
                             categoryName: catName,
                             price: Number(this.editProductData.price),
@@ -4473,10 +4495,19 @@
                             image: this.editProductData.image || this.products[idx].image
                         };
                         Object.assign(this.products[idx], updates);
+                        this.sortProducts();
                         this.logActivity('produk', 'Ubah Produk', 'Memperbarui data produk "' + this.editProductData.name + '" (Harga: ' + this.formatRupiah(this.editProductData.price) + ')', this.cashierName);
                         this.showEditProductModal = false;
                         try {
-                            await db.collection('products').doc(String(this.editProductData.id)).update(updates);
+                            if (oldDocId !== newDocId) {
+                                await db.collection('products').doc(newDocId).set(this.products[idx]);
+                                await db.collection('products').doc(oldDocId).delete().catch(() => {});
+                            } else {
+                                await db.collection('products').doc(newDocId).update(updates);
+                            }
+                            if (this.editProductData.id) {
+                                db.collection('products').doc(String(this.editProductData.id)).delete().catch(() => {});
+                            }
                             this.databaseError = '';
                         } catch (err) {
                             console.error('Gagal update ke cloud:', err);
@@ -4486,12 +4517,19 @@
                 },
 
                 async deleteProduct(id) {
-                    const delProd = this.products.find(p => p.id === id);
-                    this.products = this.products.filter(p => p.id !== id);
+                    const delProd = this.products.find(p => p.id === id || p.docId === id);
+                    const docId = delProd ? (delProd.docId || this.getProductDocId(delProd.name)) : String(id);
+                    this.products = this.products.filter(p => p.id !== id && p.docId !== id);
                     this.logActivity('produk', 'Hapus Produk', 'Menghapus produk ' + (delProd ? delProd.name : ('ID ' + id)), this.cashierName);
                     this.showEditProductModal = false;
                     try {
-                        await db.collection('products').doc(String(id)).delete();
+                        await db.collection('products').doc(docId).delete();
+                        if (delProd && delProd.id) {
+                            db.collection('products').doc(String(delProd.id)).delete().catch(() => {});
+                        }
+                        if (typeof id === 'number' || !isNaN(id)) {
+                            db.collection('products').doc(String(id)).delete().catch(() => {});
+                        }
                         this.databaseError = '';
                     } catch (err) {
                         console.error('Gagal hapus dari cloud:', err);
