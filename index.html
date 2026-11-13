@@ -653,9 +653,10 @@
                                     <div>
                                         <h4 class="font-bold text-[#1B221B] text-xs sm:text-sm line-clamp-2 leading-snug group-hover:text-[#4B5320] transition-colors" x-text="p.name"></h4>
                                         
-                                        <!-- Barcode Area: Background abu-kehijauan sangat tipis (#F8FAF7) dengan border tipis rapi -->
-                                        <div x-show="p.barcode" class="mt-1">
-                                            <span class="bg-[#F8FAF7] border border-[#E2E5DC] rounded px-1.5 py-0.5 text-[9.5px] font-mono text-[#6B756B] inline-block truncate max-w-full" x-text="'#' + p.barcode"></span>
+                                        <!-- Barcode Area: Gambar Garis Barcode Visual & Nomor Kode -->
+                                        <div x-show="p.barcode" class="mt-1.5 bg-[#F8FAF7] border border-[#E2E5DC] rounded-xl px-2 py-1 text-center shadow-2xs group-hover:border-[#4B5320]/40 transition-colors">
+                                            <div class="flex justify-center items-center w-full max-h-7 overflow-hidden" x-init="$nextTick(() => renderBarcode($el, p.barcode))"></div>
+                                            <p class="text-[9px] font-mono font-bold text-[#6B756B] mt-0.5 tracking-wider truncate" x-text="'#' + p.barcode"></p>
                                         </div>
                                     </div>
 
@@ -3460,32 +3461,41 @@
 
                 renderBarcode(el, code) {
                     if (!el) return;
-                    if (!code || !window.bwipjs) {
+                    if (!code) {
                         el.innerHTML = '<span class="text-[8px] text-slate-400 font-mono px-1">-</span>';
                         return;
                     }
-                    const bcid = /^\d{13}$/.test(code) ? 'ean13' : 'code128';
-                    try {
-                        const svg = window.bwipjs.toSVG({
-                            bcid: bcid,
-                            text: code,
-                            scale: 2,
-                            height: 10,
-                            includetext: true,
-                            textxalign: 'center',
-                            backgroundcolor: 'FFFFFF'
-                        });
-                        el.innerHTML = svg;
-                        const node = el.querySelector('svg');
-                        if (node) {
-                            node.setAttribute('width', '100%');
-                            node.setAttribute('height', '32');
-                            node.style.display = 'block';
-                            node.style.margin = '0 auto';
+                    const draw = (retries = 12) => {
+                        if (!window.bwipjs) {
+                            if (retries > 0) setTimeout(() => draw(retries - 1), 150);
+                            else el.innerHTML = '<span class="text-[8px] text-slate-400 font-mono px-1">' + code + '</span>';
+                            return;
                         }
-                    } catch (err) {
-                        el.innerHTML = '<span class="text-[8px] text-slate-400 font-mono px-1">' + code + '</span>';
-                    }
+                        try {
+                            const cleanCode = String(code).trim();
+                            const bcid = /^\d{13}$/.test(cleanCode) ? 'ean13' : 'code128';
+                            const svg = window.bwipjs.toSVG({
+                                bcid: bcid,
+                                text: cleanCode,
+                                scale: 2,
+                                height: 8,
+                                includetext: false,
+                                backgroundcolor: 'FFFFFF'
+                            });
+                            el.innerHTML = svg;
+                            const node = el.querySelector('svg');
+                            if (node) {
+                                node.setAttribute('width', '100%');
+                                node.setAttribute('height', '26');
+                                node.style.display = 'block';
+                                node.style.margin = '0 auto';
+                                node.style.maxWidth = '130px';
+                            }
+                        } catch (err) {
+                            el.innerHTML = '<span class="text-[8px] text-slate-400 font-mono px-1">' + code + '</span>';
+                        }
+                    };
+                    draw();
                 },
 
                 existingBarcodes() {
