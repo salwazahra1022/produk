@@ -530,194 +530,262 @@
             <!-- Main Scrollable Content Views -->
             <div class="flex-1 flex overflow-hidden relative">
         
-                <!-- Halaman Kasir (Hanya Tampilan Transaksi & Pembayaran) -->
-        <div x-show="currentPage === 'kasir'" class="flex-1 flex flex-col h-full overflow-hidden p-3 sm:p-5 lg:p-6 w-full max-w-7xl mx-auto" x-cloak>
+                <!-- Halaman Kasir (Tampilan POS Terintegrasi: Langsung Memunculkan Produk & Transaksi) -->
+        <div x-show="currentPage === 'kasir'" class="flex-1 flex flex-col h-full overflow-hidden p-2 sm:p-4 lg:p-5 w-full max-w-[1600px] mx-auto" x-cloak>
             
-            <!-- Kasir Top Action Bar (Scan Barcode & Quick Menu Picker) -->
-            <div class="bg-white rounded-2xl p-3 sm:p-4 border border-[#E2E5DC] shadow-xs mb-3 sm:mb-4 shrink-0 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 overflow-hidden h-full">
                 
-                <!-- Barcode & Search Input with Dropdown Suggestions -->
-                <div class="relative w-full sm:flex-1">
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-[#4B5320] pointer-events-none">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
-                        </span>
-                        <input 
-                            type="text" 
-                            x-model="searchQuery" 
-                            @keydown.enter="handleBarcodeSearch()"
-                            placeholder="Scan barcode scanner atau ketik nama menu (Tekan Enter)..." 
-                            class="w-full pl-11 pr-24 py-2.5 sm:py-3 bg-[#F8FAF7] border border-[#E2E5DC] rounded-xl text-xs sm:text-sm font-medium focus:outline-none focus:border-[#4B5320] focus:bg-white transition-all shadow-xs text-[#1B221B]"
-                        >
-                        <div class="absolute inset-y-0 right-1.5 flex items-center gap-1">
-                            <button 
-                                x-show="searchQuery"
-                                @click="searchQuery = ''"
-                                type="button"
-                                class="p-1.5 text-[#6B756B] hover:text-[#1B221B] rounded-lg text-xs"
-                                title="Hapus pencarian">
-                                &times;
-                            </button>
-                            <button 
-                                @click="handleBarcodeSearch()" 
-                                :disabled="!searchQuery"
-                                class="px-3 py-1.5 bg-[#4B5320] hover:bg-[#3A4018] disabled:opacity-40 text-white rounded-lg text-xs font-semibold transition-all">
-                                + Masukkan
+                <!-- SISI KIRI: Katalog Produk Langsung & Pencarian (7-8 Kolom) -->
+                <div class="lg:col-span-7 xl:col-span-8 flex flex-col h-full overflow-hidden bg-[#F8FAF7] rounded-2xl border border-[#E2E5DC] p-3 sm:p-4">
+                    
+                    <!-- Search Bar & Barcode Scanner + Category Filter -->
+                    <div class="shrink-0 space-y-3 mb-3">
+                        <!-- Search & Barcode -->
+                        <div class="relative w-full">
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-[#4B5320] pointer-events-none">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                                </span>
+                                <input 
+                                    type="text" 
+                                    x-model="searchQuery" 
+                                    @keydown.enter="handleBarcodeSearch()"
+                                    placeholder="Scan barcode scanner atau cari nama produk (Tekan Enter)..." 
+                                    class="w-full pl-11 pr-24 py-2.5 sm:py-3 bg-white border border-[#E2E5DC] rounded-xl text-xs sm:text-sm font-medium focus:outline-none focus:border-[#4B5320] text-[#1B221B] transition-all shadow-xs"
+                                >
+                                <div class="absolute inset-y-0 right-1.5 flex items-center gap-1">
+                                    <button 
+                                        x-show="searchQuery"
+                                        @click="searchQuery = ''"
+                                        type="button"
+                                        class="p-1.5 text-[#6B756B] hover:text-[#1B221B] rounded-lg text-xs"
+                                        title="Hapus pencarian">
+                                        &times;
+                                    </button>
+                                    <button 
+                                        @click="handleBarcodeSearch()" 
+                                        :disabled="!searchQuery"
+                                        class="px-3 py-1.5 bg-[#4B5320] hover:bg-[#3A4018] disabled:opacity-40 text-white rounded-lg text-xs font-semibold transition-all">
+                                        + Masukkan
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Autocomplete Search Suggestions Dropdown -->
+                            <div 
+                                x-show="searchMatches.length > 0 && searchQuery.length > 0" 
+                                class="absolute left-0 right-0 top-full mt-1.5 bg-white border border-[#E2E5DC] rounded-2xl shadow-xl z-50 max-h-60 overflow-y-auto divide-y divide-[#E2E5DC]"
+                                x-cloak>
+                                <template x-for="item in searchMatches" :key="item.id">
+                                    <div 
+                                        @click="handleProductClick(item); searchQuery = ''"
+                                        class="p-2.5 sm:p-3 hover:bg-[#EAF0E8] flex items-center justify-between cursor-pointer transition-colors group">
+                                        <div class="flex items-center space-x-3">
+                                            <img :src="item.image" :alt="item.name" class="w-10 h-10 rounded-xl object-cover border border-[#E2E5DC]">
+                                            <div>
+                                                <p class="font-bold text-xs sm:text-sm text-[#1B221B] group-hover:text-[#4B5320]" x-text="item.name"></p>
+                                                <p class="text-[10px] text-[#6B756B] font-mono" x-text="item.barcode ? 'Barcode: ' + item.barcode : (item.category || '')"></p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center space-x-2">
+                                            <span class="font-bold text-xs sm:text-sm text-[#A26B38]" x-text="formatRupiah(item.price)"></span>
+                                            <span class="text-xs bg-[#4B5320] text-white font-bold px-2 py-1 rounded-lg shadow-xs">+ Tambah</span>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Category Filter Pills -->
+                        <div class="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 no-scrollbar">
+                            <template x-for="cat in categories" :key="cat.id">
+                                <button 
+                                    @click="selectedCategory = cat.id"
+                                    :class="selectedCategory === cat.id ? 'bg-[#4B5320] text-white font-bold shadow-xs' : 'bg-white hover:bg-[#EAF0E8] text-[#1B221B] border border-[#E2E5DC] font-medium'"
+                                    class="px-3 sm:px-4 py-1.5 rounded-xl text-xs whitespace-nowrap transition-all shadow-2xs shrink-0 flex items-center gap-1.5">
+                                    <span x-text="cat.name"></span>
+                                    <span 
+                                        class="text-[10px] px-1.5 py-0.2 rounded-full"
+                                        :class="selectedCategory === cat.id ? 'bg-white/20 text-white' : 'bg-[#F4F5F0] text-[#6B756B]'"
+                                        x-text="cat.id === 'all' ? products.length : products.filter(p => p.category === cat.id).length">
+                                    </span>
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Grid Katalog Produk Langsung (Scrollable) -->
+                    <div class="flex-1 overflow-y-auto pr-1">
+                        <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-3 pb-2">
+                            <template x-for="p in filteredProducts" :key="p.id">
+                                <div 
+                                    @click="handleProductClick(p)"
+                                    class="bg-white rounded-2xl border border-[#E2E5DC] hover:border-[#4B5320] p-2.5 sm:p-3 flex flex-col justify-between cursor-pointer shadow-xs hover:shadow-md transition-all group active:scale-[0.98] relative">
+                                    
+                                    <!-- Image Container -->
+                                    <div class="h-28 sm:h-32 w-full rounded-xl overflow-hidden bg-[#F8FAF7] relative mb-2 border border-[#E2E5DC]/50">
+                                        <img :src="p.image" :alt="p.name" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                        
+                                        <!-- Badge Kategori: Pill rounded-full dengan background Army Green muda (#EAF0E8) dan teks #4B5320 tebal -->
+                                        <span class="absolute top-2 left-2 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#EAF0E8] text-[#4B5320] border border-[#D0D5C9]/60 shadow-xs capitalize" x-text="p.category"></span>
+                                        
+                                        <!-- Active Cart Count Badge -->
+                                        <span 
+                                            x-show="getCartItemQty(p.id) > 0" 
+                                            class="absolute top-2 right-2 px-2 py-0.5 rounded-full text-xs font-black bg-[#4B5320] text-white shadow-md flex items-center gap-1"
+                                            x-text="getCartItemQty(p.id) + 'x'">
+                                        </span>
+                                    </div>
+
+                                    <!-- Product Info -->
+                                    <div>
+                                        <h4 class="font-bold text-[#1B221B] text-xs sm:text-sm line-clamp-2 leading-snug group-hover:text-[#4B5320] transition-colors" x-text="p.name"></h4>
+                                        
+                                        <!-- Barcode Area: Background abu-kehijauan sangat tipis (#F8FAF7) dengan border tipis rapi -->
+                                        <div x-show="p.barcode" class="mt-1">
+                                            <span class="bg-[#F8FAF7] border border-[#E2E5DC] rounded px-1.5 py-0.5 text-[9.5px] font-mono text-[#6B756B] inline-block truncate max-w-full" x-text="'#' + p.barcode"></span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Price & Stock & Action Button -->
+                                    <div class="mt-2 pt-2 border-t border-[#E2E5DC]">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <!-- Angka Harga (Rp): Font tebal bernuansa #1B221B dengan sentuhan aksen #A26B38 -->
+                                            <span class="font-black text-xs sm:text-sm text-[#A26B38]" x-text="formatRupiah(p.price)"></span>
+                                            
+                                            <!-- Badge Stok: Pill hijau zaitun lembut di pojok kanan bawah info produk -->
+                                            <span 
+                                                class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-[#EAF0E8] text-[#385E38] border border-[#D0D5C9]/60"
+                                                x-text="'Stok: ' + (p.stock ?? 0)">
+                                            </span>
+                                        </div>
+                                        <button 
+                                            @click.stop="handleProductClick(p)"
+                                            class="w-full py-1.5 bg-[#4B5320] hover:bg-[#3A4018] text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-xs active:scale-95">
+                                            <template x-if="isCustomizableProduct(p)">
+                                                <span class="flex items-center gap-1">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+                                                    <span>⚙️ Kustom / Pilih</span>
+                                                </span>
+                                            </template>
+                                            <template x-if="!isCustomizableProduct(p)">
+                                                <span class="flex items-center gap-1">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                                    <span>+ Tambah</span>
+                                                </span>
+                                            </template>
+                                        </button>
+                                    </div>
+
+                                </div>
+                            </template>
+                        </div>
+
+                        <!-- Empty Search Result -->
+                        <div x-show="filteredProducts.length === 0" class="py-12 flex flex-col items-center justify-center text-[#6B756B]" x-cloak>
+                            <svg class="w-12 h-12 text-[#A7B39E] mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <p class="font-bold text-sm text-[#1B221B]">Menu Tidak Ditemukan</p>
+                            <p class="text-xs text-[#6B756B] mt-0.5">Coba kata kunci lain atau pilih kategori Semua.</p>
+                            <button @click="searchQuery = ''; selectedCategory = 'all'" class="mt-3 px-3 py-1.5 bg-white hover:bg-[#EAF0E8] border border-[#E2E5DC] text-[#4B5320] rounded-xl text-xs font-semibold shadow-2xs">
+                                Reset Filter & Pencarian
                             </button>
                         </div>
                     </div>
 
-                    <!-- Autocomplete Search Suggestions Dropdown -->
-                    <div 
-                        x-show="searchMatches.length > 0 && searchQuery.length > 0" 
-                        class="absolute left-0 right-0 top-full mt-1.5 bg-white border border-[#E2E5DC] rounded-2xl shadow-xl z-50 max-h-64 overflow-y-auto divide-y divide-[#E2E5DC]"
-                        x-cloak>
-                        <template x-for="item in searchMatches" :key="item.id">
-                            <div 
-                                @click="handleProductClick(item); searchQuery = ''"
-                                class="p-2.5 sm:p-3 hover:bg-[#EAF0E8] flex items-center justify-between cursor-pointer transition-colors group">
-                                <div class="flex items-center space-x-3">
-                                    <img :src="item.image" :alt="item.name" class="w-10 h-10 rounded-xl object-cover border border-[#E2E5DC]">
-                                    <div>
-                                        <p class="font-bold text-xs sm:text-sm text-[#1B221B] group-hover:text-[#4B5320]" x-text="item.name"></p>
-                                        <p class="text-[10px] text-[#6B756B] font-mono" x-text="item.barcode ? 'Barcode: ' + item.barcode : (item.categoryName || '')"></p>
-                                    </div>
-                                </div>
-                                <div class="flex items-center space-x-2">
-                                    <span class="font-bold text-xs sm:text-sm text-[#A26B38]" x-text="formatRupiah(item.price)"></span>
-                                    <span class="text-xs bg-[#4B5320] text-white font-bold px-2 py-1 rounded-lg shadow-xs">+ Tambah</span>
-                                </div>
-                            </div>
-                        </template>
-                    </div>
                 </div>
 
-                <!-- Right Action Buttons -->
-                <div class="flex items-center space-x-2 w-full sm:w-auto shrink-0 justify-end">
-                    <button 
-                        @click="showMenuPicker = true" 
-                        class="px-3.5 py-2.5 bg-[#EAF0E8] hover:bg-[#D0D5C9] text-[#4B5320] border border-[#D0D5C9] rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center gap-1.5">
-                        <svg class="w-4 h-4 text-[#4B5320]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
-                        <span>Pilih Menu</span>
-                    </button>
-                    <button 
-                        @click="clearCart()" 
-                        x-show="cart.length > 0"
-                        class="px-3 py-2.5 bg-[#FDF2F2] hover:bg-[#FCE8E8] text-[#B84A4A] border border-[#F5C2C2] rounded-xl font-semibold text-xs sm:text-sm transition-all flex items-center gap-1">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                        <span>Kosongkan</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Main Transaction Panel (2-Column Desktop, Stacked Mobile) -->
-            <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 overflow-hidden">
-                
-                <!-- Left: Transaction Order Table (7-8 Cols) -->
-                <div class="lg:col-span-7 xl:col-span-8 bg-white rounded-2xl border border-[#E2E5DC] shadow-xs flex flex-col overflow-hidden h-full">
+                <!-- SISI KANAN: Daftar Pesanan / Keranjang & Pembayaran POS (4-5 Kolom) -->
+                <div class="lg:col-span-5 xl:col-span-4 bg-white rounded-2xl border border-[#E2E5DC] shadow-xs flex flex-col h-full overflow-hidden">
                     
+                    <!-- Header Keranjang Pesanan -->
                     <div class="p-3 sm:p-4 border-b border-[#E2E5DC] flex items-center justify-between shrink-0 bg-[#F8FAF7]">
                         <div class="flex items-center space-x-2">
                             <span class="text-base sm:text-lg">🧾</span>
-                            <h2 class="font-bold text-[#1B221B] text-sm sm:text-base">Daftar Transaksi Saat Ini</h2>
+                            <div>
+                                <h3 class="font-bold text-[#1B221B] text-xs sm:text-sm">Pesanan Saat Ini</h3>
+                                <p class="text-[11px] text-[#6B756B]">Kasir: <strong class="text-[#1B221B]" x-text="cashierName"></strong></p>
+                            </div>
                         </div>
-                        <span class="bg-[#EAF0E8] text-[#385E38] border border-[#D0D5C9]/60 text-xs font-bold px-2.5 py-1 rounded-full" x-text="totalItems + ' Item'"></span>
+                        <div class="flex items-center space-x-2">
+                            <span class="bg-[#EAF0E8] text-[#385E38] border border-[#D0D5C9]/60 text-xs font-bold px-2.5 py-1 rounded-full" x-text="totalItems + ' Item'"></span>
+                            <button 
+                                @click="clearCart()" 
+                                x-show="cart.length > 0"
+                                class="p-1.5 text-[#B84A4A] hover:bg-[#FDF2F2] rounded-lg text-xs font-semibold transition-all"
+                                title="Kosongkan Pesanan">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            </button>
+                        </div>
                     </div>
 
-                    <!-- Table of Items / Item List -->
-                    <div class="flex-1 overflow-y-auto p-2 sm:p-3">
+                    <!-- Daftar Item dalam Pesanan (Scrollable) -->
+                    <div class="flex-1 overflow-y-auto p-2 sm:p-3 space-y-2">
                         <template x-if="cart.length > 0">
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-left text-xs sm:text-sm">
-                                    <thead class="bg-[#F8FAF7] text-[#6B756B] font-semibold border-b border-[#E2E5DC] uppercase text-[10px] tracking-wider">
-                                        <tr>
-                                            <th class="py-2.5 px-3">#</th>
-                                            <th class="py-2.5 px-3">Nama Menu</th>
-                                            <th class="py-2.5 px-3">Harga</th>
-                                            <th class="py-2.5 px-3 text-center">Jumlah</th>
-                                            <th class="py-2.5 px-3 text-right">Subtotal</th>
-                                            <th class="py-2.5 px-3 text-center">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-[#E2E5DC]">
-                                        <template x-for="(item, index) in cart" :key="item.cartItemId || (item.id + '_' + index)">
-                                            <tr class="hover:bg-[#F8FAF7] transition-colors">
-                                                <td class="py-3 px-3 text-[#6B756B] font-medium" x-text="index + 1"></td>
-                                                <td class="py-3 px-3">
-                                                    <div class="flex items-start space-x-2.5">
-                                                        <img :src="item.image" :alt="item.name" class="w-10 h-10 rounded-lg object-cover border border-[#E2E5DC] shrink-0 mt-0.5">
-                                                        <div class="min-w-0 flex-1">
-                                                            <p class="font-bold text-[#1B221B] line-clamp-1" x-text="item.name"></p>
-                                                            <span class="text-[10px] text-[#6B756B] font-mono" x-text="item.barcode ? 'Barcode: ' + item.barcode : (item.categoryName || '')"></span>
-                                                            
-                                                            <!-- Modifiers Summary -->
-                                                            <div x-show="item.modifiersSummary" class="text-[10px] text-[#4B5320] bg-[#EAF0E8] border border-[#D0D5C9] rounded px-1.5 py-0.5 mt-1 block leading-snug">
-                                                                <span class="font-semibold" x-text="item.modifiersSummary"></span>
-                                                            </div>
-                                                            
-                                                            <!-- Catatan Dapur Barang -->
-                                                            <div class="mt-1 w-full max-w-xs">
-                                                                <div class="flex items-center gap-1 bg-[#FAF6F0] border border-[#D4A373]/60 rounded-md px-1.5 py-0.5 text-xs">
-                                                                    <span class="text-[#A26B38] font-bold shrink-0 text-[10px]">📝</span>
-                                                                    <input 
-                                                                        type="text" 
-                                                                        x-model="item.notes" 
-                                                                        placeholder="Catatan dapur..." 
-                                                                        class="w-full bg-transparent text-[#1B221B] font-medium placeholder-[#A26B38]/60 text-[10px] focus:outline-none">
-                                                                </div>
-                                                            </div>
-                                                        </div>
+                            <div class="space-y-2">
+                                <template x-for="(item, index) in cart" :key="item.cartItemId || (item.id + '_' + index)">
+                                    <div class="p-2 sm:p-2.5 bg-[#F8FAF7] hover:bg-[#F4F5F0] border border-[#E2E5DC] rounded-xl flex items-start justify-between gap-2 transition-colors">
+                                        <!-- Info Item -->
+                                        <div class="flex items-start space-x-2.5 flex-1 min-w-0">
+                                            <img :src="item.image" :alt="item.name" class="w-10 h-10 rounded-lg object-cover shrink-0 border border-[#E2E5DC] mt-0.5">
+                                            <div class="min-w-0 flex-1">
+                                                <p class="font-bold text-xs sm:text-sm text-[#1B221B] truncate" x-text="item.name"></p>
+                                                <p class="text-[11px] text-[#6B756B] font-medium" x-text="formatRupiah(item.price)"></p>
+                                                
+                                                <!-- Modifiers Summary -->
+                                                <div x-show="item.modifiersSummary" class="text-[10px] text-[#4B5320] bg-[#EAF0E8] border border-[#D0D5C9] rounded px-1.5 py-0.5 mt-1 block leading-snug">
+                                                    <span class="font-semibold" x-text="item.modifiersSummary"></span>
+                                                </div>
+                                                
+                                                <!-- Catatan Dapur Barang (Tersimpan & Bisa Diisi Langsung di Halaman Kasir) -->
+                                                <div class="mt-1.5 w-full">
+                                                    <div class="flex items-center gap-1.5 bg-[#FAF6F0] border border-[#D4A373]/60 rounded-lg px-2 py-1 text-xs">
+                                                        <span class="text-[#A26B38] font-bold shrink-0 text-[10px] sm:text-[11px]">📝 Catatan:</span>
+                                                        <input 
+                                                            type="text" 
+                                                            x-model="item.notes" 
+                                                            placeholder="cth: jangan pakai seledri / saus dipisah" 
+                                                            class="w-full bg-transparent text-[#1B221B] font-medium placeholder-[#A26B38]/60 text-[10px] sm:text-[11px] focus:outline-none">
                                                     </div>
-                                                </td>
-                                                <td class="py-3 px-3 text-[#1B221B] font-medium whitespace-nowrap" x-text="formatRupiah(item.price)"></td>
-                                                <td class="py-3 px-3">
-                                                    <div class="flex items-center justify-center space-x-1.5">
-                                                        <button @click="decrementQty(index)" class="w-7 h-7 rounded-lg bg-[#EAF0E8] hover:bg-[#D0D5C9] text-[#4B5320] flex items-center justify-center font-bold text-sm transition-colors">-</button>
-                                                        <span class="w-8 text-center font-bold text-[#1B221B] text-sm" x-text="item.qty"></span>
-                                                        <button @click="incrementQty(index)" class="w-7 h-7 rounded-lg bg-[#EAF0E8] hover:bg-[#D0D5C9] text-[#4B5320] flex items-center justify-center font-bold text-sm transition-colors">+</button>
-                                                    </div>
-                                                </td>
-                                                <td class="py-3 px-3 text-right font-bold text-[#A26B38] whitespace-nowrap" x-text="formatRupiah(item.price * item.qty)"></td>
-                                                <td class="py-3 px-3 text-center">
-                                                    <button @click="cart.splice(index, 1)" class="p-1.5 text-[#B84A4A] hover:bg-[#FDF2F2] rounded-lg transition-colors" title="Hapus Item">
-                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        </template>
-                                    </tbody>
-                                </table>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Quantity Controls & Subtotal -->
+                                        <div class="flex flex-col items-end space-y-1.5 shrink-0">
+                                            <div class="flex items-center space-x-1.5">
+                                                <div class="flex items-center bg-white border border-[#E2E5DC] rounded-lg overflow-hidden shadow-2xs">
+                                                    <button @click="decrementQty(index)" class="w-6 h-6 hover:bg-[#EAF0E8] text-[#4B5320] flex items-center justify-center font-bold text-xs transition-colors">-</button>
+                                                    <span class="w-7 text-center font-bold text-[#1B221B] text-xs" x-text="item.qty"></span>
+                                                    <button @click="incrementQty(index)" class="w-6 h-6 hover:bg-[#EAF0E8] text-[#4B5320] flex items-center justify-center font-bold text-xs transition-colors">+</button>
+                                                </div>
+                                                <button @click="cart.splice(index, 1)" class="p-1 text-[#6B756B] hover:text-[#B84A4A] transition-colors" title="Hapus">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                                </button>
+                                            </div>
+                                            <span class="font-bold text-xs text-[#A26B38] text-right" x-text="formatRupiah(item.price * item.qty)"></span>
+                                        </div>
+                                    </div>
+                                </template>
                             </div>
                         </template>
 
-                        <!-- Empty State (Sesuai Gambar Pengguna) -->
+                        <!-- Keranjang Kosong State -->
                         <template x-if="cart.length === 0">
-                            <div class="flex flex-col items-center justify-center h-full min-h-[280px] text-[#6B756B] p-6 text-center">
-                                <div class="w-16 h-16 rounded-full bg-[#F8FAF7] border border-[#E2E5DC] flex items-center justify-center text-[#6B756B] mb-3">
-                                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                            <div class="flex flex-col items-center justify-center h-full min-h-[160px] text-[#6B756B] text-center p-4">
+                                <div class="w-12 h-12 rounded-full bg-[#F8FAF7] border border-[#E2E5DC] flex items-center justify-center text-[#A7B39E] mb-2">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                                 </div>
-                                <h3 class="font-bold text-[#1B221B] text-sm sm:text-base">Belum Ada Transaksi</h3>
-                                <p class="text-xs text-[#6B756B] mt-1 max-w-sm">Scan barcode produk atau ketik nama menu di kolom pencarian di atas untuk memasukkan barang belanjaan.</p>
-                                <button @click="showMenuPicker = true" class="mt-4 px-4 py-2 bg-[#4B5320] hover:bg-[#3A4018] text-white font-bold rounded-xl text-xs shadow-md shadow-[#4B5320]/20 transition-all flex items-center gap-1.5 active:scale-95">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                                    <span>+ Pilih dari Menu</span>
-                                </button>
+                                <p class="font-bold text-[#1B221B] text-xs sm:text-sm">Belum Ada Pesanan</p>
+                                <p class="text-[11px] text-[#6B756B] mt-0.5 max-w-[200px]">Klik salah satu produk di sebelah kiri untuk menambah ke pesanan.</p>
                             </div>
                         </template>
                     </div>
-                </div>
 
-                <!-- Right: Payment & Summary Panel (4-5 Cols) -->
-                <div class="lg:col-span-5 xl:col-span-4 bg-white rounded-2xl border border-[#E2E5DC] shadow-xs flex flex-col justify-between overflow-y-auto p-4 sm:p-5 h-full space-y-4">
-                    
-                    <div class="space-y-4">
-                        <div class="pb-3 border-b border-[#E2E5DC] flex items-center justify-between">
-                            <h3 class="font-bold text-[#1B221B] text-sm sm:text-base">Ringkasan Pembayaran</h3>
-                            <span class="text-xs text-[#6B756B] font-medium">Kasir: <strong class="text-[#1B221B]" x-text="cashierName"></strong></span>
-                        </div>
-
-                        <!-- Calculation breakdown -->
-                        <div class="space-y-2 text-xs sm:text-sm">
+                    <!-- Ringkasan Pembayaran & Tombol Bayar (Anchored Bottom) -->
+                    <div class="p-3 sm:p-4 border-t border-[#E2E5DC] bg-[#F8FAF7] shrink-0 space-y-3">
+                        
+                        <!-- Rincian Biaya -->
+                        <div class="space-y-1.5 text-xs">
                             <div class="flex justify-between text-[#6B756B]">
                                 <span>Subtotal</span>
                                 <span class="font-semibold text-[#1B221B]" x-text="formatRupiah(subtotal)"></span>
@@ -730,65 +798,58 @@
                                 <span>Diskon</span>
                                 <span class="font-semibold text-[#385E38]" x-text="'- ' + formatRupiah(discount)"></span>
                             </div>
-                            <div class="border-t border-[#E2E5DC] pt-3 flex justify-between items-baseline">
-                                <span class="font-bold text-[#1B221B] text-sm sm:text-base">Total Bayar</span>
-                                <span class="font-black text-xl sm:text-2xl text-[#A26B38]" x-text="formatRupiah(total)"></span>
+                            <div class="border-t border-[#E2E5DC] pt-1.5 flex justify-between items-baseline">
+                                <span class="font-bold text-[#1B221B] text-sm">Total Bayar</span>
+                                <span class="font-black text-lg sm:text-xl text-[#A26B38]" x-text="formatRupiah(total)"></span>
                             </div>
                         </div>
 
-                        <!-- Payment Method -->
+                        <!-- Metode Pembayaran -->
                         <div>
-                            <label class="block text-xs font-bold text-[#1B221B] mb-2">Metode Pembayaran</label>
-                            <div class="grid grid-cols-2 gap-2">
+                            <div class="grid grid-cols-2 gap-1.5">
                                 <button 
                                     @click="paymentMethod = 'cash'"
                                     :class="paymentMethod === 'cash' ? 'bg-[#4B5320] text-white border-[#4B5320] shadow-sm' : 'bg-white text-[#1B221B] border-[#E2E5DC] hover:bg-[#F4F5F0]'"
-                                    class="py-2.5 px-3 rounded-xl text-xs font-bold border transition-all flex items-center justify-center space-x-1.5">
-                                    <span>💵</span><span>Tunai (Cash)</span>
+                                    class="py-1.5 px-2 rounded-xl text-xs font-bold border transition-all flex items-center justify-center space-x-1">
+                                    <span>💵</span><span>Tunai</span>
                                 </button>
                                 <button 
                                     @click="paymentMethod = 'qris'"
                                     :class="paymentMethod === 'qris' ? 'bg-[#4B5320] text-white border-[#4B5320] shadow-sm' : 'bg-white text-[#1B221B] border-[#E2E5DC] hover:bg-[#F4F5F0]'"
-                                    class="py-2.5 px-3 rounded-xl text-xs font-bold border transition-all flex items-center justify-center space-x-1.5">
-                                    <span>📱</span><span>QRIS / QR</span>
+                                    class="py-1.5 px-2 rounded-xl text-xs font-bold border transition-all flex items-center justify-center space-x-1">
+                                    <span>📱</span><span>QRIS</span>
                                 </button>
                             </div>
                         </div>
 
-                        <!-- Cash Input & Change (If Tunai) -->
-                        <div x-show="paymentMethod === 'cash'" class="space-y-2 bg-[#F8FAF7] p-3 rounded-xl border border-[#E2E5DC]" x-cloak>
-                            <label class="block text-xs font-bold text-[#1B221B]">Uang Diterima (Rp)</label>
+                        <!-- Nominal Uang Tunai & Kembalian -->
+                        <div x-show="paymentMethod === 'cash'" class="space-y-1.5 bg-white p-2.5 rounded-xl border border-[#E2E5DC]" x-cloak>
+                            <div class="flex items-center justify-between text-xs font-bold text-[#1B221B]">
+                                <span>Uang Diterima (Rp)</span>
+                                <span class="text-[11px] font-normal text-[#6B756B]">Kembalian: <strong :class="changeAmount >= 0 ? 'text-[#385E38]' : 'text-[#B84A4A]'" x-text="formatRupiah(changeAmount)"></strong></span>
+                            </div>
                             <input 
                                 type="number" 
                                 x-model.number="cashAmount" 
-                                placeholder="Masukkan nominal uang..." 
-                                class="w-full px-3 py-2 bg-white border border-[#E2E5DC] rounded-xl text-sm font-bold text-[#1B221B] focus:outline-none focus:border-[#4B5320]">
+                                placeholder="Masukkan nominal..." 
+                                class="w-full px-2.5 py-1.5 bg-[#F8FAF7] border border-[#E2E5DC] rounded-lg text-xs font-bold text-[#1B221B] focus:outline-none focus:border-[#4B5320]">
                             
                             <!-- Quick amount chips -->
-                            <div class="flex flex-wrap gap-1.5 pt-1">
-                                <button @click="setCash('pas')" class="px-2.5 py-1 bg-white hover:bg-[#EAF0E8] hover:text-[#4B5320] border border-[#E2E5DC] text-[#1B221B] rounded-lg text-[11px] font-semibold">Uang Pas</button>
-                                <button @click="setCash(20000)" class="px-2.5 py-1 bg-white hover:bg-[#EAF0E8] hover:text-[#4B5320] border border-[#E2E5DC] text-[#1B221B] rounded-lg text-[11px] font-semibold">20.000</button>
-                                <button @click="setCash(50000)" class="px-2.5 py-1 bg-white hover:bg-[#EAF0E8] hover:text-[#4B5320] border border-[#E2E5DC] text-[#1B221B] rounded-lg text-[11px] font-semibold">50.000</button>
-                                <button @click="setCash(100000)" class="px-2.5 py-1 bg-white hover:bg-[#EAF0E8] hover:text-[#4B5320] border border-[#E2E5DC] text-[#1B221B] rounded-lg text-[11px] font-semibold">100.000</button>
-                            </div>
-
-                            <div class="pt-2 border-t border-[#E2E5DC] flex justify-between items-center text-xs">
-                                <span class="font-bold text-[#1B221B]">Kembalian</span>
-                                <span class="font-black text-sm" :class="changeAmount >= 0 ? 'text-[#385E38]' : 'text-[#B84A4A]'" x-text="formatRupiah(changeAmount)"></span>
+                            <div class="flex flex-wrap gap-1 pt-0.5">
+                                <button @click="setCash('pas')" class="px-2 py-0.5 bg-white hover:bg-[#EAF0E8] hover:text-[#4B5320] border border-[#E2E5DC] text-[#1B221B] rounded-md text-[10px] font-semibold">Uang Pas</button>
+                                <button @click="setCash(20000)" class="px-2 py-0.5 bg-white hover:bg-[#EAF0E8] hover:text-[#4B5320] border border-[#E2E5DC] text-[#1B221B] rounded-md text-[10px] font-semibold">20.000</button>
+                                <button @click="setCash(50000)" class="px-2 py-0.5 bg-white hover:bg-[#EAF0E8] hover:text-[#4B5320] border border-[#E2E5DC] text-[#1B221B] rounded-md text-[10px] font-semibold">50.000</button>
+                                <button @click="setCash(100000)" class="px-2 py-0.5 bg-white hover:bg-[#EAF0E8] hover:text-[#4B5320] border border-[#E2E5DC] text-[#1B221B] rounded-md text-[10px] font-semibold">100.000</button>
                             </div>
                         </div>
 
-                    </div>
-
-                    <!-- Checkout Button -->
-                    <div class="pt-3 border-t border-[#E2E5DC]">
+                        <!-- Checkout Button -->
                         <button 
                             @click="checkout()"
                             :disabled="cart.length === 0"
                             :class="cart.length === 0 ? 'bg-[#E2E5DC] text-[#6B756B] cursor-not-allowed' : 'bg-[#4B5320] hover:bg-[#3A4018] text-white shadow-lg shadow-[#4B5320]/25 active:scale-[0.99]'"
-                            class="w-full py-3 sm:py-3.5 rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center justify-center space-x-2">
-                            <span>Selesaikan Transaksi (Bayar)</span>
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                            class="w-full py-2.5 sm:py-3 rounded-xl font-bold transition-all flex items-center justify-center space-x-1.5 text-xs sm:text-sm">
+                            <span x-text="paymentMethod === 'qris' ? 'Buat QRIS & Cetak Struk' : 'Selesaikan Transaksi & Struk'"></span>
                         </button>
                     </div>
 
