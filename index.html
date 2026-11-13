@@ -84,6 +84,27 @@
                 }
             }
         };
+    </script>
+    <!-- Alpine.js CDN -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- bwip-js CDN for scannable barcode rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/bwip-js@4/dist/bwip-js.js"></script>
+    <!-- jsPDF & autoTable CDN for PDF Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCfeI-1saBRxZ8W83xhskKq0138-I6UcpE",
+            authDomain: "kasir-zasa.firebaseapp.com",
+            projectId: "kasir-zasa",
+            storageBucket: "kasir-zasa.firebasestorage.app",
+            messagingSenderId: "819408330563",
+            appId: "1:819408330563:web:ec9d288fc55d9bad8199f6"
+        };
         const fbApp = firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
