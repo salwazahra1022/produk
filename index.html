@@ -628,7 +628,7 @@
 
                     <!-- Grid Katalog Produk Langsung (Scrollable) -->
                     <div class="flex-1 overflow-y-auto pr-1">
-                        <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-3 pb-2">
+                        <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-3 pb-24 lg:pb-3">
                             <template x-for="p in filteredProducts" :key="p.id">
                                 <div 
                                     @click="handleProductClick(p)"
@@ -882,23 +882,33 @@
 
                 </div>
 
-                <!-- Floating Bottom Checkout Bar (Hanya tampil di HP saat ada pesanan & tidak sedang membuka drawer) -->
-                <div x-show="cart.length > 0 && !showMobileCart" class="lg:hidden fixed bottom-3 left-3 right-3 z-40 transition-all transform" x-cloak>
-                    <button 
-                        @click="showMobileCart = true"
-                        class="w-full bg-[#4B5320] hover:bg-[#3A4018] text-white p-3 rounded-2xl shadow-2xl border border-[#3A4018] flex items-center justify-between active:scale-[0.98] transition-all">
-                        <div class="flex items-center space-x-2.5">
-                            <span class="bg-white/20 text-white text-xs font-black px-2.5 py-1 rounded-full border border-white/20" x-text="totalItems + ' Item'"></span>
-                            <div class="flex flex-col text-left">
-                                <span class="text-[10px] text-white/80 leading-none">Total Tagihan</span>
-                                <span class="text-sm font-black text-white leading-tight mt-0.5" x-text="formatRupiah(total)"></span>
+                <!-- Mobile Always-Visible Bottom Transaction Dock (Selalu terlihat di HP & tidak menghalangi produk) -->
+                <div x-show="!showMobileCart" class="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#E2E5DC] px-3 py-2 sm:py-2.5 shadow-2xl transition-all" x-cloak>
+                    <div class="flex items-center justify-between gap-2.5 max-w-md mx-auto">
+                        <!-- Info Keranjang / Pesanan -->
+                        <div @click="showMobileCart = true" class="flex items-center space-x-2.5 min-w-0 cursor-pointer flex-1">
+                            <div class="relative w-10 h-10 rounded-xl bg-[#EAF0E8] border border-[#D0D5C9] flex items-center justify-center text-[#4B5320] shrink-0">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                                <span x-show="totalItems > 0" x-text="totalItems" class="absolute -top-1 -right-1 bg-[#A26B38] text-white text-[10px] font-black rounded-full h-4 min-w-[16px] px-1 flex items-center justify-center shadow-xs"></span>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-[10px] text-[#6B756B] font-semibold leading-tight truncate">
+                                    <span x-text="totalItems > 0 ? (totalItems + ' Menu Dipilih') : 'Pesanan Kasir'"></span>
+                                </p>
+                                <p class="text-sm font-black text-[#1B221B] leading-tight" x-text="formatRupiah(total)"></p>
                             </div>
                         </div>
-                        <div class="flex items-center space-x-1.5 bg-white text-[#4B5320] px-3.5 py-1.5 rounded-xl font-bold text-xs shadow-xs">
-                            <span>Lihat & Bayar</span>
+
+                        <!-- Tombol Transaksi -->
+                        <button 
+                            @click="showMobileCart = true"
+                            class="h-10 px-4 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 shadow-sm active:scale-95"
+                            :class="cart.length > 0 ? 'bg-[#4B5320] hover:bg-[#3A4018] text-white' : 'bg-[#EAF0E8] text-[#4B5320] border border-[#D0D5C9] hover:bg-[#D0D5C9]'">
+                            <span>🧾</span>
+                            <span x-text="cart.length > 0 ? 'Buka & Bayar' : 'Lihat Transaksi'"></span>
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
-                        </div>
-                    </button>
+                        </button>
+                    </div>
                 </div>
 
             </div>
