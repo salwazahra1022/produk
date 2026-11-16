@@ -1,0 +1,7 @@
+.git
+.gitignore
+*.md
+platformio.ini
+src/
+include/
+data/
