@@ -3575,8 +3575,8 @@
                             const parsed = JSON.parse(saved);
                             self.user = parsed;
                             self.cashierName = parsed.displayName || 'Jeff';
-                            if (parsed.username === 'zarsal') {
-                                (auth && auth.signInWithEmailAndPassword)('zarsal@intirasacaffe.com', 'password12345')
+                            if (auth) {
+                                auth.signInWithEmailAndPassword('zarsal@intirasacaffe.com', 'password12345')
                                     .catch(() => {})
                                     .finally(() => self.loadProducts());
                             } else {
@@ -3586,8 +3586,14 @@
                         } catch (e) {}
                     }
 
-                    // 2. Default awal: langsung tampilkan form login
-                    try { (auth && auth.signOut()); } catch (e) {}
+                    // 2. Default awal: langsung tampilkan form login & muat produk warung di background
+                    if (auth) {
+                        auth.signInWithEmailAndPassword('zarsal@intirasacaffe.com', 'password12345')
+                            .then(() => self.loadProducts())
+                            .catch(() => self.loadProducts());
+                    } else {
+                        self.loadProducts();
+                    }
                     self.user = null;
                 },
 
@@ -3635,6 +3641,13 @@
                         this.loginPassword = '';
                         this.loginLoading = false;
                         this.logActivity('auth', 'Login Administrator', 'Admin berhasil login ke sistem', 'Administrator');
+                        try {
+                            if (auth) {
+                                await auth.signInWithEmailAndPassword('zarsal@intirasacaffe.com', 'password12345');
+                            }
+                        } catch (fbErr) {
+                            console.warn('Firebase admin auth fallback:', fbErr);
+                        }
                         await this.loadProducts();
                         return;
                     }
@@ -3649,7 +3662,7 @@
 
                         // Hubungkan ke Firebase Auth di background agar hak akses Firestore terbuka
                         try {
-                            const cred = await (auth && auth.signInWithEmailAndPassword)('zarsal@intirasacaffe.com', 'password12345');
+                            const cred = await auth.signInWithEmailAndPassword('zarsal@intirasacaffe.com', 'password12345');
                             await cred.user.updateProfile({ displayName: 'Jeff' });
                         } catch (fbErr) {
                             console.warn('Firebase background auth fallback:', fbErr);
@@ -3676,7 +3689,7 @@
                     // 2. Autentikasi Firebase untuk akun lainnya
                     try {
                         const email = this.resolveEmail(username);
-                        const cred = await (auth && auth.signInWithEmailAndPassword)(email, password);
+                        const cred = await auth.signInWithEmailAndPassword(email, password);
                         const userObj = {
                             uid: cred.user.uid,
                             displayName: cred.user.displayName || 'Jeff',
@@ -3698,7 +3711,7 @@
                     localStorage.removeItem('pos_current_user');
                     this.user = null;
                     try {
-                        await (auth && auth.signOut());
+                        await auth.signOut();
                     } catch (e) {}
                 },
 
@@ -4377,6 +4390,9 @@
                         });
                         this.sortProducts();
                         try {
+                            localStorage.setItem('pos_products', JSON.stringify(this.products));
+                        } catch (e) {}
+                        try {
                             await this.backfillBarcodes();
                         } catch (bfErr) {
                             console.error('Gagal backfill barcode:', bfErr);
@@ -4385,7 +4401,16 @@
                     } catch (err) {
                         console.warn('Firestore offline/fallback:', err);
                         this.databaseError = '';
-                        this.products = this.defaultProducts.map(p => ({ ...p, docId: this.getProductDocId(p.name) }));
+                        const saved = localStorage.getItem('pos_products');
+                        if (saved) {
+                            try {
+                                this.products = JSON.parse(saved);
+                            } catch (e) {
+                                this.products = this.defaultProducts.map(p => ({ ...p, docId: this.getProductDocId(p.name) }));
+                            }
+                        } else {
+                            this.products = this.defaultProducts.map(p => ({ ...p, docId: this.getProductDocId(p.name) }));
+                        }
                         this.sortProducts();
                     }
                 },
