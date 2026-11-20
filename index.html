@@ -650,10 +650,10 @@
             </div>
 
             <!-- Role Badge & Switcher Pill -->
-            <div class="mx-3 mt-2.5 px-3 py-2 rounded-xl text-xs flex items-center justify-between shadow-2xs transition-colors" :class="userRole === 'admin' ? 'bg-purple-100/70 text-purple-950 border border-purple-300' : 'bg-emerald-100/70 text-emerald-950 border border-emerald-300'">
+            <div class="mx-3 mt-2.5 px-3 py-2 rounded-xl text-xs flex items-center justify-between shadow-2xs transition-colors" :class="userRole === 'admin' ? 'bg-[#EAF0E8] text-[#2D331A] border border-[#D0D5C9]' : 'bg-emerald-50 text-emerald-900 border border-emerald-200'">
                 <div class="flex items-center gap-1.5 font-black">
                     <span x-text="userRole === 'admin' ? '👑 Mode Admin' : '💼 Mode Kasir'"></span>
-                    <span class="text-[10px] px-2 py-0.5 rounded-md font-mono font-black shadow-2xs" :class="userRole === 'admin' ? 'bg-purple-200 text-purple-950' : 'bg-emerald-200 text-emerald-950'" x-text="userRole === 'admin' ? 'Full Akses' : 'Terbatas'"></span>
+                    <span class="text-[10px] px-2 py-0.5 rounded-md font-mono font-black shadow-2xs" :class="userRole === 'admin' ? 'bg-[#D0D5C9] text-[#1B221B]' : 'bg-emerald-200 text-emerald-950'" x-text="userRole === 'admin' ? 'Full Akses' : 'Terbatas'"></span>
                 </div>
                 <button @click="roleSwitch(userRole === 'admin' ? 'kasir' : 'admin')" class="text-[11px] font-black text-sky-700 hover:text-sky-900 underline cursor-pointer" x-text="userRole === 'admin' ? 'Pindah Kasir' : 'Pindah Admin'" title="Ganti Role Akun"></button>
             </div>
@@ -712,15 +712,7 @@
                             <span class="flex-1 font-bold">Kartu Stok Barang</span>
                         </button>
 
-                        <!-- 6. Merek -->
-                        <button 
-                            @click="currentPage = 'merek'; sidebarOpen = false"
-                            :class="currentPage === 'merek' ? 'bg-sky-100/70 text-sky-800 font-black border-l-4 border-sky-600 shadow-2xs' : 'text-slate-800 hover:bg-slate-100 font-bold'"
-                            class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs sm:text-sm transition-all text-left">
-                            <span class="text-base">🔖</span>
-                            <span class="flex-1 font-bold">Merek</span>
-                            <span class="text-[11px] bg-slate-200/90 text-slate-900 px-2 py-0.5 rounded-md font-mono font-black border border-slate-300" x-text="merekList.length"></span>
-                        </button>
+                        
 
                         <!-- 7. Kategori -->
                         <button 
@@ -753,11 +745,11 @@
                     <template x-if="userRole === 'admin'">
                         <button 
                             @click="currentPage = 'log-kegiatan'; sidebarOpen = false"
-                            :class="currentPage === 'log-kegiatan' ? 'bg-purple-600 text-white font-black shadow-md shadow-purple-600/20' : 'text-purple-900 hover:bg-purple-100 font-bold'"
+                            :class="currentPage === 'log-kegiatan' ? 'bg-sky-500 text-white font-black shadow-md shadow-sky-500/20' : 'text-slate-800 hover:bg-slate-100 font-bold'"
                             class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm transition-all text-left">
                             <span class="text-base">📜</span>
                             <span class="flex-1 font-extrabold">Log Kegiatan Kasir</span>
-                            <span class="text-[11px] bg-purple-200 text-purple-950 px-2 py-0.5 rounded-md font-mono font-black border border-purple-300" :class="currentPage === 'log-kegiatan' ? 'bg-white/20 text-white border-transparent' : ''" x-text="activityLogs.length"></span>
+                            <span class="text-[11px] bg-slate-200 text-slate-800 px-2 py-0.5 rounded-md font-mono font-black border border-slate-300" :class="currentPage === 'log-kegiatan' ? 'bg-white/20 text-white border-transparent' : ''" x-text="activityLogs.length"></span>
                         </button>
                     </template>
 
@@ -854,7 +846,7 @@
                     <!-- Quick Role Switch Pill -->
                     <button @click="roleSwitch(userRole === 'admin' ? 'kasir' : 'admin')" 
                         class="px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5"
-                        :class="userRole === 'admin' ? 'bg-purple-50 text-purple-800 border-purple-200 hover:bg-purple-100' : 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'">
+                        :class="userRole === 'admin' ? 'bg-[#EAF0E8] text-[#2D331A] border border-[#D0D5C9] hover:bg-[#D0D5C9]' : 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'">
                         <span x-text="userRole === 'admin' ? '👑 Admin' : '💼 Kasir'"></span>
                         <span class="text-[10px] text-slate-400 font-normal hidden md:inline">| Ganti Role</span>
                     </button>
@@ -1842,7 +1834,7 @@
                     <span class="text-3xl mb-2 block">🔒</span>
                     <h3 class="font-bold text-amber-900 text-base">Akses Terbatas: Khusus Admin</h3>
                     <p class="text-xs text-amber-700 mt-1">Halaman Data Karyawan hanya dapat dilihat dan dikelola oleh Administrator.</p>
-                    <button @click="roleSwitch('admin')" class="mt-4 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold shadow-xs">
+                    <button @click="roleSwitch('admin')" class="mt-4 px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-bold shadow-xs">
                         Beralih ke Akun Admin
                     </button>
                 </div>
@@ -1987,14 +1979,14 @@
                 <div class="flex-1 flex flex-col h-full overflow-hidden">
                     <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm mb-4 shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div>
-                            <h2 class="font-bold text-base sm:text-lg text-purple-900 flex items-center gap-2">
+                            <h2 class="font-bold text-base sm:text-lg text-slate-900 flex items-center gap-2">
                                 <span>📜</span>
                                 <span>Log Kegiatan Kasir & Audit Trail</span>
                             </h2>
                             <p class="text-xs text-slate-500 mt-0.5">Admin dapat melihat semua kegiatan yang dilakukan kasir secara real-time</p>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="text-xs bg-purple-50 text-purple-700 font-bold px-3 py-1.5 rounded-xl border border-purple-200" x-text="activityLogs.length + ' Total Kegiatan Tercatat'"></span>
+                            <span class="text-xs bg-[#EAF0E8] text-[#4B5320] font-black px-3 py-1.5 rounded-xl border border-[#D0D5C9]" x-text="activityLogs.length + ' Total Kegiatan Tercatat'"></span>
                         </div>
                     </div>
 
