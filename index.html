@@ -582,15 +582,15 @@
                         </span>
                     </button>
                     <div class="pt-2 border-t border-slate-100 space-y-2">
-                        <p class="text-[10px] text-center font-bold text-slate-400 uppercase tracking-wider">Pilih Role Akses Masuk Cepat</p>
+                        <p class="text-[10px] text-center font-bold text-slate-400 uppercase tracking-wider">Pilihan Role Masuk Cepat</p>
                         <div class="grid grid-cols-2 gap-2">
-                            <button type="button" @click="quickLogin('admin')" class="py-2 px-2.5 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-xl text-xs font-bold border border-purple-200 transition-all flex items-center justify-center gap-1.5 shadow-2xs">
-                                <span>👑</span>
-                                <span>Akun Admin</span>
+                            <button type="button" @click="quickLogin('admin')" class="py-2 px-2 bg-[#EAF0E8] hover:bg-[#D0D5C9] text-[#2D331A] rounded-xl text-xs font-bold border border-[#D0D5C9] transition-all flex flex-col items-center justify-center gap-0.5 shadow-2xs cursor-pointer">
+                                <span class="flex items-center gap-1 font-black">👑 Akun Admin</span>
+                                <span class="text-[10px] text-[#4B5320] font-mono font-bold">Password: 1111</span>
                             </button>
-                            <button type="button" @click="quickLogin('kasir')" class="py-2 px-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl text-xs font-bold border border-emerald-200 transition-all flex items-center justify-center gap-1.5 shadow-2xs">
-                                <span>💼</span>
-                                <span>Akun Kasir</span>
+                            <button type="button" @click="quickLogin('kasir')" class="py-2 px-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 rounded-xl text-xs font-bold border border-emerald-200 transition-all flex flex-col items-center justify-center gap-0.5 shadow-2xs cursor-pointer">
+                                <span class="flex items-center gap-1 font-black">💼 Akun Kasir</span>
+                                <span class="text-[10px] text-emerald-700 font-mono font-bold">Password: 12345</span>
                             </button>
                         </div>
                     </div>
@@ -4322,10 +4322,10 @@
                     this.loginLoading = true;
                     this.loginError = '';
 
-                    // Login Khusus Admin
+                    // Login Khusus Admin (Password: 1111)
                     if (username.toLowerCase() === 'admin') {
-                        if (password !== '12345' && password !== 'admin123') {
-                            this.loginError = 'Password admin salah (Gunakan: 12345 atau admin123)';
+                        if (password !== '1111') {
+                            this.loginError = 'Password Admin salah! (Gunakan password: 1111)';
                             this.loginLoading = false;
                             return;
                         }
@@ -4354,10 +4354,10 @@
                         return;
                     }
 
-                    // 1. Login langsung dengan username 'zarsal' dan password '12345'
-                    if (username.toLowerCase() === 'zarsal') {
+                    // 1. Login langsung Kasir dengan username 'zarsal' atau 'kasir' (Password: 12345)
+                    if (username.toLowerCase() === 'zarsal' || username.toLowerCase() === 'kasir') {
                         if (password !== '12345') {
-                            this.loginError = 'Username atau password salah.';
+                            this.loginError = 'Password Kasir salah! (Gunakan password: 12345)';
                             this.loginLoading = false;
                             return;
                         }
@@ -4845,12 +4845,20 @@
                     ];
                 },
 
-                // Role Switcher
+                // Role Switcher dengan Proteksi Password Admin (1111)
                 roleSwitch(role) {
+                    if (role === 'admin' && this.userRole !== 'admin') {
+                        const inputPw = prompt('Masukkan Password Administrator (PIN: 1111):');
+                        if (inputPw === null) return; // Batal
+                        if (inputPw.trim() !== '1111') {
+                            alert('Password Admin salah! Akses mode admin ditolak.');
+                            return;
+                        }
+                    }
                     this.userRole = role;
                     if (role === 'kasir') {
                         this.cashierName = 'Jeff (Kasir)';
-                        if (!['kasir', 'barang', 'laporan-kasir'].includes(this.currentPage)) {
+                        if (!['kasir', 'barang', 'laporan-kasir', 'profil-caffe'].includes(this.currentPage)) {
                             this.currentPage = 'kasir';
                         }
                     } else {
@@ -4862,7 +4870,7 @@
                 quickLogin(role) {
                     if (role === 'admin') {
                         this.loginUsername = 'admin';
-                        this.loginPassword = '12345';
+                        this.loginPassword = '1111';
                     } else {
                         this.loginUsername = 'zarsal';
                         this.loginPassword = '12345';
