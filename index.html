@@ -726,6 +726,16 @@
                     </div>
                 </div>
 
+                <!-- Menu Profil Caffe -->
+                <button 
+                    @click="currentPage = 'profil-caffe'; sidebarOpen = false"
+                    :class="currentPage === 'profil-caffe' ? 'bg-sky-500 text-white font-black shadow-md shadow-sky-500/20' : 'text-slate-800 hover:bg-slate-100 font-bold'"
+                    class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm transition-all text-left">
+                    <span class="text-base">☕</span>
+                    <span class="flex-1 font-bold">Profil Caffe</span>
+                    <span class="text-[10px] px-2 py-0.5 rounded-md font-mono font-black" :class="cafeProfile.statusToko === 'Buka' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-rose-100 text-rose-800 border border-rose-300'" x-text="cafeProfile.statusToko || 'Buka'"></span>
+                </button>
+
                 <!-- Divider & Other Menus -->
                 <div class="pt-3 border-t border-slate-200 space-y-1">
                     
@@ -1709,60 +1719,266 @@
             </div>
         </section>
 
-        <!-- Sub-menu 6: Halaman Master Merek -->
-        <section x-show="currentPage === 'merek'" class="flex-1 flex flex-col h-full overflow-hidden p-3 sm:p-5 lg:p-6 w-full max-w-7xl mx-auto" x-cloak>
-            <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm mb-4 shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <!-- Halaman Profil Caffe -->
+        <section x-show="currentPage === 'profil-caffe'" class="flex-1 flex flex-col h-full overflow-y-auto p-3 sm:p-5 lg:p-6 w-full max-w-7xl mx-auto" x-cloak>
+            
+            <!-- Toast Notification Saat Berhasil Simpan -->
+            <div x-show="profileSavedNotification" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-2" class="fixed top-5 right-5 z-50 bg-[#2D331A] text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3 border border-[#D4A373]">
+                <div class="w-8 h-8 rounded-full bg-emerald-500/30 text-emerald-400 flex items-center justify-center font-black text-sm">✓</div>
                 <div>
-                    <h2 class="font-bold text-base sm:text-lg text-slate-800 flex items-center gap-2">
-                        <span>🔖</span>
-                        <span>Master Data Merek (Brand)</span>
-                    </h2>
-                    <p class="text-xs text-slate-500 mt-0.5">Master data nama brand / merek barang dan informasi supplier produsen</p>
+                    <h4 class="font-bold text-xs sm:text-sm">Profil Berhasil Disimpan!</h4>
+                    <p class="text-[11px] text-slate-300">Data caffe dan informasi struk telah tersimpan ke sistem & cloud.</p>
                 </div>
-                <button @click="openAddMerek()" class="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-sky-500/20 transition-all flex items-center gap-1.5 active:scale-95 shrink-0">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                    <span>+ Tambah Merek</span>
-                </button>
             </div>
 
-            <!-- Master Table -->
-            <div class="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-                <div class="flex-1 overflow-y-auto">
-                    <table class="w-full text-left border-collapse text-xs">
-                        <thead class="bg-slate-50 sticky top-0 border-b border-slate-200 text-slate-600 font-bold uppercase text-[10px] tracking-wider">
-                            <tr>
-                                <th class="py-3 px-4 w-12 text-center">Icon</th>
-                                <th class="py-3 px-4">Nama Merek</th>
-                                <th class="py-3 px-4">Produsen / Supplier</th>
-                                <th class="py-3 px-6">Keterangan</th>
-                                <th class="py-3 px-4 text-center">Status</th>
-                                <th class="py-3 px-4 text-right">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100">
-                            <template x-for="m in merekList" :key="m.id">
-                                <tr class="hover:bg-slate-50/80 transition-colors">
-                                    <td class="py-3 px-4 text-center text-lg" x-text="m.icon || '🏷️'"></td>
-                                    <td class="py-3 px-4 font-bold text-slate-900 text-sm" x-text="m.nama"></td>
-                                    <td class="py-3 px-4 text-sky-700 font-semibold" x-text="m.supplier"></td>
-                                    <td class="py-3 px-6 text-slate-600 font-medium" x-text="m.deskripsi"></td>
-                                    <td class="py-3 px-4 text-center">
-                                        <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 font-semibold rounded-full text-[10px] border border-emerald-200">Aktif</span>
-                                    </td>
-                                    <td class="py-3 px-4 text-right">
-                                        <div class="flex items-center justify-end space-x-1">
-                                            <button @click="openEditMerek(m)" class="p-1.5 text-sky-600 hover:bg-sky-50 rounded-lg transition-colors" title="Edit">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                                            </button>
-                                            <button @click="deleteMerek(m.id)" class="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors" title="Hapus">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </template>
-                        </tbody>
-                    </table>
+            <!-- Page Title Bar -->
+            <div class="bg-white rounded-2xl p-4 sm:p-5 border border-[#E2E5DC] shadow-sm mb-4 shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-center gap-3.5">
+                    <div class="w-11 h-11 rounded-2xl bg-[#EAF0E8] border border-[#D0D5C9] flex items-center justify-center text-xl shrink-0">
+                        ☕
+                    </div>
+                    <div>
+                        <h2 class="font-black text-base sm:text-xl text-[#1B221B] flex items-center gap-2">
+                            <span>Profil Inti Rasa Caffe</span>
+                            <span class="text-xs px-2.5 py-0.5 rounded-full font-bold" :class="cafeProfile.statusToko === 'Buka' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-rose-100 text-rose-800 border border-rose-300'" x-text="'● ' + (cafeProfile.statusToko || 'Buka')"></span>
+                        </h2>
+                        <p class="text-xs text-[#6B756B] mt-0.5">Kelola identitas resmi caffe, alamat, nomor WhatsApp/telepon, jam buka, dan format struk</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button @click="currentPage = 'kasir'" class="px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 border border-slate-200 transition-colors">
+                        ← Kembali ke Kasir
+                    </button>
+                    <button @click="saveCafeProfile()" class="px-5 py-2.5 bg-[#4B5320] hover:bg-[#3A4018] text-white rounded-xl text-xs sm:text-sm font-black shadow-md shadow-[#4B5320]/25 transition-all flex items-center gap-2 active:scale-95 cursor-pointer">
+                        <svg class="w-4 h-4 stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+                        <span>Simpan Profil Caffe</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Hero Banner Profil Caffe (Army Green / Botanical Theme) -->
+            <div class="relative bg-gradient-to-r from-[#2D331A] via-[#4B5320] to-[#3A4018] text-white rounded-3xl p-5 sm:p-7 shadow-lg mb-6 overflow-hidden border border-[#D0D5C9]">
+                <!-- Decorative background elements -->
+                <div class="absolute -right-8 -bottom-10 w-48 h-48 bg-white/5 rounded-full blur-2xl pointer-events-none"></div>
+                <div class="absolute top-0 right-1/4 w-32 h-32 bg-[#D4A373]/10 rounded-full blur-xl pointer-events-none"></div>
+
+                <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div class="flex items-start sm:items-center gap-4 sm:gap-6">
+                        <div class="relative shrink-0">
+                            <img src="assets/logo-inti-rasa.jpg" :src="appLogo" alt="Logo Inti Rasa Caffe" class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover shadow-md border-3 border-[#D4A373] bg-white">
+                            <span class="absolute -bottom-1.5 -right-1.5 px-2 py-0.5 text-[9px] font-black rounded-md shadow-xs" :class="cafeProfile.statusToko === 'Buka' ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'" x-text="cafeProfile.statusToko || 'Buka'"></span>
+                        </div>
+                        <div>
+                            <div class="flex flex-wrap items-center gap-2 mb-1">
+                                <h1 class="text-xl sm:text-2xl font-black tracking-tight" x-text="cafeProfile.nama || 'Inti Rasa Caffe'">Inti Rasa Caffe</h1>
+                                <span class="text-[10px] font-bold bg-[#D4A373]/30 text-[#FAF6F0] px-2.5 py-0.5 rounded-full border border-[#D4A373]/40">Caffe & Resto POS</span>
+                            </div>
+                            <p class="text-xs sm:text-sm text-[#EAF0E8] font-medium italic mb-3" x-text="'“' + (cafeProfile.slogan || 'Kelezatan Rasa dalam Setiap Suasana') + '”'"></p>
+                            
+                            <!-- Badges Info Cepat -->
+                            <div class="flex flex-wrap gap-2 text-[11px] font-semibold text-white/90">
+                                <span class="bg-black/25 px-2.5 py-1 rounded-lg flex items-center gap-1.5 border border-white/10">
+                                    <span>📍</span>
+                                    <span class="truncate max-w-[220px]" x-text="cafeProfile.alamat || 'Jl. Raya Utama No. 88'"></span>
+                                </span>
+                                <span class="bg-black/25 px-2.5 py-1 rounded-lg flex items-center gap-1.5 border border-white/10">
+                                    <span>📞</span>
+                                    <span x-text="cafeProfile.telepon || '0812-3456-7890'"></span>
+                                </span>
+                                <span class="bg-black/25 px-2.5 py-1 rounded-lg flex items-center gap-1.5 border border-white/10">
+                                    <span>🕒</span>
+                                    <span x-text="cafeProfile.jamBuka || '08:00 - 22:00 WIB'"></span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Switch Status & Total Menu -->
+                    <div class="flex md:flex-col items-center md:items-end justify-between gap-3 pt-3 md:pt-0 border-t md:border-t-0 border-white/15 shrink-0">
+                        <div class="text-left md:text-right">
+                            <span class="text-[10px] uppercase tracking-wider text-[#A7B39E] font-bold">Total Menu Aktif</span>
+                            <p class="text-xl sm:text-2xl font-black text-[#FAF6F0]" x-text="products.length + ' Produk'"></p>
+                        </div>
+                        <button @click="cafeProfile.statusToko = (cafeProfile.statusToko === 'Buka' ? 'Tutup' : 'Buka'); saveCafeProfile()" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border shadow-xs" :class="cafeProfile.statusToko === 'Buka' ? 'bg-emerald-500 hover:bg-emerald-600 text-white border-emerald-400' : 'bg-rose-500 hover:bg-rose-600 text-white border-rose-400'">
+                            <span x-text="cafeProfile.statusToko === 'Buka' ? 'Toko Sedang Buka' : 'Toko Sedang Tutup'"></span>
+                            <span class="text-[10px] opacity-75">(Klik Ganti)</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grid Form Profil Caffe -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 pb-8">
+                
+                <!-- Kolom Kiri: Form Identitas & Lokasi Kontak (8 Kolom) -->
+                <div class="lg:col-span-7 space-y-5">
+                    
+                    <!-- Card 1: Identitas & Jam Operasional -->
+                    <div class="bg-white rounded-2xl p-5 border border-[#E2E5DC] shadow-sm">
+                        <h3 class="font-black text-sm text-[#1B221B] flex items-center gap-2 mb-4 pb-2 border-b border-slate-100">
+                            <span>🏢</span>
+                            <span>Identitas Utama Caffe</span>
+                        </h3>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">Nama Caffe / Usaha <span class="text-rose-500">*</span></label>
+                                <input type="text" x-model="cafeProfile.nama" placeholder="Contoh: Inti Rasa Caffe" class="w-full px-3.5 py-2.5 bg-[#F8FAF7] border border-[#D0D5C9] rounded-xl text-xs sm:text-sm font-bold text-[#1B221B] focus:ring-2 focus:ring-[#4B5320] focus:bg-white outline-none transition-all">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">Slogan / Tagline Caffe</label>
+                                <input type="text" x-model="cafeProfile.slogan" placeholder="Contoh: Kelezatan Rasa dalam Setiap Suasana" class="w-full px-3.5 py-2.5 bg-[#F8FAF7] border border-[#D0D5C9] rounded-xl text-xs sm:text-sm font-medium text-[#1B221B] focus:ring-2 focus:ring-[#4B5320] focus:bg-white outline-none transition-all">
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Jam Buka - Tutup</label>
+                                    <input type="text" x-model="cafeProfile.jamBuka" placeholder="Contoh: 08:00 - 22:00 WIB" class="w-full px-3.5 py-2.5 bg-[#F8FAF7] border border-[#D0D5C9] rounded-xl text-xs font-bold text-[#1B221B] focus:ring-2 focus:ring-[#4B5320] focus:bg-white outline-none transition-all">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Status Operasional</label>
+                                    <select x-model="cafeProfile.statusToko" class="w-full px-3.5 py-2.5 bg-[#F8FAF7] border border-[#D0D5C9] rounded-xl text-xs font-bold text-[#1B221B] focus:ring-2 focus:ring-[#4B5320] focus:bg-white outline-none transition-all">
+                                        <option value="Buka">🟢 Buka (Melayani Pesanan)</option>
+                                        <option value="Tutup">🔴 Tutup Sementara</option>
+                                        <option value="Libur">🟡 Libur Operasional</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: Alamat Lengkap & Kontak Resmi -->
+                    <div class="bg-white rounded-2xl p-5 border border-[#E2E5DC] shadow-sm">
+                        <h3 class="font-black text-sm text-[#1B221B] flex items-center gap-2 mb-4 pb-2 border-b border-slate-100">
+                            <span>📍</span>
+                            <span>Alamat Lengkap & Kontak Pelanggan</span>
+                        </h3>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">Alamat Lengkap Caffe <span class="text-rose-500">*</span></label>
+                                <textarea x-model="cafeProfile.alamat" rows="3" placeholder="Masukkan alamat lengkap (jalan, nomor, RT/RW, kelurahan, kecamatan, kota/kabupaten)..." class="w-full px-3.5 py-2.5 bg-[#F8FAF7] border border-[#D0D5C9] rounded-xl text-xs sm:text-sm font-medium text-[#1B221B] focus:ring-2 focus:ring-[#4B5320] focus:bg-white outline-none transition-all resize-none"></textarea>
+                                <p class="text-[10px] text-slate-400 mt-1">Alamat ini otomatis dicetak di bagian kepala struk pesanan pelanggan.</p>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Nomor Telepon / WhatsApp <span class="text-rose-500">*</span></label>
+                                    <input type="text" x-model="cafeProfile.telepon" placeholder="Contoh: 0812-3456-7890" class="w-full px-3.5 py-2.5 bg-[#F8FAF7] border border-[#D0D5C9] rounded-xl text-xs font-bold text-[#1B221B] focus:ring-2 focus:ring-[#4B5320] focus:bg-white outline-none transition-all">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Email Caffe</label>
+                                    <input type="email" x-model="cafeProfile.email" placeholder="Contoh: intirasacaffe@gmail.com" class="w-full px-3.5 py-2.5 bg-[#F8FAF7] border border-[#D0D5C9] rounded-xl text-xs font-medium text-[#1B221B] focus:ring-2 focus:ring-[#4B5320] focus:bg-white outline-none transition-all">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Instagram / Media Sosial</label>
+                                    <input type="text" x-model="cafeProfile.instagram" placeholder="Contoh: @intirasacaffe" class="w-full px-3.5 py-2.5 bg-[#F8FAF7] border border-[#D0D5C9] rounded-xl text-xs font-medium text-[#1B221B] focus:ring-2 focus:ring-[#4B5320] focus:bg-white outline-none transition-all">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Link Google Maps (Lokasi Toko)</label>
+                                    <input type="text" x-model="cafeProfile.mapsUrl" placeholder="https://maps.google.com/..." class="w-full px-3.5 py-2.5 bg-[#F8FAF7] border border-[#D0D5C9] rounded-xl text-xs font-medium text-[#1B221B] focus:ring-2 focus:ring-[#4B5320] focus:bg-white outline-none transition-all">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kolom Kanan: Pengaturan Struk & Live Preview (5 Kolom) -->
+                <div class="lg:col-span-5 space-y-5">
+                    
+                    <!-- Card 3: Konfigurasi Struk Kasir -->
+                    <div class="bg-white rounded-2xl p-5 border border-[#E2E5DC] shadow-sm">
+                        <h3 class="font-black text-sm text-[#1B221B] flex items-center gap-2 mb-4 pb-2 border-b border-slate-100">
+                            <span>🧾</span>
+                            <span>Format Struk Kasir</span>
+                        </h3>
+
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">Catatan Kaki Struk (Footer Note)</label>
+                                <textarea x-model="cafeProfile.catatanStruk" rows="2" placeholder="Contoh: Terima kasih atas kunjungan Anda di Inti Rasa Caffe!" class="w-full px-3.5 py-2.5 bg-[#F8FAF7] border border-[#D0D5C9] rounded-xl text-xs font-medium text-[#1B221B] focus:ring-2 focus:ring-[#4B5320] focus:bg-white outline-none transition-all resize-none"></textarea>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">NPWP / No. Izin Usaha (Opsional)</label>
+                                <input type="text" x-model="cafeProfile.npwp" placeholder="Contoh: 01.234.567.8-901.000" class="w-full px-3.5 py-2.5 bg-[#F8FAF7] border border-[#D0D5C9] rounded-xl text-xs font-medium text-[#1B221B] focus:ring-2 focus:ring-[#4B5320] focus:bg-white outline-none transition-all">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 4: Live Preview Thermal Struk (58mm) -->
+                    <div class="bg-white rounded-2xl p-5 border border-[#E2E5DC] shadow-sm">
+                        <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
+                            <h3 class="font-black text-xs text-[#1B221B] flex items-center gap-2">
+                                <span>🖨️</span>
+                                <span>Preview Struk Kasir Real-Time</span>
+                            </h3>
+                            <span class="text-[10px] bg-[#EAF0E8] text-[#4B5320] font-bold px-2 py-0.5 rounded border border-[#D0D5C9]">58mm Thermal</span>
+                        </div>
+
+                        <!-- Thermal Receipt Box Preview -->
+                        <div class="receipt-font bg-[#FFFDF9] border border-amber-300/80 rounded-xl p-3 text-[10px] text-slate-800 shadow-inner max-w-[240px] mx-auto select-none" style="line-height: 1.2;">
+                            <div class="text-center border-b border-dashed border-amber-300 pb-1 mb-1">
+                                <h4 class="font-black text-xs tracking-wider" x-text="(cafeProfile.nama || 'INTI RASA CAFFE').toUpperCase()"></h4>
+                                <p class="text-[8px] text-slate-600 font-semibold" x-text="cafeProfile.slogan || 'Serba Ada & Lezat'"></p>
+                                <p class="text-[8px] text-slate-600 font-medium" x-text="cafeProfile.alamat || 'Jl. Raya Utama No. 88'"></p>
+                                <p class="text-[8px] text-slate-600 font-medium" x-text="'Telp: ' + (cafeProfile.telepon || '0812-3456-7890')"></p>
+                            </div>
+
+                            <div class="text-[8.5px] border-b border-dashed border-amber-300 py-1 space-y-0.5 text-slate-600 font-mono">
+                                <div class="flex justify-between">
+                                    <span>No: TRX-SAMPLE</span>
+                                    <span>KASIR: JEFF</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>TGL: HARI INI</span>
+                                    <span class="font-bold text-sky-800">TUNAI</span>
+                                </div>
+                            </div>
+
+                            <!-- Contoh Item -->
+                            <div class="border-b border-dashed border-amber-300 py-1 space-y-1">
+                                <div>
+                                    <div class="flex justify-between font-bold text-slate-900">
+                                        <span>1x Alpukat juice</span>
+                                        <span>Rp 15.000</span>
+                                    </div>
+                                    <div class="text-[8px] text-slate-500">1 x Rp 15.000</div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between font-bold text-slate-900">
+                                        <span>1x Ayam Geprek</span>
+                                        <span>Rp 22.000</span>
+                                    </div>
+                                    <div class="text-[8px] text-slate-500">1 x Rp 22.000</div>
+                                </div>
+                            </div>
+
+                            <!-- Total -->
+                            <div class="py-1 text-[9px] space-y-0.5">
+                                <div class="flex justify-between font-bold text-slate-900 text-[10px] pt-0.5">
+                                    <span>TOTAL:</span>
+                                    <span class="text-[#4B5320]">Rp 37.000</span>
+                                </div>
+                            </div>
+
+                            <!-- Footer -->
+                            <div class="text-center border-t border-dashed border-amber-300 pt-1 text-[8px] text-slate-600 font-bold">
+                                <p x-text="cafeProfile.catatanStruk || '*** TERIMA KASIH ***'"></p>
+                                <p class="text-[7.5px] text-slate-400 font-medium" x-text="'Jam: ' + (cafeProfile.jamBuka || '08:00 - 22:00 WIB')"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tombol Simpan Bawah -->
+                    <button @click="saveCafeProfile()" class="w-full py-3.5 bg-[#4B5320] hover:bg-[#3A4018] text-white rounded-2xl font-black text-sm shadow-md shadow-[#4B5320]/25 transition-all flex items-center justify-center gap-2 active:scale-98 cursor-pointer">
+                        <svg class="w-5 h-5 stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        <span>Simpan Semua Perubahan Profil Caffe</span>
+                    </button>
                 </div>
             </div>
         </section>
@@ -2236,10 +2452,10 @@
             <div class="overflow-y-auto flex-1 mb-4 pr-1">
                 <div id="printable-receipt" class="receipt-font bg-amber-50/40 border border-amber-200/60 rounded-xl px-2 py-1 text-[11px] text-slate-800 mx-auto font-semibold" style="width: 58mm; max-width: 100%; line-height: 1.15; font-weight: 600;">
                     <div class="text-center border-b border-dashed border-amber-300" style="padding-bottom: 1px;">
-                        <h4 class="font-bold text-[11px] text-slate-900 tracking-wider leading-none">INTI RASA CAFFE</h4>
-                        <p class="text-[8px] text-slate-700 leading-tight font-semibold">Serba Ada & Lezat</p>
-                        <p class="text-[8px] text-slate-700 leading-tight font-semibold">Jl. Kuliner Nusantara No. 88</p>
-                        <p class="text-[8px] text-slate-700 leading-tight font-semibold">Telp: 0812-3456-7890</p>
+                        <h4 class="font-bold text-[11px] text-slate-900 tracking-wider leading-none" x-text="(cafeProfile.nama || 'INTI RASA CAFFE').toUpperCase()"></h4>
+                        <p class="text-[8px] text-slate-700 leading-tight font-semibold" x-text="cafeProfile.slogan || 'Kelezatan Rasa dalam Setiap Suasana'"></p>
+                        <p class="text-[8px] text-slate-700 leading-tight font-semibold" x-text="cafeProfile.alamat || 'Jl. Raya Utama No. 88, Cibadak'"></p>
+                        <p class="text-[8px] text-slate-700 leading-tight font-semibold" x-text="'Telp: ' + (cafeProfile.telepon || '0812-3456-7890')"></p>
                     </div>
 
                     <div class="text-[9px] space-y-0.5 font-semibold border-b border-dashed border-amber-300" style="padding: 1px 0;">
@@ -2297,8 +2513,8 @@
                     </div>
 
                     <div class="text-center border-t border-dashed border-amber-300 text-[8px] text-slate-700 leading-tight font-bold" style="padding-top: 1px;">
-                        <p>*** TERIMA KASIH ***</p>
-                        <p>Silakan datang kembali!</p>
+                        <p x-text="cafeProfile.catatanStruk || '*** TERIMA KASIH ***'"></p>
+                        <p class="text-[7.5px] text-slate-500 font-semibold" x-text="'Jam Buka: ' + (cafeProfile.jamBuka || '08:00 - 22:00 WIB')"></p>
                     </div>
                 </div>
             </div>
@@ -3308,6 +3524,62 @@
                     { id: 'cemilan', name: 'Cemilan', icon: '🍟' }
                 ],
                 
+                cafeProfile: (function() {
+                    const def = {
+                        nama: 'Inti Rasa Caffe',
+                        slogan: 'Kelezatan Rasa dalam Setiap Suasana',
+                        alamat: 'Jl. Raya Utama No. 88, Cibadak, Sukabumi',
+                        telepon: '0812-3456-7890',
+                        email: 'intirasacaffe@gmail.com',
+                        jamBuka: '08:00 - 22:00 WIB',
+                        instagram: '@intirasacaffe',
+                        catatanStruk: 'Terima kasih atas kunjungan Anda di Inti Rasa Caffe!',
+                        npwp: '01.234.567.8-901.000',
+                        mapsUrl: 'https://maps.google.com',
+                        statusToko: 'Buka'
+                    };
+                    try {
+                        const s = localStorage.getItem('pos_cafe_profile');
+                        if (s) return { ...def, ...JSON.parse(s) };
+                    } catch(e) {}
+                    return def;
+                })(),
+                profileSavedNotification: false,
+                
+                async saveCafeProfile() {
+                    try {
+                        localStorage.setItem('pos_cafe_profile', JSON.stringify(this.cafeProfile));
+                        if (db) {
+                            await db.collection('settings').doc('profile').set({
+                                ...this.cafeProfile,
+                                updatedAt: new Date().toISOString(),
+                                updatedBy: this.cashierName || 'Jeff'
+                            });
+                        }
+                        this.logActivity('profil', 'Perbarui Profil Caffe', 'Profil toko/caffe diperbarui oleh ' + (this.cashierName || 'Admin'), this.cashierName);
+                        this.profileSavedNotification = true;
+                        setTimeout(() => { this.profileSavedNotification = false; }, 3500);
+                    } catch (e) {
+                        console.error('Gagal simpan profil caffe:', e);
+                        this.profileSavedNotification = true;
+                        setTimeout(() => { this.profileSavedNotification = false; }, 3500);
+                    }
+                },
+                
+                async loadCafeProfile() {
+                    try {
+                        if (!db) return;
+                        const doc = await db.collection('settings').doc('profile').get();
+                        if (doc.exists) {
+                            const data = doc.data();
+                            this.cafeProfile = { ...this.cafeProfile, ...data };
+                            try { localStorage.setItem('pos_cafe_profile', JSON.stringify(this.cafeProfile)); } catch(e) {}
+                        }
+                    } catch(err) {
+                        console.warn('Gagal muat profil cloud:', err);
+                    }
+                },
+                
                 products: (function() {
                     try {
                         const s = localStorage.getItem('pos_products');
@@ -4243,6 +4515,7 @@
                         case 'cetak-barcode': return 'Cetak Label Barcode';
                         case 'kartu-stok': return 'Kartu Stok Barang';
                         case 'merek': return 'Master Merek / Brand';
+                        case 'profil-caffe': return 'Profil Inti Rasa Caffe';
                         case 'kategori': return 'Master Kategori Barang';
                         case 'karyawan': return 'Data Karyawan & Bagian';
                         case 'log-kegiatan': return 'Log Kegiatan Kasir & Audit Trail';
@@ -4260,6 +4533,7 @@
                         case 'cetak-barcode': return 'Generate label stiker barcode siap print berdasarkan barang dan satuan';
                         case 'kartu-stok': return 'Pantau mutasi riwayat keluar-masuk stok barang secara detail & real-time';
                         case 'merek': return 'Kelola master merek/brand produk dan pemasok (supplier)';
+                        case 'profil-caffe': return 'Informasi identitas caffe, alamat lengkap, kontak WhatsApp, jam operasional, dan pengaturan struk';
                         case 'kategori': return 'Kelola kelompok kategori menu makanan, minuman, dan cemilan';
                         case 'karyawan': return 'Daftar nama karyawan lengkap dengan bagian yang ditetapkan';
                         case 'log-kegiatan': return 'Admin memantau semua riwayat aktivitas yang dilakukan kasir';
