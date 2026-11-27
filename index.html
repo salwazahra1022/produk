@@ -432,6 +432,19 @@
     "barcode": "8789979243565",
     "docId": "Teh Botol Sosro",
     "id": 31
+  },
+  {
+      "image": "assets/gabin.png",
+      "name": "Gabin",
+      "price": 20000,
+      "barcode": "2213102497960",
+      "id": 32,
+      "categoryName": "Cemilan",
+      "docId": "Gabin",
+      "category": "cemilan",
+      "stock": 50,
+      "satuan": "Pcs",
+      "merek": "Inti Rasa Kitchen"
   }
 ];
         let fbApp = null, auth = null, db = null;
@@ -1019,7 +1032,7 @@
                                             <template x-if="isCustomizableProduct(p)">
                                                 <span class="flex items-center gap-1">
                                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
-                                                    <span>⚙️ Kustom / Pilih</span>
+                                                    <span x-text="(p.name || '').toLowerCase().includes('gabin') ? '🍪 Pilih Rasa' : '⚙️ Kustom / Pilih'"></span>
                                                 </span>
                                             </template>
                                             <template x-if="!isCustomizableProduct(p)">
@@ -2545,7 +2558,7 @@
             <!-- Header Modal: Nuansa Army Green pekat (#2D331A) dengan teks putih/krem -->
             <div class="p-4 sm:p-5 border-b border-[#3A4018] flex items-center justify-between shrink-0 bg-[#2D331A] text-white">
                 <div class="flex items-center space-x-3 min-w-0">
-                    <img :src="selectedModifierProduct?.image" :alt="selectedModifierProduct?.name" class="w-14 h-14 rounded-2xl object-cover border-2 border-[#D4A373]/60 shrink-0 shadow-sm">
+                    <img :src="selectedModifierProduct?.image" :alt="selectedModifierProduct?.name" class="w-14 h-14 rounded-2xl object-cover border-2 border-[#D4A373]/60 shrink-0 shadow-sm bg-white">
                     <div class="min-w-0">
                         <div class="flex items-center gap-1.5 flex-wrap">
                             <span 
@@ -2553,9 +2566,10 @@
                                 x-text="getModifierGroupBadge(selectedModifierProduct)">
                             </span>
                             <span class="text-xs font-semibold text-[#D0D5C9] capitalize" x-text="selectedModifierProduct?.category"></span>
+                            <span x-show="selectedModifierProduct?.stock !== undefined" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-600/90 text-white" x-text="'Stok: ' + (selectedModifierProduct?.stock ?? 0) + ' ' + (selectedModifierProduct?.satuan || 'Pcs')"></span>
                         </div>
                         <h3 class="font-black text-white text-base sm:text-lg leading-snug truncate" x-text="selectedModifierProduct?.name"></h3>
-                        <p class="text-xs font-bold text-[#D4A373]" x-text="'Harga Dasar: ' + formatRupiah(selectedModifierProduct?.price || 0)"></p>
+                        <p class="text-xs font-bold text-[#D4A373]" x-text="'Harga Satuan: ' + formatRupiah(selectedModifierProduct?.price || 0) + ' / ' + (selectedModifierProduct?.satuan || 'Pcs')"></p>
                     </div>
                 </div>
                 <button @click="showModifierModal = false" class="w-8 h-8 rounded-full bg-[#3A4018] hover:bg-[#4B5320] text-white/90 hover:text-white flex items-center justify-center font-bold text-lg border border-[#4B5320] transition-colors shrink-0">
@@ -2566,6 +2580,53 @@
             <!-- Body Options (Scrollable) -->
             <div class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-5 divide-y divide-slate-100">
                 
+                <!-- 0. GABIN VARIANT (PILIH RASA) -->
+                <template x-if="getModifierGroup(selectedModifierProduct) === 'gabin_variant'">
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex items-center justify-between mb-2.5">
+                                <label class="text-xs sm:text-sm font-bold text-[#1B221B] flex items-center gap-2">
+                                    <span class="text-base">🍪</span>
+                                    <span>Pilih Rasa</span>
+                                    <span class="text-[10px] bg-amber-100 text-amber-800 border border-amber-300 px-2.5 py-0.5 rounded-full font-black tracking-wide uppercase">Wajib pilih 1</span>
+                                </label>
+                                <span class="text-xs font-semibold text-[#4B5320]" x-text="selectedGabinFlavor ? 'Terpilih: ' + selectedGabinFlavor : 'Pilih 1 varian rasa'"></span>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                <template x-for="opt in gabinFlavorOptions" :key="opt.name">
+                                    <div 
+                                        @click="selectedGabinFlavor = opt.name"
+                                        :class="selectedGabinFlavor === opt.name ? 'border-[#4B5320] bg-[#EAF0E8] text-[#1B221B] shadow-sm ring-2 ring-[#4B5320]/30 font-bold' : 'border-[#D0D5C9] bg-white text-[#1B221B] hover:bg-[#F4F5F0] hover:border-[#4B5320]/40 font-medium'"
+                                        class="p-3 sm:p-3.5 rounded-2xl border cursor-pointer transition-all flex items-center justify-between text-xs min-h-[64px]">
+                                        <div class="flex items-center space-x-3 min-w-0">
+                                            <!-- Custom Radio Button Indicator -->
+                                            <span class="w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition-colors" 
+                                                  :class="selectedGabinFlavor === opt.name ? 'border-[#4B5320] bg-[#4B5320]' : 'border-slate-300 bg-white'">
+                                                <span x-show="selectedGabinFlavor === opt.name" class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                                            </span>
+                                            <div class="min-w-0">
+                                                <div class="flex items-center gap-1.5">
+                                                    <span class="text-sm" x-text="opt.icon"></span>
+                                                    <span class="text-xs sm:text-sm font-bold text-slate-900 leading-tight" x-text="opt.name"></span>
+                                                </div>
+                                                <p class="text-[11px] text-slate-500 font-normal leading-snug truncate mt-0.5" x-text="opt.desc"></p>
+                                            </div>
+                                        </div>
+                                        <span x-show="selectedGabinFlavor === opt.name" class="text-xs font-black text-[#4B5320] bg-white px-2 py-0.5 rounded-full border border-[#4B5320]/20 shrink-0">✓</span>
+                                    </div>
+                                </template>
+                            </div>
+
+                            <!-- Alert jika belum memilih -->
+                            <div x-show="!selectedGabinFlavor" class="mt-3 flex items-center gap-2 text-[11px] sm:text-xs text-amber-800 bg-amber-50 border border-amber-200 px-3.5 py-2.5 rounded-xl">
+                                <span class="text-base">⚠️</span>
+                                <span>Harap pilih 1 rasa di atas terlebih dahulu agar tombol tambah ke pesanan aktif.</span>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
                 <!-- 0. COFFEE & ESPRESSO (AMERICANO & CRAFT COFFEE) -->
                 <template x-if="getModifierGroup(selectedModifierProduct) === 'coffee_espresso'">
                     <div class="space-y-4">
@@ -3131,9 +3192,11 @@
                     </button>
                     <button 
                         @click="confirmAddModifiers()" 
-                        class="flex-1 sm:flex-initial px-5 py-2.5 bg-[#4B5320] hover:bg-[#3A4018] text-white rounded-xl font-bold text-xs sm:text-sm shadow-md shadow-[#4B5320]/25 transition-all flex items-center justify-center gap-2 active:scale-95">
+                        :disabled="getModifierGroup(selectedModifierProduct) === 'gabin_variant' && !selectedGabinFlavor"
+                        :class="(getModifierGroup(selectedModifierProduct) === 'gabin_variant' && !selectedGabinFlavor) ? 'opacity-50 cursor-not-allowed bg-slate-400' : 'bg-[#4B5320] hover:bg-[#3A4018] shadow-md shadow-[#4B5320]/25 active:scale-95 cursor-pointer'"
+                        class="flex-1 sm:flex-initial px-5 py-2.5 text-white rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center justify-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
-                        <span>Masukkan ke Pesanan • <strong x-text="formatRupiah(currentModalTotalPrice)"></strong></span>
+                        <span>+ Tambah ke Keranjang • <strong x-text="formatRupiah(currentModalTotalPrice)"></strong></span>
                     </button>
                 </div>
             </div>
@@ -3176,7 +3239,7 @@
             <div class="flex-1 overflow-y-auto pr-1 grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3 py-2">
                 <template x-for="p in filteredMenuPickerProducts" :key="p.id">
                     <div 
-                        @click="addToCart(p)"
+                        @click="handleProductClick(p)"
                         class="p-2.5 bg-slate-50 hover:bg-sky-50 border border-slate-200 hover:border-sky-300 rounded-2xl cursor-pointer transition-all flex flex-col justify-between group active:scale-95">
                         <div class="h-24 w-full rounded-xl overflow-hidden mb-2 bg-white">
                             <img :src="p.image" :alt="p.name" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
@@ -3344,6 +3407,15 @@
                 showModifierModal: false,
                 selectedModifierProduct: null,
                 modifierQty: 1,
+
+                // Group Gabin: Varian Rasa
+                selectedGabinFlavor: '',
+                gabinFlavorOptions: [
+                    { name: 'Vanilla Choco Chips', desc: 'Krim putih dengan potongan cokelat', icon: '🍪' },
+                    { name: 'Strawberry', desc: 'Krim putih dengan potongan stroberi', icon: '🍓' },
+                    { name: 'Matcha Strawberry', desc: 'Krim hijau matcha dengan potongan stroberi', icon: '🍵' },
+                    { name: 'Double Chocolate', desc: 'Krim cokelat dengan potongan cokelat', icon: '🍫' }
+                ],
 
                 // Group 0: Coffee & Espresso (Americano & Craft Coffee)
                 coffeeServing: 'Iced (16 oz)',
@@ -3587,6 +3659,12 @@
                             const parsed = JSON.parse(s);
                             if (Array.isArray(parsed) && parsed.length > 0) {
                                 const cleaned = parsed.filter(p => !TEMPLATE_DUMMY_NAMES.includes(((p && p.name) || '').trim().toLowerCase()));
+                                const existingNames = new Set(cleaned.map(p => (p.name || '').trim().toLowerCase()));
+                                ALL_WARUNG_PRODUCTS.forEach(p => {
+                                    if (!existingNames.has((p.name || '').trim().toLowerCase())) {
+                                        cleaned.push({ ...p });
+                                    }
+                                });
                                 if (cleaned.length > 0) return cleaned;
                             }
                         }
@@ -3712,7 +3790,7 @@
                     if (!query) return;
                     const found = this.products.find(p => p.barcode && p.barcode.toLowerCase() === query);
                     if (found) {
-                        this.addToCart(found);
+                        this.handleProductClick(found);
                         this.searchQuery = '';
                     }
                 },
@@ -3737,6 +3815,7 @@
                     if (!product) return false;
                     const name = (product.name || '').toLowerCase();
                     const cat = (product.category || '').toLowerCase();
+                    if (name.includes('gabin')) return true;
                     // Americano, Kopi, Espresso, Latte, Cappucino
                     if (name.includes('americano') || name.includes('espresso') || name.includes('ekspresso') ||
                         name.includes('kopi') || name.includes('cappucino') || name.includes('cappuccino') || 
@@ -3758,6 +3837,11 @@
                     if (!product) return 'coffee_espresso';
                     const name = (product.name || '').toLowerCase();
                     const cat = (product.category || '').toLowerCase();
+
+                    // 0. Gabin Variant (Pilih Rasa)
+                    if (name.includes('gabin')) {
+                        return 'gabin_variant';
+                    }
 
                     // 0. Coffee & Espresso (Americano & Craft Coffee)
                     if (name.includes('americano') || name.includes('espresso') || name.includes('ekspresso') ||
@@ -3804,6 +3888,7 @@
                 getModifierGroupBadge(product) {
                     const group = this.getModifierGroup(product);
                     switch (group) {
+                        case 'gabin_variant': return '🍪 Pilihan Varian Rasa';
                         case 'coffee_espresso': return '☕ Coffee & Espresso Craft';
                         case 'spicy_mains': return '🔥 Spicy & Mains';
                         case 'nasi_curry_noodle': return '🍛 Nasi, Curry & Noodle';
@@ -3861,7 +3946,9 @@
                     const name = (product.name || '').toLowerCase();
                     const group = this.getModifierGroup(product);
 
-                    if (group === 'coffee_espresso') {
+                    if (group === 'gabin_variant') {
+                        this.selectedGabinFlavor = '';
+                    } else if (group === 'coffee_espresso') {
                         const isHot = name.includes('hot') || name.includes('panas') || name.includes('hangat');
                         this.coffeeServing = isHot ? 'Hot (8 oz)' : 'Iced (16 oz)';
                         this.espressoShot = 'Double Shot / Default (36-40 ml)';
@@ -3955,7 +4042,13 @@
                     const qty = Math.max(1, Number(this.modifierQty) || 1);
                     
                     let modDetails = [];
-                    if (group === 'coffee_espresso') {
+                    if (group === 'gabin_variant') {
+                        if (!this.selectedGabinFlavor) {
+                            alert('Silakan pilih salah satu varian rasa terlebih dahulu.');
+                            return;
+                        }
+                        modDetails.push('Rasa: ' + this.selectedGabinFlavor);
+                    } else if (group === 'coffee_espresso') {
                         modDetails.push(this.coffeeServing);
                         modDetails.push(this.espressoShot.split(' (')[0]);
                         modDetails.push(this.coffeeBeans.split(' (')[0]);
@@ -5109,6 +5202,12 @@
                                 return { ...d, docId: doc.id, id: d.id !== undefined ? d.id : (idx + 1) };
                             });
                         if (cloudProducts.length > 0) {
+                            const existingNames = new Set(cloudProducts.map(p => (p.name || '').trim().toLowerCase()));
+                            ALL_WARUNG_PRODUCTS.forEach(p => {
+                                if (!existingNames.has((p.name || '').trim().toLowerCase())) {
+                                    cloudProducts.push({ ...p });
+                                }
+                            });
                             this.products = cloudProducts;
                             this.sortProducts();
                             try {
@@ -5404,7 +5503,11 @@
                                 doc.text(this.formatRupiah(item.price * item.qty), 74, y, { align: 'right' });
                                 y += 4;
                                 doc.setFont('courier', 'normal');
-                                doc.text(`${item.qty} x ${this.formatRupiah(item.price)}`, 6, y);
+                                let lineText = `${item.qty} x ${this.formatRupiah(item.price)}`;
+                                if (item.modifiersSummary) {
+                                    lineText += ` (${item.modifiersSummary})`;
+                                }
+                                doc.text(lineText.substring(0, 32), 6, y);
                                 y += 5;
                             });
 
@@ -5842,9 +5945,12 @@
                     </div>
                     <div class="bg-slate-50 rounded-xl p-3 space-y-1.5">
                         <template x-for="(item, i) in (selectedTransaction.items || [])" :key="i">
-                            <div class="flex items-center justify-between text-xs">
-                                <span class="text-slate-600"><span class="font-bold text-slate-900" x-text="item.qty"></span>x <span x-text="item.name"></span></span>
-                                <span class="font-semibold text-slate-800" x-text="formatRupiah(Number(item.price) * Number(item.qty))"></span>
+                            <div class="py-0.5 border-b border-slate-100 last:border-none">
+                                <div class="flex items-center justify-between text-xs">
+                                    <span class="text-slate-600"><span class="font-bold text-slate-900" x-text="item.qty"></span>x <span x-text="item.name"></span></span>
+                                    <span class="font-semibold text-slate-800" x-text="formatRupiah(Number(item.price) * Number(item.qty))"></span>
+                                </div>
+                                <div x-show="item.modifiersSummary" class="text-[10px] text-[#4B5320] font-semibold italic mt-0.5" x-text="item.modifiersSummary"></div>
                             </div>
                         </template>
                     </div>
